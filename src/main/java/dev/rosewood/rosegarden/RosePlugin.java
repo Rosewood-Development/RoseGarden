@@ -1,0 +1,286 @@
+package dev.rosewood.rosegarden;
+
+import dev.rosewood.rosegarden.command.RwdCommand;
+import dev.rosewood.rosegarden.database.DataMigration;
+import dev.rosewood.rosegarden.manager.AbstractConfigurationManager;
+import dev.rosewood.rosegarden.manager.AbstractDataManager;
+import dev.rosewood.rosegarden.manager.AbstractLocaleManager;
+import dev.rosewood.rosegarden.manager.DataMigrationManager;
+import dev.rosewood.rosegarden.manager.Manager;
+import dev.rosewood.rosegarden.manager.PluginUpdateManager;
+import dev.rosewood.rosegarden.objects.RosePluginData;
+import dev.rosewood.rosegarden.utils.RoseGardenUtils;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.StringReader;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import org.bstats.bukkit.MetricsLite;
+import org.bukkit.Bukkit;
+import org.bukkit.command.CommandMap;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.RegisteredServiceProvider;
+import org.bukkit.plugin.ServicePriority;
+import org.bukkit.plugin.ServicesManager;
+import org.bukkit.plugin.java.JavaPlugin;
+
+public abstract class RosePlugin extends JavaPlugin {
+
+    /**
+     * The RosePlugin identifier
+     */
+    public static final String ROSEGARDEN_VERSION = "@version@";
+
+    /**
+     * The plugin ID on Spigot
+     */
+    private final int spigotId;
+
+    /**
+     * The plugin ID on bStats
+     */
+    private final int bStatsId;
+
+    /**
+     * The classes that extend the abstract managers
+     */
+    private final Class<? extends AbstractConfigurationManager> configurationManagerClass;
+    private final Class<? extends AbstractDataManager> dataManagerClass;
+    private final Class<? extends AbstractLocaleManager> localeManagerClass;
+
+    /**
+     * The plugin managers
+     */
+    private final Map<Class<? extends Manager>, Manager> managers;
+
+    public RosePlugin(int spigotId,
+                      int bStatsId,
+                      Class<? extends AbstractConfigurationManager> configurationManagerClass,
+                      Class<? extends AbstractDataManager> dataManagerClass,
+                      Class<? extends AbstractLocaleManager> localeManagerClass) {
+        if (Modifier.isAbstract(configurationManagerClass.getModifiers()))
+            throw new IllegalArgumentException("configurationManagerClass cannot be abstract");
+        if (Modifier.isAbstract(dataManagerClass.getModifiers()))
+            throw new IllegalArgumentException("dataManagerClass cannot be abstract");
+        if (Modifier.isAbstract(localeManagerClass.getModifiers()))
+            throw new IllegalArgumentException("localeManagerClass cannot be abstract");
+
+        this.spigotId = spigotId;
+        this.bStatsId = bStatsId;
+        this.configurationManagerClass = configurationManagerClass;
+        this.dataManagerClass = dataManagerClass;
+        this.localeManagerClass = localeManagerClass;
+
+        this.managers = new LinkedHashMap<>();
+    }
+
+    @Override
+    public final void onEnable() {
+        // Log that we are loading
+        this.getLogger().info("Initializing using RoseGarden v" + ROSEGARDEN_VERSION);
+
+        // bStats Metrics
+        if (this.bStatsId != -1)
+            new MetricsLite(this, this.bStatsId);
+
+        // Check if the library is relocated properly
+        if (!RoseGardenUtils.isRelocated()) {
+            Bukkit.getLogger().severe("[RoseGarden] DEVELOPER ERROR!!! RoseGarden has not been relocated! Plugin has been forcefully disabled.");
+            Bukkit.getPluginManager().disablePlugin(this);
+            return;
+        }
+        
+        // Load managers
+        this.reload();
+
+        // Run the plugin's enable code
+        this.enable();
+
+        // Inject the plugin class into the spigot services manager
+        this.injectService();
+    }
+
+    @Override
+    public final void onDisable() {
+        this.disableManagers();
+        this.managers.clear();
+
+        // Run the plugin's disable code
+        this.disable();
+    }
+
+    /**
+     * Called during {@link JavaPlugin#onEnable}
+     */
+    protected abstract void enable();
+
+    /**
+     * Called during {@link JavaPlugin#onDisable}
+     */
+    protected abstract void disable();
+
+    /**
+     * @return the order in which Managers should be loaded
+     */
+    protected abstract List<Class<? extends Manager>> getManagerLoadPriority();
+
+    /**
+     * @return all data migrations for the DataMigrationManager to handle
+     */
+    public abstract List<DataMigration> getDataMigrations();
+
+    /**
+     * Reloads the plugin's managers
+     */
+    public void reload() {
+        this.disableManagers();
+        this.managers.values().forEach(Manager::reload);
+
+        List<Class<? extends Manager>> managerLoadPriority = new ArrayList<>();
+
+        managerLoadPriority.add(this.configurationManagerClass);
+        managerLoadPriority.add(this.localeManagerClass);
+        managerLoadPriority.addAll(this.getManagerLoadPriority());
+
+        if (this.spigotId != -1)
+            managerLoadPriority.add(PluginUpdateManager.class);
+
+        if (this.dataManagerClass != null) {
+            int indexOfDataManager = managerLoadPriority.indexOf(this.dataManagerClass);
+            if (indexOfDataManager != -1) // Always load the DataMigrationManager after the DataManager
+                managerLoadPriority.add(indexOfDataManager + 1, DataMigrationManager.class);
+        }
+
+        managerLoadPriority.forEach(this::getManager);
+    }
+
+    /**
+     * Runs {@link Manager#disable} on all managers in the reverse order that they were loaded
+     */
+    private void disableManagers() {
+        List<Manager> managers = new ArrayList<>(this.managers.values());
+        Collections.reverse(managers);
+        managers.forEach(Manager::disable);
+    }
+
+    /**
+     * Gets a manager instance
+     *
+     * @param managerClass The class of the manager to get
+     * @param <T> extends Manager
+     * @return A new or existing instance of the given manager class
+     */
+    @SuppressWarnings("unchecked")
+    public final <T extends Manager> T getManager(Class<T> managerClass) {
+        if (this.managers.containsKey(managerClass))
+            return (T) this.managers.get(managerClass);
+
+        // Get the actual class if the abstract one is requested
+        if (managerClass == AbstractConfigurationManager.class) {
+            return this.getManager((Class<T>) this.configurationManagerClass);
+        } else if (managerClass == AbstractLocaleManager.class) {
+            return this.getManager((Class<T>) this.localeManagerClass);
+        } else if (managerClass == AbstractDataManager.class) {
+            return this.getManager((Class<T>) this.dataManagerClass);
+        }
+
+        try {
+            T manager = managerClass.getConstructor(RosePlugin.class).newInstance(this);
+            this.managers.put(managerClass, manager);
+            manager.reload();
+            return manager;
+        } catch (Exception ex) {
+            throw new ManagerNotFoundException(managerClass, ex);
+        }
+    }
+
+    /**
+     * @return the ID of the plugin on Spigot, or -1 if not tracked
+     */
+    public int getSpigotId() {
+        return this.spigotId;
+    }
+
+    /**
+     * @return the ID of this plugin on bStats, or -1 if not tracked
+     */
+    public int getBStatsId() {
+        return this.bStatsId;
+    }
+
+    private void injectService() {
+        // Search for other RoseGarden services
+        boolean exists = !this.getLoadedRosePluginsData().isEmpty();
+
+        // Register our service
+        Bukkit.getServicesManager().register(RosePlugin.class, this, this, ServicePriority.Normal);
+
+        // If we aren't the first then don't continue
+        if (exists)
+            return;
+
+        // Register /rwd command
+        try {
+            Field bukkitCommandMap = Bukkit.getServer().getClass().getDeclaredField("commandMap");
+            bukkitCommandMap.setAccessible(true);
+
+            CommandMap commandMap = (CommandMap) bukkitCommandMap.get(Bukkit.getServer());
+            commandMap.register("rosegarden", new RwdCommand(this));
+        } catch (ReflectiveOperationException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * @return data of all RosePlugins installed on the server
+     */
+    public List<RosePluginData> getLoadedRosePluginsData() {
+        List<RosePluginData> data = new ArrayList<>();
+
+        ServicesManager servicesManager = Bukkit.getServicesManager();
+        for (Class<?> service : servicesManager.getKnownServices()) {
+            try {
+                String roseGardenVersion = (String) service.getField("ROSEGARDEN_VERSION").get(null);
+                Method updateVersionMethod = service.getMethod("getUpdateVersion");
+
+                for (RegisteredServiceProvider<?> provider : servicesManager.getRegistrations(service)) {
+                    Plugin plugin = provider.getPlugin();
+                    String pluginName = plugin.getName();
+                    String pluginVersion = plugin.getDescription().getVersion();
+                    String website = plugin.getDescription().getWebsite();
+                    String updateVersion = (String) updateVersionMethod.invoke(plugin);
+                    data.add(new RosePluginData(pluginName, pluginVersion, updateVersion, website, roseGardenVersion));
+                }
+            } catch (ReflectiveOperationException | ClassCastException ignored) { }
+        }
+
+        return data;
+    }
+
+    /**
+     * @return the version of the latest update of this plugin, or null if there is none
+     */
+    public String getUpdateVersion() {
+        return this.getManager(PluginUpdateManager.class).getUpdateVersion();
+    }
+
+    /**
+     * An exception thrown when a Manager fails to load
+     */
+    private static class ManagerNotFoundException extends RuntimeException {
+
+        public ManagerNotFoundException(Class<? extends Manager> managerClass, Throwable cause) {
+            super("Failed to load " + managerClass.getSimpleName(), cause);
+        }
+
+    }
+
+}

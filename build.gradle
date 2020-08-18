@@ -1,0 +1,99 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '5.1.0'
+    id 'maven-publish'
+}
+
+group = 'dev.rosewood'
+version = '1.0.0'
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+	mavenCentral()
+	jcenter()
+
+	maven { url = 'https://repo.codemc.org/repository/maven-public' }
+	maven { url = 'https://repo.aikar.co/content/groups/aikar/' }
+	maven { url = 'http://repo.extendedclip.com/content/repositories/placeholderapi/' }
+	maven { url = 'http://maven.playpro.com' }
+	maven { url = 'https://repo.rosewooddev.io/repository/public/' }
+
+	maven {
+		url = 'https://repo.rosewooddev.io/repository/maven-public'
+		credentials {
+			username project.mavenUser
+			password project.mavenPassword
+			authentication {
+				basic(BasicAuthentication)
+			}
+		}
+	}
+}
+
+dependencies {
+    // Referenced dependencies
+    compileOnly 'org.spigotmc:spigot:1.16.2'
+    compileOnly 'me.clip:placeholderapi:2.10.4'
+
+    // Shaded dependencies
+    implementation 'org.bstats:bstats-bukkit-lite:1.7'
+    implementation 'com.zaxxer:HikariCP:3.2.0'
+    implementation 'org.slf4j:slf4j-api:1.7.25'
+    implementation 'org.slf4j:slf4j-nop:1.7.25'
+}
+
+task processSource(type: Sync) {
+    from sourceSets.main.java
+    inputs.property 'version', version
+    filter(ReplaceTokens, tokens: [version: version])
+    into "$buildDir/src"
+}
+
+compileJava {
+    options.compilerArgs += ['-parameters']
+    options.fork = true
+    options.forkOptions.executable = 'javac'
+    options.encoding = 'UTF-8'
+    source = processSource.outputs
+}
+
+shadowJar {
+    archiveClassifier.set(null)
+
+    relocate('org.intellij', 'dev.rosewood.rosegarden.lib.intellij')
+    relocate('org.jetbrains', 'dev.rosewood.rosegarden.lib.jetbrains')
+    relocate('com.zaxxer.hikari', 'dev.rosewood.rosegarden.lib.hikaricp')
+    relocate('org.slf4j', 'dev.rosewood.rosegarden.lib.slf4j')
+    relocate('org.bstats', 'dev.rosewood.rosegarden.lib.bstats')
+}
+
+publishing {
+    publications {
+        shadow(MavenPublication) { publication ->
+            project.shadow.component(publication)
+            artifactId = 'rosegarden'
+            pom {
+                name = 'rosegarden'
+            }
+        }
+    }
+    repositories {
+        if (project.hasProperty('mavenUser') && project.hasProperty('mavenPassword')) {
+            maven {
+                credentials {
+                    username project.mavenUser
+                    password project.mavenPassword
+                }
+
+                def releasesRepoUrl = 'https://repo.rosewooddev.io/repository/public-releases/'
+                def snapshotsRepoUrl = 'https://repo.rosewooddev.io/repository/public-snapshots/'
+                url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+            }
+        }
+    }
+}
+
+build.dependsOn shadowJar
