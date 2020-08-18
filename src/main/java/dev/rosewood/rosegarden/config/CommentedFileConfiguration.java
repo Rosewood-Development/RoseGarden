@@ -25,6 +25,18 @@ public class CommentedFileConfiguration extends CommentedConfigurationSection {
     }
 
     public void set(String path, Object value, String... comments) {
+        this.addPathedComments(path, comments);
+        this.set(path, value);
+    }
+
+    public void addComments(String... comments) {
+        for (String comment : comments) {
+            this.set("_COMMENT_" + this.comments, " " + comment);
+            this.comments++;
+        }
+    }
+
+    public void addPathedComments(String path, String... comments) {
         if (!this.contains(path)) {
             int subpathIndex = path.lastIndexOf('.');
             String subpath = subpathIndex == -1 ? "" : path.substring(0, subpathIndex) + '.';
@@ -33,15 +45,6 @@ public class CommentedFileConfiguration extends CommentedConfigurationSection {
                 this.set(subpath + "_COMMENT_" + this.comments, " " + comment);
                 this.comments++;
             }
-        }
-
-        this.set(path, value);
-    }
-
-    public void addComments(String... comments) {
-        for (String comment : comments) {
-            this.set("_COMMENT_" + this.comments, " " + comment);
-            this.comments++;
         }
     }
 

@@ -41,6 +41,7 @@ public abstract class AbstractDataManager extends Manager {
             }
         } catch (Exception ex) {
             this.rosePlugin.getLogger().severe("Fatal error trying to connect to database. Please make sure all your connection settings are correct and try again. Plugin has been disabled.");
+            ex.printStackTrace();
             Bukkit.getPluginManager().disablePlugin(this.rosePlugin);
         }
 

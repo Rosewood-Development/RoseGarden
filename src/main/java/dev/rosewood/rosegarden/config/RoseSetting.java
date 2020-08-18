@@ -28,54 +28,104 @@ public interface RoseSetting {
     Object getCachedValue();
 
     /**
+     * @return the base CommentedFileConfiguration of the config.yml
+     */
+    CommentedFileConfiguration getBaseConfig();
+
+    /**
+     * Sets the cached value for this setting
+     *
+     * @param value The value
+     */
+    void setCachedValue(Object value);
+
+    /**
      * @return the setting as a boolean
      */
-    boolean getBoolean();
+    default boolean getBoolean() {
+        this.loadValue();
+        return (boolean) this.getCachedValue();
+    }
 
     /**
      * @return the setting as an int
      */
-    int getInt();
+    default int getInt() {
+        this.loadValue();
+        return (int) RoseGardenUtils.getNumber(this.getCachedValue());
+    }
 
     /**
      * @return the setting as a long
      */
-    long getLong();
+    default long getLong() {
+        this.loadValue();
+        return (long) RoseGardenUtils.getNumber(this.getCachedValue());
+    }
 
     /**
      * @return the setting as a double
      */
-    double getDouble();
+    default double getDouble() {
+        this.loadValue();
+        return RoseGardenUtils.getNumber(this.getCachedValue());
+    }
 
     /**
      * @return the setting as a float
      */
-    float getFloat();
+    default float getFloat() {
+        this.loadValue();
+        return (float) RoseGardenUtils.getNumber(this.getCachedValue());
+    }
 
     /**
      * @return the setting as a String
      */
-    String getString();
+    default String getString() {
+        this.loadValue();
+        return (String) this.getCachedValue();
+    }
 
     /**
      * @return the setting as a string list
      */
-    List<String> getStringList();
+    @SuppressWarnings("unchecked")
+    default List<String> getStringList() {
+        this.loadValue();
+        return (List<String>) this.getCachedValue();
+    }
 
     /**
-     * @return true if this setting is only a section and doesn't contain an actual value
+     * @return the setting as a CommentedConfigurationSection
      */
-    boolean isSection();
+    default CommentedConfigurationSection getSection() {
+        return (CommentedConfigurationSection) this.getCachedValue();
+    }
 
     /**
      * Loads the value from the config and caches it if it isn't set yet
      */
-    void loadValue();
+    default void loadValue() {
+        if (this.getCachedValue() != null)
+            return;
+
+        String key = this.getKey();
+
+        CommentedFileConfiguration config = this.getBaseConfig();
+        if (config.isConfigurationSection(key)) {
+            this.setCachedValue(config.getConfigurationSection(key));
+        } else {
+            this.setCachedValue(config.get(key));
+        }
+    }
 
     /**
      * Resets the cached value
      */
-    void reset();
+    default void reset() {
+        this.setCachedValue(null);
+    }
 
     /**
      * Sets the value in the given CommentedFileConfiguration if the setting does not already exist
@@ -89,9 +139,9 @@ public interface RoseSetting {
         String key = this.getKey();
         Object defaultValue = this.getDefaultValue();
 
-        if (fileConfiguration.get(key) == null) {
+        if (this.getCachedValue() == null) {
             List<String> comments = new ArrayList<>(Arrays.asList(this.getComments()));
-            if (!(defaultValue instanceof List) && defaultValue != null) {
+            if (!(defaultValue instanceof RoseSettingValue) && !(defaultValue instanceof List) && defaultValue != null) {
                 String defaultComment = "Default: ";
                 if (defaultValue instanceof String) {
                     if (RoseGardenUtils.containsConfigSpecialCharacters((String) defaultValue)) {
@@ -105,10 +155,12 @@ public interface RoseSetting {
                 comments.add(defaultComment);
             }
 
+            String[] commentsArray = comments.toArray(new String[0]);
             if (defaultValue != null) {
-                fileConfiguration.set(key, defaultValue, comments.toArray(new String[0]));
+                RoseSettingValue value = new RoseSettingValue(key, defaultValue, commentsArray);
+                RoseGardenUtils.recursivelyWriteRoseSettingValues(fileConfiguration, value);
             } else {
-                fileConfiguration.addComments(comments.toArray(new String[0]));
+                fileConfiguration.addComments(commentsArray);
             }
 
             return true;

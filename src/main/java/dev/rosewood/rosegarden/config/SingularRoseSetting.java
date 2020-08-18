@@ -2,7 +2,6 @@ package dev.rosewood.rosegarden.config;
 
 import dev.rosewood.rosegarden.RosePlugin;
 import dev.rosewood.rosegarden.manager.AbstractConfigurationManager;
-import java.util.List;
 
 public class SingularRoseSetting implements RoseSetting {
 
@@ -40,78 +39,13 @@ public class SingularRoseSetting implements RoseSetting {
     }
 
     @Override
-    public boolean getBoolean() {
-        this.loadValue();
-        return (boolean) this.value;
+    public void setCachedValue(Object value) {
+        this.value = value;
     }
 
     @Override
-    public int getInt() {
-        this.loadValue();
-        return (int) this.getNumber();
-    }
-
-    @Override
-    public long getLong() {
-        this.loadValue();
-        return (long) this.getNumber();
-    }
-
-    @Override
-    public double getDouble() {
-        this.loadValue();
-        return this.getNumber();
-    }
-
-    @Override
-    public float getFloat() {
-        this.loadValue();
-        return (float) this.getNumber();
-    }
-
-    @Override
-    public String getString() {
-        this.loadValue();
-        return (String) this.value;
-    }
-
-    private double getNumber() {
-        if (this.value instanceof Integer) {
-            return (int) this.value;
-        } else if (this.value instanceof Short) {
-            return (short) this.value;
-        } else if (this.value instanceof Byte) {
-            return (byte) this.value;
-        } else if (this.value instanceof Float) {
-            return (float) this.value;
-        }
-
-        return (double) this.value;
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public List<String> getStringList() {
-        this.loadValue();
-        return (List<String>) this.value;
-    }
-
-    @Override
-    public boolean isSection() {
-        return this.defaultValue == null;
-    }
-
-    @Override
-    public void loadValue() {
-        if (this.value != null)
-            return;
-
-        this.value = this.rosePlugin.getManager(AbstractConfigurationManager.class).getConfig().get(this.key);
-    }
-
-    @Override
-    public void reset() {
-        this.value = null;
+    public CommentedFileConfiguration getBaseConfig() {
+        return this.rosePlugin.getManager(AbstractConfigurationManager.class).getConfig();
     }
 
 }
