@@ -154,7 +154,7 @@ public final class HexUtils {
             if (matcher.start() > searchAfter)
                 return matcher.start();
         }
-        return content.length() - 1;
+        return content.length();
     }
 
     private static String cleanHex(String hex) {
