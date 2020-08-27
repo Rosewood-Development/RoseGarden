@@ -1,6 +1,7 @@
 package dev.rosewood.rosegarden.utils;
 
 import java.awt.Color;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -11,15 +12,28 @@ import org.bukkit.command.CommandSender;
 
 public final class HexUtils {
 
-    private static final Pattern RAINBOW_PATTERN = Pattern.compile("<(rainbow|r)(:\\d*\\.?\\d+){0,2}>");
-    private static final Pattern GRADIENT_PATTERN = Pattern.compile("<(gradient|g)(:#([A-Fa-f0-9]){6})*>");
+    private static final int CHARS_UNTIL_LOOP = 30;
+    private static final List<String> LOOP_VALUES = Arrays.asList("l", "L", "loop");
+
+    private static final Pattern RAINBOW_PATTERN = Pattern.compile("<(rainbow|r)(:\\d*\\.?\\d+){0,2}(:(l|L|loop))?>");
+    private static final Pattern GRADIENT_PATTERN = Pattern.compile("<(gradient|g)(:#([A-Fa-f0-9]){6}){2,}(:(l|L|loop))?>");
     private static final List<Pattern> HEX_PATTERNS = Arrays.asList(
-            Pattern.compile("<#([A-Fa-f0-9]){6}>"), // <#FFFFFF>
-            Pattern.compile("&#([A-Fa-f0-9]){6}"),  // &#FFFFFF
-            Pattern.compile("#([A-Fa-f0-9]){6}")    // #FFFFFF
+            Pattern.compile("<#([A-Fa-f0-9]){6}>"),   // <#FFFFFF>
+            Pattern.compile("\\{#([A-Fa-f0-9]){6}}"), // {#FFFFFF}
+            Pattern.compile("&#([A-Fa-f0-9]){6}"),    // &#FFFFFF
+            Pattern.compile("#([A-Fa-f0-9]){6}")      // #FFFFFF
     );
 
-    private static final Pattern STOP = Pattern.compile("<(gradient|g)(:#([A-Fa-f0-9]){6})*>|<(rainbow|r)(:\\d*\\.?\\d+){0,2}>|(&[a-f0-9r])|<#([A-Fa-f0-9]){6}>|&#([A-Fa-f0-9]){6}|#([A-Fa-f0-9]){6}|" + org.bukkit.ChatColor.COLOR_CHAR);
+    private static final Pattern STOP = Pattern.compile(
+            "<(gradient|g)(:#([A-Fa-f0-9]){6}){2,}(:(l|L|loop))?>|" +
+                    "<(rainbow|r)(:\\d*\\.?\\d+){0,2}(:(l|L|loop))?>|" +
+                    "(&[a-f0-9r])|" +
+                    "<#([A-Fa-f0-9]){6}>|" +
+                    "\\{#([A-Fa-f0-9]){6}}|" +
+                    "&#([A-Fa-f0-9]){6}|" +
+                    "#([A-Fa-f0-9]){6}|" +
+                    org.bukkit.ChatColor.COLOR_CHAR
+    );
 
     private HexUtils() {
 
@@ -28,7 +42,7 @@ public final class HexUtils {
     /**
      * Sends a CommandSender a colored message
      *
-     * @param sender The CommandSender to send to
+     * @param sender  The CommandSender to send to
      * @param message The message to send
      */
     public static void sendMessage(CommandSender sender, String message) {
@@ -63,10 +77,19 @@ public final class HexUtils {
             int indexOfClose = match.indexOf(">");
             String extraDataContent = match.substring(tagLength, indexOfClose);
 
+            boolean looping = false;
             double[] extraData;
             if (!extraDataContent.isEmpty()) {
                 extraDataContent = extraDataContent.substring(1);
-                extraData = Arrays.stream(extraDataContent.split(":")).mapToDouble(Double::parseDouble).toArray();
+                if (LOOP_VALUES.stream().anyMatch(extraDataContent::endsWith)) {
+                    looping = true;
+                    if (extraDataContent.contains(":")) {
+                        extraDataContent = extraDataContent.substring(0, extraDataContent.lastIndexOf(":"));
+                    } else {
+                        extraDataContent = "";
+                    }
+                }
+                extraData = Arrays.stream(extraDataContent.split(":")).filter(x -> !x.isEmpty()).mapToDouble(Double::parseDouble).toArray();
             } else {
                 extraData = new double[0];
             }
@@ -76,7 +99,8 @@ public final class HexUtils {
 
             int stop = findStop(parsed, matcher.end());
             String content = parsed.substring(matcher.end(), stop);
-            Rainbow rainbow = new Rainbow(content.length(), saturation, brightness);
+            int length = looping ? Math.min(content.length(), CHARS_UNTIL_LOOP) : content.length();
+            Rainbow rainbow = new Rainbow(length, saturation, brightness);
 
             for (char c : content.toCharArray())
                 parsedRainbow.append(translateHex(rainbow.next())).append(c);
@@ -102,11 +126,18 @@ public final class HexUtils {
 
             int indexOfClose = match.indexOf(">");
             String hexContent = match.substring(tagLength, indexOfClose);
+            boolean looping = false;
+            if (LOOP_VALUES.stream().anyMatch(hexContent::endsWith)) {
+                looping = true;
+                hexContent = hexContent.substring(0, hexContent.lastIndexOf(":"));
+            }
+
             List<Color> hexSteps = Arrays.stream(hexContent.split(":")).map(Color::decode).collect(Collectors.toList());
 
             int stop = findStop(parsed, matcher.end());
             String content = parsed.substring(matcher.end(), stop);
-            Gradient gradient = new Gradient(hexSteps, content.length());
+            int length = looping ? Math.min(content.length(), CHARS_UNTIL_LOOP) : content.length();
+            Gradient gradient = new Gradient(hexSteps, length);
 
             for (char c : content.toCharArray())
                 parsedGradient.append(translateHex(gradient.next())).append(c);
@@ -144,7 +175,7 @@ public final class HexUtils {
     /**
      * Returns the index before the color changes
      *
-     * @param content The content to search through
+     * @param content     The content to search through
      * @param searchAfter The index at which to search after
      * @return the index of the color stop, or the end of the string index if none is found
      */
@@ -158,7 +189,7 @@ public final class HexUtils {
     }
 
     private static String cleanHex(String hex) {
-        if (hex.startsWith("<")) {
+        if (hex.startsWith("<") || hex.startsWith("{")) {
             return hex.substring(1, hex.length() - 1);
         } else if (hex.startsWith("&")) {
             return hex.substring(1);
@@ -250,71 +281,94 @@ public final class HexUtils {
     }
 
     /**
-     * Allows generation of a multi-part gradient with a fixed number of steps
+     * Allows generation of a multi-part gradient with a defined number of steps
      */
     public static class Gradient {
 
-        private final List<Color> colors;
-        private final int stepSize;
-        private int step, stepIndex;
+        private final List<TwoStopGradient> gradients;
+        private final int steps;
+        private int step;
+        private boolean reversed;
 
-        public Gradient(List<Color> colors, int totalColors) {
+        public Gradient(List<Color> colors, int steps) {
             if (colors.size() < 2)
                 throw new IllegalArgumentException("Must provide at least 2 colors");
 
-            if (totalColors < 1)
-                throw new IllegalArgumentException("Must have at least 1 total color");
+            this.gradients = new ArrayList<>();
+            this.steps = steps - 1;
+            this.step = 0;
+            this.reversed = false;
 
-            this.colors = colors;
-            this.stepSize = totalColors / (colors.size() - 1);
-            this.step = this.stepIndex = 0;
+            float increment = (float) this.steps / (colors.size() - 1);
+            for (int i = 0; i < colors.size() - 1; i++)
+                this.gradients.add(new TwoStopGradient(colors.get(i), colors.get(i + 1), increment * i, increment * (i + 1)));
         }
 
         /**
          * @return the next color in the gradient
          */
         public Color next() {
-            // Gradients will use the first color of the entire spectrum won't be available to preserve prettiness
-            if (NMSUtil.getVersionNumber() < 16)
-                return this.colors.get(0);
+            // Gradients will use the first color if the entire spectrum won't be available to preserve prettiness
+            if (NMSUtil.getVersionNumber() < 16 || this.steps <= 1)
+                return this.gradients.get(0).colorAt(0);
 
             Color color;
-            if (this.stepIndex + 1 < this.colors.size()) {
-                Color start = this.colors.get(this.stepIndex);
-                Color end = this.colors.get(this.stepIndex + 1);
-                float interval = (float) this.step / this.stepSize;
-
-                color = getGradientInterval(start, end, interval);
+            if (this.gradients.size() < 2) {
+                color = this.gradients.get(0).colorAt(this.step);
             } else {
-                color = this.colors.get(this.colors.size() - 1);
+                float segment = (float) this.steps / this.gradients.size();
+                int index = (int) Math.min(Math.floor(this.step / segment), this.gradients.size() - 1);
+                color = this.gradients.get(index).colorAt(this.step);
             }
 
-            this.step += 1;
-            if (this.step >= this.stepSize) {
-                this.step = 0;
-                this.stepIndex++;
+            // Increment/Loop the step to keep it rotating through the gradients
+            if (!this.reversed) {
+                this.step++;
+                if (this.step >= this.steps)
+                    this.reversed = true;
+            } else {
+                this.step--;
+                if (this.step <= 0)
+                    this.reversed = false;
             }
 
             return color;
         }
 
-        /**
-         * Gets a color along a linear gradient between two colors
-         *
-         * @param start The start color
-         * @param end The end color
-         * @param interval The interval to get, between 0 and 1 inclusively
-         * @return A Color at the interval between the start and end colors
-         */
-        public static Color getGradientInterval(Color start, Color end, float interval) {
-            if (0 > interval || interval > 1)
-                throw new IllegalArgumentException("Interval must be between 0 and 1 inclusively.");
+        private static class TwoStopGradient {
 
-            int r = (int) (end.getRed() * interval + start.getRed() * (1 - interval));
-            int g = (int) (end.getGreen() * interval + start.getGreen() * (1 - interval));
-            int b = (int) (end.getBlue() * interval + start.getBlue() * (1 - interval));
+            private final Color startColor;
+            private final Color endColor;
+            private final float lowerRange;
+            private final float upperRange;
 
-            return new Color(r, g, b);
+            private TwoStopGradient(Color startColor, Color endColor, float lowerRange, float upperRange) {
+                this.startColor = startColor;
+                this.endColor = endColor;
+                this.lowerRange = lowerRange;
+                this.upperRange = upperRange;
+            }
+
+            /**
+             * Gets the color of this gradient at the given step
+             *
+             * @param step The step
+             * @return The color of this gradient at the given step
+             */
+            public Color colorAt(int step) {
+                return new Color(
+                        this.calculateHexPiece(step, this.startColor.getRed(), this.endColor.getRed()),
+                        this.calculateHexPiece(step, this.startColor.getGreen(), this.endColor.getGreen()),
+                        this.calculateHexPiece(step, this.startColor.getBlue(), this.endColor.getBlue())
+                );
+            }
+
+            private int calculateHexPiece(int step, int channelStart, int channelEnd) {
+                float range = this.upperRange - this.lowerRange;
+                float interval = (channelEnd - channelStart) / range;
+                return Math.round(interval * (step - this.lowerRange) + channelStart);
+            }
+
         }
 
     }
@@ -335,7 +389,7 @@ public final class HexUtils {
                 throw new IllegalArgumentException("Saturation must be between 0.0 and 1.0");
 
             if (0.0F > brightness || brightness > 1.0F)
-                throw new IllegalArgumentException("Saturation must be between 0.0 and 1.0");
+                throw new IllegalArgumentException("Brightness must be between 0.0 and 1.0");
 
             this.hueStep = 1.0F / totalColors;
             this.saturation = saturation;
