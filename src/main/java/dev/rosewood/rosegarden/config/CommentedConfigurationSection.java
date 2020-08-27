@@ -1,5 +1,6 @@
 package dev.rosewood.rosegarden.config;
 
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -8,6 +9,7 @@ import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.MemorySection;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
@@ -63,7 +65,9 @@ public class CommentedConfigurationSection implements ConfigurationSection {
 
     @Override
     public Set<String> getKeys(boolean b) {
-        return this.config.getKeys(b);
+        Set<String> keys = new LinkedHashSet<>(this.config.getKeys(b));
+        keys.removeIf(x -> x.startsWith("_COMMENT_"));
+        return keys;
     }
 
     @Override
