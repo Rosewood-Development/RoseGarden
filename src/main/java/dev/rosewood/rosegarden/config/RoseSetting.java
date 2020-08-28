@@ -100,6 +100,7 @@ public interface RoseSetting {
      * @return the setting as a CommentedConfigurationSection
      */
     default CommentedConfigurationSection getSection() {
+        this.loadValue();
         return (CommentedConfigurationSection) this.getCachedValue();
     }
 
@@ -141,7 +142,7 @@ public interface RoseSetting {
 
         if (this.getCachedValue() == null) {
             List<String> comments = new ArrayList<>(Arrays.asList(this.getComments()));
-            if (!(defaultValue instanceof RoseSettingValue) && !(defaultValue instanceof List) && defaultValue != null) {
+            if (!(defaultValue instanceof RoseSettingValue || defaultValue instanceof RoseSettingSection) && !(defaultValue instanceof List) && defaultValue != null) {
                 String defaultComment = "Default: ";
                 if (defaultValue instanceof String) {
                     if (RoseGardenUtils.containsConfigSpecialCharacters((String) defaultValue)) {
