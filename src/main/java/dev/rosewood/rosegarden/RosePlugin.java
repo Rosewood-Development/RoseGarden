@@ -10,11 +10,6 @@ import dev.rosewood.rosegarden.manager.Manager;
 import dev.rosewood.rosegarden.manager.PluginUpdateManager;
 import dev.rosewood.rosegarden.objects.RosePluginData;
 import dev.rosewood.rosegarden.utils.RoseGardenUtils;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.StringReader;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -66,11 +61,11 @@ public abstract class RosePlugin extends JavaPlugin {
                       Class<? extends AbstractConfigurationManager> configurationManagerClass,
                       Class<? extends AbstractDataManager> dataManagerClass,
                       Class<? extends AbstractLocaleManager> localeManagerClass) {
-        if (Modifier.isAbstract(configurationManagerClass.getModifiers()))
+        if (configurationManagerClass != null && Modifier.isAbstract(configurationManagerClass.getModifiers()))
             throw new IllegalArgumentException("configurationManagerClass cannot be abstract");
-        if (Modifier.isAbstract(dataManagerClass.getModifiers()))
+        if (dataManagerClass != null && Modifier.isAbstract(dataManagerClass.getModifiers()))
             throw new IllegalArgumentException("dataManagerClass cannot be abstract");
-        if (Modifier.isAbstract(localeManagerClass.getModifiers()))
+        if (localeManagerClass != null && Modifier.isAbstract(localeManagerClass.getModifiers()))
             throw new IllegalArgumentException("localeManagerClass cannot be abstract");
 
         this.spigotId = spigotId;
@@ -146,18 +141,21 @@ public abstract class RosePlugin extends JavaPlugin {
 
         List<Class<? extends Manager>> managerLoadPriority = new ArrayList<>();
 
-        managerLoadPriority.add(this.configurationManagerClass);
-        managerLoadPriority.add(this.localeManagerClass);
+        if (this.hasConfigurationManager())
+            managerLoadPriority.add(this.configurationManagerClass);
+
+        if (this.hasDataManager()) {
+            managerLoadPriority.add(this.dataManagerClass);
+            managerLoadPriority.add(DataMigrationManager.class);
+        }
+
+        if (this.hasLocaleManager())
+            managerLoadPriority.add(this.localeManagerClass);
+
         managerLoadPriority.addAll(this.getManagerLoadPriority());
 
         if (this.spigotId != -1)
             managerLoadPriority.add(PluginUpdateManager.class);
-
-        if (this.dataManagerClass != null) {
-            int indexOfDataManager = managerLoadPriority.indexOf(this.dataManagerClass);
-            if (indexOfDataManager != -1) // Always load the DataMigrationManager after the DataManager
-                managerLoadPriority.add(indexOfDataManager + 1, DataMigrationManager.class);
-        }
 
         managerLoadPriority.forEach(this::getManager);
     }
@@ -184,12 +182,12 @@ public abstract class RosePlugin extends JavaPlugin {
             return (T) this.managers.get(managerClass);
 
         // Get the actual class if the abstract one is requested
-        if (managerClass == AbstractConfigurationManager.class) {
+        if (this.hasConfigurationManager() && managerClass == AbstractConfigurationManager.class) {
             return this.getManager((Class<T>) this.configurationManagerClass);
-        } else if (managerClass == AbstractLocaleManager.class) {
-            return this.getManager((Class<T>) this.localeManagerClass);
-        } else if (managerClass == AbstractDataManager.class) {
+        } else if (this.hasDataManager() && managerClass == AbstractDataManager.class) {
             return this.getManager((Class<T>) this.dataManagerClass);
+        } else if (this.hasLocaleManager() && managerClass == AbstractLocaleManager.class) {
+            return this.getManager((Class<T>) this.localeManagerClass);
         }
 
         try {
@@ -270,6 +268,18 @@ public abstract class RosePlugin extends JavaPlugin {
      */
     public String getUpdateVersion() {
         return this.getManager(PluginUpdateManager.class).getUpdateVersion();
+    }
+
+    public boolean hasConfigurationManager() {
+        return this.configurationManagerClass != null;
+    }
+
+    public boolean hasDataManager() {
+        return this.dataManagerClass != null;
+    }
+
+    public boolean hasLocaleManager() {
+        return this.localeManagerClass != null;
     }
 
     /**

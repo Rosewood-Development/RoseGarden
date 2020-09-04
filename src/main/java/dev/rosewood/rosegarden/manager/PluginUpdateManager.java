@@ -41,7 +41,7 @@ public class PluginUpdateManager extends Manager implements Listener {
             configuration.save();
         }
 
-        if (!configuration.getBoolean("check-updates"))
+        if (!configuration.getBoolean("check-updates") || this.rosePlugin.getSpigotId() == -1)
             return;
 
         // Check for updates

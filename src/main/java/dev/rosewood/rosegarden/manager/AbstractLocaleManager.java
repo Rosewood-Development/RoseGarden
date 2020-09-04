@@ -80,7 +80,12 @@ public abstract class AbstractLocaleManager extends Manager {
 
         this.getLocales().forEach(this::registerLocale);
 
-        String locale = this.rosePlugin.getManager(AbstractConfigurationManager.class).getSettings().get("locale").getString();
+        String locale;
+        if (this.rosePlugin.hasConfigurationManager()) {
+            locale = this.rosePlugin.getManager(AbstractConfigurationManager.class).getSettings().get("locale").getString();
+        } else {
+            locale = "en_US";
+        }
 
         File targetLocaleFile = new File(this.rosePlugin.getDataFolder() + "/locale", locale + ".lang");
         if (!targetLocaleFile.exists()) {

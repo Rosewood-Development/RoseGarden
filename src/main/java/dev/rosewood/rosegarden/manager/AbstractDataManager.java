@@ -46,8 +46,10 @@ public abstract class AbstractDataManager extends Manager {
         }
 
         // Vacuum the database to help compress it, only run once per plugin startup
-        if (!this.ranVacuum && this.databaseConnector instanceof SQLiteConnector)
+        if (!this.ranVacuum && this.databaseConnector instanceof SQLiteConnector) {
             this.databaseConnector.cleanup();
+            this.ranVacuum = true;
+        }
     }
 
     @Override
