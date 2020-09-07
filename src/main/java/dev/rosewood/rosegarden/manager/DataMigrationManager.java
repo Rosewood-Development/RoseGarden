@@ -4,20 +4,32 @@ import dev.rosewood.rosegarden.RosePlugin;
 import dev.rosewood.rosegarden.database.DataMigration;
 import dev.rosewood.rosegarden.database.DatabaseConnector;
 import dev.rosewood.rosegarden.database.SQLiteConnector;
+import dev.rosewood.rosegarden.utils.RoseGardenUtils;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class DataMigrationManager extends Manager {
 
-    private List<DataMigration> migrations;
+    private final List<DataMigration> migrations;
 
     public DataMigrationManager(RosePlugin rosePlugin) {
         super(rosePlugin);
 
-        this.migrations = rosePlugin.getDataMigrations();
+        this.migrations = new ArrayList<>();
+        for (Class<DataMigration> dataMigrationClass : rosePlugin.getDataMigrations()) {
+            try {
+                this.migrations.add(dataMigrationClass.getConstructor().newInstance());
+            } catch (NoSuchMethodException ex) {
+                RoseGardenUtils.getLogger().severe("DEVELOPER ERROR!!! DataMigration (" + dataMigrationClass.getSimpleName() + ") is missing a parameterless constructor!" +
+                        "This is likely going to cause database issues, as this migration will not be registered!");
+            } catch (ReflectiveOperationException ex) {
+                ex.printStackTrace();
+            }
+        }
     }
 
     @Override

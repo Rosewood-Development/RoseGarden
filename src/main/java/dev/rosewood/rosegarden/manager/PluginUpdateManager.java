@@ -52,10 +52,10 @@ public class PluginUpdateManager extends Manager implements Listener {
 
                 if (this.isUpdateAvailable(latestVersion, currentVersion)) {
                     this.updateVersion = latestVersion;
-                    Bukkit.getLogger().info("[RoseGarden] An update for " + this.rosePlugin.getName() + " (v" + this.updateVersion + ") is available! You are running v" + currentVersion + ".");
+                    RoseGardenUtils.getLogger().info("An update for " + this.rosePlugin.getName() + " (v" + this.updateVersion + ") is available! You are running v" + currentVersion + ".");
                 }
             } catch (Exception e) {
-                Bukkit.getLogger().warning("[RoseGarden] An error occurred checking for an update. There is either no established internet connection or the Spigot API is down.");
+                RoseGardenUtils.getLogger().warning("An error occurred checking for an update. There is either no established internet connection or the Spigot API is down.");
             }
         });
     }

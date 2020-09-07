@@ -5,6 +5,10 @@ import dev.rosewood.rosegarden.config.CommentedConfigurationSection;
 import dev.rosewood.rosegarden.config.CommentedFileConfiguration;
 import dev.rosewood.rosegarden.config.RoseSettingSection;
 import dev.rosewood.rosegarden.config.RoseSettingValue;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 
 public final class RoseGardenUtils {
@@ -12,8 +16,30 @@ public final class RoseGardenUtils {
     public static final String GRADIENT = "<g:#8A2387:#E94057:#F27121>";
     public static final String PREFIX = "&7[" + GRADIENT + "RoseGarden&7] ";
 
+    private static Logger logger;
+
     private RoseGardenUtils() {
 
+    }
+
+    /**
+     * @return the Logger for RoseGarden
+     */
+    public static Logger getLogger() {
+        if (logger == null) {
+            logger = new Logger("RoseGarden", null) {
+                @Override
+                public void log(LogRecord logRecord) {
+                    logRecord.setMessage("[RoseGarden] " + logRecord.getMessage());
+                    super.log(logRecord);
+                }
+            };
+
+            logger.setParent(Bukkit.getLogger());
+            logger.setLevel(Level.ALL);
+        }
+
+        return logger;
     }
 
     /**

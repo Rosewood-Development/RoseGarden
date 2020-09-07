@@ -88,7 +88,7 @@ public abstract class RosePlugin extends JavaPlugin {
 
         // Check if the library is relocated properly
         if (!RoseGardenUtils.isRelocated()) {
-            Bukkit.getLogger().severe("[RoseGarden] DEVELOPER ERROR!!! RoseGarden has not been relocated! Plugin has been forcefully disabled.");
+            RoseGardenUtils.getLogger().severe("DEVELOPER ERROR!!! RoseGarden has not been relocated! Plugin has been forcefully disabled.");
             Bukkit.getPluginManager().disablePlugin(this);
             return;
         }
@@ -130,7 +130,7 @@ public abstract class RosePlugin extends JavaPlugin {
     /**
      * @return all data migrations for the DataMigrationManager to handle
      */
-    public abstract List<DataMigration> getDataMigrations();
+    public abstract <T extends DataMigration> List<Class<T>> getDataMigrations();
 
     /**
      * Reloads the plugin's managers
