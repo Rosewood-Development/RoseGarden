@@ -130,7 +130,7 @@ public abstract class RosePlugin extends JavaPlugin {
     /**
      * @return all data migrations for the DataMigrationManager to handle
      */
-    public abstract <T extends DataMigration> List<Class<T>> getDataMigrations();
+    public abstract List<Class<? extends DataMigration>> getDataMigrations();
 
     /**
      * Reloads the plugin's managers

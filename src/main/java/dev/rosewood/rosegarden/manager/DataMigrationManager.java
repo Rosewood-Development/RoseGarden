@@ -20,7 +20,7 @@ public class DataMigrationManager extends Manager {
         super(rosePlugin);
 
         this.migrations = new ArrayList<>();
-        for (Class<DataMigration> dataMigrationClass : rosePlugin.getDataMigrations()) {
+        for (Class<? extends DataMigration> dataMigrationClass : rosePlugin.getDataMigrations()) {
             try {
                 this.migrations.add(dataMigrationClass.getConstructor().newInstance());
             } catch (NoSuchMethodException ex) {
