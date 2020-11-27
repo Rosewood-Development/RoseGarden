@@ -99,11 +99,29 @@ public final class HexUtils {
 
             int stop = findStop(parsed, matcher.end());
             String content = parsed.substring(matcher.end(), stop);
-            int length = looping ? Math.min(content.length(), CHARS_UNTIL_LOOP) : content.length();
+            int contentLength = content.length();
+            char[] chars = content.toCharArray();
+            for (int i = 0; i < chars.length - 1; i++)
+                if (chars[i] == '&' && "KkLlMmNnOoRr".indexOf(chars[i + 1]) > -1)
+                    contentLength -= 2;
+
+            int length = looping ? Math.min(contentLength, CHARS_UNTIL_LOOP) : contentLength;
             Rainbow rainbow = new Rainbow(length, saturation, brightness);
 
-            for (char c : content.toCharArray())
-                parsedRainbow.append(translateHex(rainbow.next())).append(c);
+            String compoundedFormat = ""; // Carry the format codes through the rainbow gradient
+            for (int i = 0; i < chars.length; i++) {
+                char c = chars[i];
+                if (c == '&' && i + 1 < chars.length) {
+                    char next = chars[i + 1];
+                    org.bukkit.ChatColor color = org.bukkit.ChatColor.getByChar(next);
+                    if (color != null && color.isFormat()) {
+                        compoundedFormat += String.valueOf(ChatColor.COLOR_CHAR) + next;
+                        i++; // Skip next character
+                        continue;
+                    }
+                }
+                parsedRainbow.append(translateHex(rainbow.next())).append(compoundedFormat).append(c);
+            }
 
             String before = parsed.substring(0, matcher.start());
             String after = parsed.substring(stop);
@@ -136,11 +154,29 @@ public final class HexUtils {
 
             int stop = findStop(parsed, matcher.end());
             String content = parsed.substring(matcher.end(), stop);
-            int length = looping ? Math.min(content.length(), CHARS_UNTIL_LOOP) : content.length();
+            int contentLength = content.length();
+            char[] chars = content.toCharArray();
+            for (int i = 0; i < chars.length - 1; i++)
+                if (chars[i] == '&' && "KkLlMmNnOoRr".indexOf(chars[i + 1]) > -1)
+                    contentLength -= 2;
+
+            int length = looping ? Math.min(contentLength, CHARS_UNTIL_LOOP) : contentLength;
             Gradient gradient = new Gradient(hexSteps, length);
 
-            for (char c : content.toCharArray())
-                parsedGradient.append(translateHex(gradient.next())).append(c);
+            String compoundedFormat = ""; // Carry the format codes through the gradient
+            for (int i = 0; i < chars.length; i++) {
+                char c = chars[i];
+                if (c == '&' && i + 1 < chars.length) {
+                    char next = chars[i + 1];
+                    org.bukkit.ChatColor color = org.bukkit.ChatColor.getByChar(next);
+                    if (color != null && color.isFormat()) {
+                        compoundedFormat += String.valueOf(ChatColor.COLOR_CHAR) + next;
+                        i++; // Skip next character
+                        continue;
+                    }
+                }
+                parsedGradient.append(translateHex(gradient.next())).append(compoundedFormat).append(c);
+            }
 
             String before = parsed.substring(0, matcher.start());
             String after = parsed.substring(stop);

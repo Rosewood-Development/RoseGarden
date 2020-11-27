@@ -27,7 +27,10 @@ public class MySQLConnector implements DatabaseConnector {
 
         try {
             this.hikari = new HikariDataSource(config);
-        } catch (Exception ignored) { }
+        } catch (Exception ex) {
+            this.plugin.getLogger().severe("Failed to connect to the MySQL server. Are your credentials correct?");
+            ex.printStackTrace();
+        }
     }
 
     @Override
