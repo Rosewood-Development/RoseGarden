@@ -10,13 +10,10 @@ import org.bukkit.Bukkit;
 
 public abstract class AbstractDataManager extends Manager {
 
-    private boolean ranVacuum;
     protected DatabaseConnector databaseConnector;
 
     public AbstractDataManager(RosePlugin rosePlugin) {
         super(rosePlugin);
-
-        this.ranVacuum = false;
     }
 
     @Override
@@ -37,18 +34,13 @@ public abstract class AbstractDataManager extends Manager {
                 this.rosePlugin.getLogger().info("Data handler connected using MySQL.");
             } else {
                 this.databaseConnector = new SQLiteConnector(this.rosePlugin);
+                this.databaseConnector.cleanup();
                 this.rosePlugin.getLogger().info("Data handler connected using SQLite.");
             }
         } catch (Exception ex) {
             this.rosePlugin.getLogger().severe("Fatal error trying to connect to database. Please make sure all your connection settings are correct and try again. Plugin has been disabled.");
             ex.printStackTrace();
             Bukkit.getPluginManager().disablePlugin(this.rosePlugin);
-        }
-
-        // Vacuum the database to help compress it, only run once per plugin startup
-        if (!this.ranVacuum && this.databaseConnector instanceof SQLiteConnector) {
-            this.databaseConnector.cleanup();
-            this.ranVacuum = true;
         }
     }
 

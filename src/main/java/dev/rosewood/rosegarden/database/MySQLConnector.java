@@ -56,6 +56,11 @@ public class MySQLConnector implements DatabaseConnector {
     }
 
     @Override
+    public void connect(ConnectionCallback callback, boolean useTransaction) {
+        this.connect(callback);
+    }
+
+    @Override
     public Object getLock() {
         return this.lock;
     }

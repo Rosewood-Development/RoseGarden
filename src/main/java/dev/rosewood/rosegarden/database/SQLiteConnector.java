@@ -26,7 +26,7 @@ public class SQLiteConnector implements DatabaseConnector {
         this.lock = new Object();
 
         try {
-            Class.forName("org.sqlite.JDBC"); // Make sure the driver is actually registered
+            Class.forName("org.sqlite.JDBC"); // Make sure the driver is actually loaded
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
@@ -62,6 +62,9 @@ public class SQLiteConnector implements DatabaseConnector {
 
         this.openConnections.incrementAndGet();
         try {
+            if (this.connection.getAutoCommit())
+                this.connection.setAutoCommit(false);
+
             callback.accept(this.connection);
             try {
                 this.connection.commit();
@@ -86,6 +89,39 @@ public class SQLiteConnector implements DatabaseConnector {
     }
 
     @Override
+    public void connect(ConnectionCallback callback, boolean useTransaction) {
+        if (useTransaction) {
+            this.connect(callback);
+            return;
+        }
+
+        if (this.connection == null) {
+            try {
+                this.connection = DriverManager.getConnection(this.connectionString);
+            } catch (SQLException ex) {
+                this.plugin.getLogger().severe("An error occurred retrieving the SQLite database connection: " + ex.getMessage());
+            }
+        }
+
+        this.openConnections.incrementAndGet();
+        try {
+            if (!this.connection.getAutoCommit())
+                this.connection.setAutoCommit(true);
+
+            callback.accept(this.connection);
+        } catch (Exception ex) {
+            this.plugin.getLogger().severe("An error occurred executing an SQLite query: " + ex.getMessage());
+            ex.printStackTrace();
+        } finally {
+            int open = this.openConnections.decrementAndGet();
+            synchronized (this.lock) {
+                if (open == 0)
+                    this.lock.notify();
+            }
+        }
+    }
+
+    @Override
     public Object getLock() {
         return this.lock;
     }
@@ -97,11 +133,7 @@ public class SQLiteConnector implements DatabaseConnector {
 
     @Override
     public void cleanup() {
-        if (this.connection != null) {
-            try {
-                this.connection.createStatement().execute("VACUUM");
-            } catch (SQLException ignored) { }
-        }
+        this.connect(connection -> connection.createStatement().execute("VACUUM"), false);
     }
 
 }
