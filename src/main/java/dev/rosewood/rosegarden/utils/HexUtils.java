@@ -458,17 +458,11 @@ public final class HexUtils {
 
         public Rainbow(int totalColors, float saturation, float brightness) {
             if (totalColors < 1)
-                throw new IllegalArgumentException("Must have at least 1 total color");
-
-            if (0.0F > saturation || saturation > 1.0F)
-                throw new IllegalArgumentException("Saturation must be between 0.0 and 1.0");
-
-            if (0.0F > brightness || brightness > 1.0F)
-                throw new IllegalArgumentException("Brightness must be between 0.0 and 1.0");
+                totalColors = 1;
 
             this.hueStep = 1.0F / totalColors;
-            this.saturation = saturation;
-            this.brightness = brightness;
+            this.saturation = Math.min(0, Math.max(1, saturation));
+            this.brightness = Math.min(0, Math.max(1, brightness));
             this.hue = 0;
         }
 
