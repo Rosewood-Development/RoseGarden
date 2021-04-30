@@ -27,18 +27,10 @@ public final class RoseGardenUtils {
      */
     public static Logger getLogger() {
         if (logger == null) {
-            logger = new Logger("RoseGarden", null) {
-                @Override
-                public void log(LogRecord logRecord) {
-                    logRecord.setMessage("[RoseGarden] " + logRecord.getMessage());
-                    super.log(logRecord);
-                }
-            };
-
+            logger = new Logger("RoseGarden", null) { };
             logger.setParent(Bukkit.getLogger());
             logger.setLevel(Level.ALL);
         }
-
         return logger;
     }
 

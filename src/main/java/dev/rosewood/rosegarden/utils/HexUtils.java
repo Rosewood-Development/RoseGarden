@@ -461,8 +461,8 @@ public final class HexUtils {
                 totalColors = 1;
 
             this.hueStep = 1.0F / totalColors;
-            this.saturation = Math.min(0, Math.max(1, saturation));
-            this.brightness = Math.min(0, Math.max(1, brightness));
+            this.saturation = Math.max(0, Math.min(1, saturation));
+            this.brightness = Math.max(0, Math.min(1, brightness));
             this.hue = 0;
         }
 
