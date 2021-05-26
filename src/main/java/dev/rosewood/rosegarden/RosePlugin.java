@@ -18,7 +18,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import org.bstats.bukkit.MetricsLite;
+import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandMap;
 import org.bukkit.plugin.Plugin;
@@ -83,8 +83,10 @@ public abstract class RosePlugin extends JavaPlugin {
         this.getLogger().info("Initializing using RoseGarden v" + ROSEGARDEN_VERSION);
 
         // bStats Metrics
-        if (this.bStatsId != -1)
-            new MetricsLite(this, this.bStatsId);
+        if (this.bStatsId != -1) {
+            Metrics metrics = new Metrics(this, this.bStatsId);
+            this.addCustomMetricsCharts(metrics);
+        }
 
         // Check if the library is relocated properly
         if (!RoseGardenUtils.isRelocated()) {
@@ -131,6 +133,15 @@ public abstract class RosePlugin extends JavaPlugin {
      * @return all data migrations for the DataMigrationManager to handle
      */
     public abstract List<Class<? extends DataMigration>> getDataMigrations();
+
+    /**
+     * Registers any custom bStats Metrics charts for the plugin
+     *
+     * @param metrics The Metrics instance
+     */
+    protected void addCustomMetricsCharts(Metrics metrics) {
+        // Must be overridden for any functionality.
+    }
 
     /**
      * Reloads the plugin's managers
