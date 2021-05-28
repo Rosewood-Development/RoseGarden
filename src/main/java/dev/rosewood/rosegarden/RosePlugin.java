@@ -107,11 +107,12 @@ public abstract class RosePlugin extends JavaPlugin {
 
     @Override
     public final void onDisable() {
-        this.disableManagers();
-        this.managers.clear();
-
         // Run the plugin's disable code
         this.disable();
+
+        // Shut down the managers
+        this.disableManagers();
+        this.managers.clear();
     }
 
     /**

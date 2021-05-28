@@ -83,7 +83,7 @@ public abstract class AbstractDataManager extends Manager {
     /**
      * @return the prefix to be used by all table names
      */
-    public final String getTablePrefix() {
+    public String getTablePrefix() {
         return this.rosePlugin.getDescription().getName().toLowerCase() + '_';
     }
 

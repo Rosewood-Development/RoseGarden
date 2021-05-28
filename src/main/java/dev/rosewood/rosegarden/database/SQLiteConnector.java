@@ -51,13 +51,13 @@ public class SQLiteConnector implements DatabaseConnector {
 
     @Override
     public void connect(ConnectionCallback callback) {
-        if (this.connection == null) {
-            try {
+        try {
+            if (this.connection == null || this.connection.isClosed()) {
                 this.connection = DriverManager.getConnection(this.connectionString);
                 this.connection.setAutoCommit(false);
-            } catch (SQLException ex) {
-                this.plugin.getLogger().severe("An error occurred retrieving the SQLite database connection: " + ex.getMessage());
             }
+        } catch (SQLException ex) {
+            this.plugin.getLogger().severe("An error occurred retrieving the SQLite database connection: " + ex.getMessage());
         }
 
         this.openConnections.incrementAndGet();
@@ -95,12 +95,11 @@ public class SQLiteConnector implements DatabaseConnector {
             return;
         }
 
-        if (this.connection == null) {
-            try {
+        try {
+            if (this.connection == null || this.connection.isClosed())
                 this.connection = DriverManager.getConnection(this.connectionString);
-            } catch (SQLException ex) {
-                this.plugin.getLogger().severe("An error occurred retrieving the SQLite database connection: " + ex.getMessage());
-            }
+        } catch (SQLException ex) {
+            this.plugin.getLogger().severe("An error occurred retrieving the SQLite database connection: " + ex.getMessage());
         }
 
         this.openConnections.incrementAndGet();
