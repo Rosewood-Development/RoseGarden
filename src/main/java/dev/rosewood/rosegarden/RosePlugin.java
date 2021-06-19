@@ -10,6 +10,7 @@ import dev.rosewood.rosegarden.manager.Manager;
 import dev.rosewood.rosegarden.manager.PluginUpdateManager;
 import dev.rosewood.rosegarden.objects.RosePluginData;
 import dev.rosewood.rosegarden.utils.RoseGardenUtils;
+import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -273,6 +274,16 @@ public abstract class RosePlugin extends JavaPlugin {
         }
 
         return data;
+    }
+
+    /**
+     * @return the data folder for RoseGarden
+     */
+    public File getRoseGardenDataFolder() {
+        File configDir = new File(this.getDataFolder().getParentFile(), "RoseGarden");
+        if (!configDir.exists())
+            configDir.mkdirs();
+        return configDir;
     }
 
     /**

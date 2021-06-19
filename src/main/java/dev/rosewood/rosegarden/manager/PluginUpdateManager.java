@@ -29,11 +29,7 @@ public class PluginUpdateManager extends Manager implements Listener {
 
     @Override
     public void reload() {
-        File configDir = new File(this.rosePlugin.getDataFolder().getParentFile(), "RoseGarden");
-        if (!configDir.exists())
-            configDir.mkdirs();
-
-        File configFile = new File(configDir, "config.yml");
+        File configFile = new File(this.rosePlugin.getRoseGardenDataFolder(), "config.yml");
 
         CommentedFileConfiguration configuration = CommentedFileConfiguration.loadConfiguration(configFile);
         if (!configuration.contains("check-updates")) {

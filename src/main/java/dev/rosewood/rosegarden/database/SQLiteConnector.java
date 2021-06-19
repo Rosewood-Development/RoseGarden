@@ -1,5 +1,6 @@
 package dev.rosewood.rosegarden.database;
 
+import dev.rosewood.rosegarden.RosePlugin;
 import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -27,15 +28,20 @@ public class SQLiteConnector implements DatabaseConnector {
 
         try {
             Class.forName("org.sqlite.JDBC"); // Make sure the driver is actually loaded
+
+            // We often find that the /var/tmp directory is set to noexec which breaks our plugins.
+            // This moves the temp directory to somewhere we know will absolutely have exec permissions.
+            // If this gets overridden by another plugin or something else, that's also fine.
+            if (plugin instanceof RosePlugin) {
+                RosePlugin rosePlugin = (RosePlugin) plugin;
+                File tmpdir = new File(rosePlugin.getRoseGardenDataFolder(), "tmp");
+                if (!tmpdir.exists())
+                    tmpdir.mkdirs();
+                System.setProperty("org.sqlite.tmpdir", tmpdir.getAbsolutePath());
+            }
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
-
-//        this.connect((connection) -> {
-//            connection.createStatement().execute("PRAGMA journal_mode=MEMORY; ");
-//            connection.createStatement().execute("PRAGMA temp_store=MEMORY");
-//            connection.createStatement().execute("PRAGMA synchronous=NORMAL");
-//        });
     }
 
     @Override
