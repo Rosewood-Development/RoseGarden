@@ -26,6 +26,8 @@ public class MySQLConnector implements DatabaseConnector {
         config.setMaximumPoolSize(5);
 
         try {
+            Class.forName("com.mysql.jdbc.Driver");
+
             this.hikari = new HikariDataSource(config);
         } catch (Exception ex) {
             this.plugin.getLogger().severe("Failed to connect to the MySQL server. Are your credentials correct?");

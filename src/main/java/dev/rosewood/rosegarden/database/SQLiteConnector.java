@@ -138,7 +138,13 @@ public class SQLiteConnector implements DatabaseConnector {
 
     @Override
     public void cleanup() {
-        this.connect(connection -> connection.createStatement().execute("VACUUM"), false);
+        this.connect(connection -> {
+            try {
+                connection.createStatement().execute("VACUUM");
+            } catch (Exception e) {
+                this.plugin.getLogger().warning("Failed to run vacuum on database, unable to access temp directory: no read/write access.");
+            }
+        }, false);
     }
 
 }
