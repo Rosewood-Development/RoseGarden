@@ -14,7 +14,7 @@ public class MySQLConnector implements DatabaseConnector {
     private final AtomicInteger openConnections;
     private final Object lock;
 
-    public MySQLConnector(Plugin plugin, String hostname, int port, String database, String username, String password, boolean useSSL) {
+    public MySQLConnector(Plugin plugin, String hostname, int port, String database, String username, String password, boolean useSSL, int poolSize) {
         this.plugin = plugin;
         this.openConnections = new AtomicInteger();
         this.lock = new Object();
@@ -23,11 +23,17 @@ public class MySQLConnector implements DatabaseConnector {
         config.setJdbcUrl("jdbc:mysql://" + hostname + ":" + port + "/" + database + "?useSSL=" + useSSL);
         config.setUsername(username);
         config.setPassword(password);
-        config.setMaximumPoolSize(5);
+        config.setMaximumPoolSize(poolSize);
+
+        try { // Try to use the new driver
+            Class.forName("com.mysql.cj.jdbc.Driver");
+        } catch (ClassNotFoundException e1) {
+            try { // Otherwise fallback to the old one or just ignore if it still can't be found
+                Class.forName("com.mysql.jdbc.Driver");
+            } catch (ClassNotFoundException ignored) { }
+        }
 
         try {
-            Class.forName("com.mysql.jdbc.Driver");
-
             this.hikari = new HikariDataSource(config);
         } catch (Exception ex) {
             this.plugin.getLogger().severe("Failed to connect to the MySQL server. Are your credentials correct?");

@@ -29,8 +29,9 @@ public abstract class AbstractDataManager extends Manager {
                 String username = roseSettings.get("mysql-settings.user-name").getString();
                 String password = roseSettings.get("mysql-settings.user-password").getString();
                 boolean useSSL = roseSettings.get("mysql-settings.use-ssl").getBoolean();
+                int poolSize = roseSettings.get("mysql-settings.connection-pool-size").getInt();
 
-                this.databaseConnector = new MySQLConnector(this.rosePlugin, hostname, port, database, username, password, useSSL);
+                this.databaseConnector = new MySQLConnector(this.rosePlugin, hostname, port, database, username, password, useSSL, poolSize);
                 this.rosePlugin.getLogger().info("Data handler connected using MySQL.");
             } else {
                 this.databaseConnector = new SQLiteConnector(this.rosePlugin);

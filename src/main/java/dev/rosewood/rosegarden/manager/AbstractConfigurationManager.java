@@ -113,7 +113,8 @@ public abstract class AbstractConfigurationManager extends Manager {
                     new SingularRoseSetting(this.rosePlugin, "mysql-settings.database-name", "", "MySQL Database Name"),
                     new SingularRoseSetting(this.rosePlugin, "mysql-settings.user-name", "", "MySQL Database User Name"),
                     new SingularRoseSetting(this.rosePlugin, "mysql-settings.user-password", "", "MySQL Database User Password"),
-                    new SingularRoseSetting(this.rosePlugin, "mysql-settings.use-ssl", false, "If the database connection should use SSL", "You should enable this if your database supports SSL")
+                    new SingularRoseSetting(this.rosePlugin, "mysql-settings.use-ssl", false, "If the database connection should use SSL", "You should enable this if your database supports SSL"),
+                    new SingularRoseSetting(this.rosePlugin, "mysql-settings.connection-pool-size", 3, "The number of connections to make to the database")
             ).forEach(x -> this.cachedValues.put(x.getKey(), x));
         }
     }
