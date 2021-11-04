@@ -66,6 +66,16 @@ public final class StringPlaceholders {
             return this;
         }
 
+        public Builder addAll(StringPlaceholders placeholders) {
+            return this.addAll(placeholders.getPlaceholders());
+        }
+
+        public Builder addAll(Map<String, String> placeholders) {
+            for (Map.Entry<String, String> placeholder : placeholders.entrySet())
+                this.stringPlaceholders.addPlaceholder(placeholder.getKey(), placeholder.getValue());
+            return this;
+        }
+
         public String apply(String string) {
             return this.stringPlaceholders.apply(string);
         }

@@ -7,7 +7,7 @@ plugins {
 }
 
 group = 'dev.rosewood'
-version = '1.0.7-SNAPSHOT'
+version = '1.0.8-SNAPSHOT'
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
@@ -20,14 +20,14 @@ repositories {
 
 dependencies {
     // Referenced dependencies
-    compileOnly 'org.spigotmc:spigot:1.16.5'
+    compileOnly 'org.spigotmc:spigot:1.17.1'
     compileOnly 'me.clip:placeholderapi:2.10.4'
 
     // Shaded dependencies
     api 'org.bstats:bstats-bukkit:2.2.1'
-    api 'com.zaxxer:HikariCP:3.2.0'
-    api 'org.slf4j:slf4j-api:1.7.25'
-    api 'org.slf4j:slf4j-nop:1.7.25'
+    api 'com.zaxxer:HikariCP:4.0.3'
+    api 'org.slf4j:slf4j-api:1.7.32'
+    api 'org.slf4j:slf4j-nop:1.7.32'
 }
 
 task processSource(type: Sync) {
