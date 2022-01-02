@@ -7,20 +7,21 @@ plugins {
 }
 
 group = 'dev.rosewood'
-version = '1.0.8'
+version = '1.0.9'
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 repositories {
 	mavenCentral()
 
+    maven { url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
 	maven { url = 'https://repo.extendedclip.com/content/repositories/placeholderapi/' }
 	maven { url = 'https://repo.rosewooddev.io/repository/public/' }
 }
 
 dependencies {
     // Referenced dependencies
-    compileOnly 'org.spigotmc:spigot:1.17.1'
+    compileOnly 'org.spigotmc:spigot-api:1.18.1-R0.1-SNAPSHOT'
     compileOnly 'me.clip:placeholderapi:2.10.4'
 
     // Shaded dependencies

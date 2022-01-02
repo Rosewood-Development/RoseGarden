@@ -9,7 +9,6 @@ import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.MemorySection;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
@@ -392,6 +391,26 @@ public class CommentedConfigurationSection implements ConfigurationSection {
     @Override
     public void addDefault(String s, Object o) {
         this.config.addDefault(s, o);
+    }
+
+    @Override
+    public List<String> getComments(String path) {
+        throw new IllegalStateException("CommentedConfigurationSection does not support Spigot-API comment methods.");
+    }
+
+    @Override
+    public List<String> getInlineComments(String path) {
+        throw new IllegalStateException("CommentedConfigurationSection does not support Spigot-API comment methods.");
+    }
+
+    @Override
+    public void setComments(String path, List<String> comments) {
+        throw new IllegalStateException("CommentedConfigurationSection does not support Spigot-API comment methods.");
+    }
+
+    @Override
+    public void setInlineComments(String path, List<String> comments) {
+        throw new IllegalStateException("CommentedConfigurationSection does not support Spigot-API comment methods.");
     }
 
 }
