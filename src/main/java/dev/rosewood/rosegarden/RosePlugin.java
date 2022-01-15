@@ -1,7 +1,7 @@
 package dev.rosewood.rosegarden;
 
 import dev.rosewood.rosegarden.command.RwdCommand;
-import dev.rosewood.rosegarden.database.DataMigration;
+import dev.rosewood.rosegarden.manager.AbstractCommandManager;
 import dev.rosewood.rosegarden.manager.AbstractConfigurationManager;
 import dev.rosewood.rosegarden.manager.AbstractDataManager;
 import dev.rosewood.rosegarden.manager.AbstractLocaleManager;
@@ -51,6 +51,7 @@ public abstract class RosePlugin extends JavaPlugin {
     private final Class<? extends AbstractConfigurationManager> configurationManagerClass;
     private final Class<? extends AbstractDataManager> dataManagerClass;
     private final Class<? extends AbstractLocaleManager> localeManagerClass;
+    private final Class<? extends AbstractCommandManager> commandManagerClass;
 
     /**
      * The plugin managers
@@ -61,19 +62,23 @@ public abstract class RosePlugin extends JavaPlugin {
                       int bStatsId,
                       Class<? extends AbstractConfigurationManager> configurationManagerClass,
                       Class<? extends AbstractDataManager> dataManagerClass,
-                      Class<? extends AbstractLocaleManager> localeManagerClass) {
+                      Class<? extends AbstractLocaleManager> localeManagerClass,
+                      Class<? extends AbstractCommandManager> commandManagerClass) {
         if (configurationManagerClass != null && Modifier.isAbstract(configurationManagerClass.getModifiers()))
             throw new IllegalArgumentException("configurationManagerClass cannot be abstract");
         if (dataManagerClass != null && Modifier.isAbstract(dataManagerClass.getModifiers()))
             throw new IllegalArgumentException("dataManagerClass cannot be abstract");
         if (localeManagerClass != null && Modifier.isAbstract(localeManagerClass.getModifiers()))
             throw new IllegalArgumentException("localeManagerClass cannot be abstract");
+        if (configurationManagerClass != null && Modifier.isAbstract(commandManagerClass.getModifiers()))
+            throw new IllegalArgumentException("commandManagerClass cannot be abstract");
 
         this.spigotId = spigotId;
         this.bStatsId = bStatsId;
         this.configurationManagerClass = configurationManagerClass;
         this.dataManagerClass = dataManagerClass;
         this.localeManagerClass = localeManagerClass;
+        this.commandManagerClass = commandManagerClass;
 
         this.managers = new LinkedHashMap<>();
     }
@@ -132,11 +137,6 @@ public abstract class RosePlugin extends JavaPlugin {
     protected abstract List<Class<? extends Manager>> getManagerLoadPriority();
 
     /**
-     * @return all data migrations for the DataMigrationManager to handle
-     */
-    public abstract List<Class<? extends DataMigration>> getDataMigrations();
-
-    /**
      * Registers any custom bStats Metrics charts for the plugin
      *
      * @param metrics The Metrics instance
@@ -164,6 +164,9 @@ public abstract class RosePlugin extends JavaPlugin {
 
         if (this.hasLocaleManager())
             managerLoadPriority.add(this.localeManagerClass);
+
+        if (this.hasCommandManager())
+            managerLoadPriority.add(this.commandManagerClass);
 
         managerLoadPriority.addAll(this.getManagerLoadPriority());
 
@@ -201,6 +204,8 @@ public abstract class RosePlugin extends JavaPlugin {
             return this.getManager((Class<T>) this.dataManagerClass);
         } else if (this.hasLocaleManager() && managerClass == AbstractLocaleManager.class) {
             return this.getManager((Class<T>) this.localeManagerClass);
+        } else if (this.hasCommandManager() && managerClass == AbstractCommandManager.class) {
+            return this.getManager((Class<T>) this.commandManagerClass);
         }
 
         try {
@@ -303,6 +308,10 @@ public abstract class RosePlugin extends JavaPlugin {
 
     public boolean hasLocaleManager() {
         return this.localeManagerClass != null;
+    }
+
+    public boolean hasCommandManager() {
+        return this.commandManagerClass != null;
     }
 
     /**

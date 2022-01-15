@@ -5,9 +5,9 @@ import dev.rosewood.rosegarden.config.CommentedConfigurationSection;
 import dev.rosewood.rosegarden.config.CommentedFileConfiguration;
 import dev.rosewood.rosegarden.config.RoseSettingSection;
 import dev.rosewood.rosegarden.config.RoseSettingValue;
-import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
-import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
@@ -16,6 +16,18 @@ public final class RoseGardenUtils {
 
     public static final String GRADIENT = "<g:#8A2387:#E94057:#F27121>";
     public static final String PREFIX = "&7[" + GRADIENT + "RoseGarden&7] ";
+
+    public static final Map<Class<?>, Class<?>> PRIMITIVE_TO_WRAPPER = new HashMap<Class<?>, Class<?>>() {{
+        this.put(boolean.class, Boolean.class);
+        this.put(byte.class, Byte.class);
+        this.put(char.class, Character.class);
+        this.put(double.class, Double.class);
+        this.put(float.class, Float.class);
+        this.put(int.class, Integer.class);
+        this.put(long.class, Long.class);
+        this.put(short.class, Short.class);
+        this.put(void.class, Void.class);
+    }};
 
     private static Logger logger;
 
@@ -104,6 +116,16 @@ public final class RoseGardenUtils {
     public static boolean isRelocated() {
         String defaultPackage = new String(new byte[]{'d', 'e', 'v', '.', 'r', 'o', 's', 'e', 'w', 'o', 'o', 'd', '.', 'r', 'o', 's', 'e', 'g', 'a', 'r', 'd', 'e', 'n'});
         return !RosePlugin.class.getPackage().getName().equals(defaultPackage);
+    }
+
+    /**
+     * Gets a primitive class as its wrapper counterpart
+     *
+     * @param clazz The class to get the wrapped class of
+     * @return The wrapped class, or the same class if not primitive
+     */
+    public static Class<?> getPrimitiveAsWrapper(Class<?> clazz) {
+        return clazz.isPrimitive() ? PRIMITIVE_TO_WRAPPER.get(clazz) : clazz;
     }
 
     /**

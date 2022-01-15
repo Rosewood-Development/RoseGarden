@@ -1,6 +1,7 @@
 package dev.rosewood.rosegarden.manager;
 
 import dev.rosewood.rosegarden.RosePlugin;
+import dev.rosewood.rosegarden.command.framework.CommandMessages;
 import dev.rosewood.rosegarden.config.CommentedFileConfiguration;
 import dev.rosewood.rosegarden.hook.PlaceholderAPIHook;
 import dev.rosewood.rosegarden.locale.Locale;
@@ -128,6 +129,32 @@ public abstract class AbstractLocaleManager extends Manager {
     }
 
     /**
+     * Gets a locale message, falling back to the default command messages if none found
+     *
+     * @param messageKey The key of the message to get
+     * @return The locale message
+     */
+    public final String getCommandLocaleMessage(String messageKey) {
+        return this.getCommandLocaleMessage(messageKey, StringPlaceholders.empty());
+    }
+
+    /**
+     * Gets a locale message with the given placeholders applied, falling back to the default command messages if none found
+     *
+     * @param messageKey The key of the message to get
+     * @param stringPlaceholders The placeholders to apply
+     * @return The locale message with the given placeholders applied
+     */
+    public final String getCommandLocaleMessage(String messageKey, StringPlaceholders stringPlaceholders) {
+        String message = this.locale.getString(messageKey);
+        if (message == null)
+            message = CommandMessages.DEFAULT_MESSAGES.get(messageKey);
+        if (message == null)
+            return ChatColor.RED + "Missing message key in command messages: " + messageKey;
+        return HexUtils.colorify(stringPlaceholders.apply(message));
+    }
+
+    /**
      * Sends a message to a CommandSender with the prefix with placeholders applied
      *
      * @param sender The CommandSender to send to
@@ -149,6 +176,27 @@ public abstract class AbstractLocaleManager extends Manager {
     }
 
     /**
+     * Sends a message to a CommandSender with the prefix with placeholders applied, falling back to the default command messages if none found
+     *
+     * @param sender The CommandSender to send to
+     * @param messageKey The message key of the Locale to send
+     * @param stringPlaceholders The placeholders to apply
+     */
+    public final void sendCommandMessage(CommandSender sender, String messageKey, StringPlaceholders stringPlaceholders) {
+        this.sendParsedMessage(sender, this.getLocaleMessage("prefix") + this.getCommandLocaleMessage(messageKey, stringPlaceholders));
+    }
+
+    /**
+     * Sends a message to a CommandSender with the prefix, falling back to the default command messages if none found
+     *
+     * @param sender The CommandSender to send to
+     * @param messageKey The message key of the Locale to send
+     */
+    public final void sendCommandMessage(CommandSender sender, String messageKey) {
+        this.sendCommandMessage(sender, messageKey, StringPlaceholders.empty());
+    }
+
+    /**
      * Sends a message to a CommandSender with placeholders applied
      *
      * @param sender The CommandSender to send to
@@ -160,13 +208,28 @@ public abstract class AbstractLocaleManager extends Manager {
     }
 
     /**
-     * Sends a message to a CommandSender
+     * Sends a message to a CommandSender, falling back to the default command messages if none found
      *
      * @param sender The CommandSender to send to
      * @param messageKey The message key of the Locale to send
      */
     public final void sendSimpleMessage(CommandSender sender, String messageKey) {
         this.sendSimpleMessage(sender, messageKey, StringPlaceholders.empty());
+    }
+
+    /**
+     * Sends a message to a CommandSender with placeholders applied, falling back to the default command messages if none found
+     *
+     * @param sender The CommandSender to send to
+     * @param messageKey The message key of the Locale to send
+     * @param stringPlaceholders The placeholders to apply
+     */
+    public final void sendSimpleCommandMessage(CommandSender sender, String messageKey, StringPlaceholders stringPlaceholders) {
+        this.sendParsedMessage(sender, this.getCommandLocaleMessage(messageKey, stringPlaceholders));
+    }
+
+    public final void sendSimpleCommandMessage(CommandSender sender, String messageKey) {
+        this.sendSimpleCommandMessage(sender, messageKey, StringPlaceholders.empty());
     }
 
     /**

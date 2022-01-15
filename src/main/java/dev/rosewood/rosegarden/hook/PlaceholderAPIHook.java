@@ -3,7 +3,6 @@ package dev.rosewood.rosegarden.hook;
 import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.entity.Player;
 
 public final class PlaceholderAPIHook {
 

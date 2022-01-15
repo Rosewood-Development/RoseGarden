@@ -2,9 +2,11 @@ package dev.rosewood.rosegarden.manager;
 
 import dev.rosewood.rosegarden.RosePlugin;
 import dev.rosewood.rosegarden.config.RoseSetting;
+import dev.rosewood.rosegarden.database.DataMigration;
 import dev.rosewood.rosegarden.database.DatabaseConnector;
 import dev.rosewood.rosegarden.database.MySQLConnector;
 import dev.rosewood.rosegarden.database.SQLiteConnector;
+import java.util.List;
 import java.util.Map;
 import org.bukkit.Bukkit;
 
@@ -87,5 +89,10 @@ public abstract class AbstractDataManager extends Manager {
     public String getTablePrefix() {
         return this.rosePlugin.getDescription().getName().toLowerCase() + '_';
     }
+
+    /**
+     * @return all data migrations for the DataMigrationManager to handle
+     */
+    public abstract List<Class<? extends DataMigration>> getDataMigrations();
 
 }
