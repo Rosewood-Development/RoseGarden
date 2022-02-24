@@ -9,8 +9,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.util.Arrays;
-import java.util.regex.Pattern;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -46,7 +44,7 @@ public class PluginUpdateManager extends Manager implements Listener {
                 String latestVersion = this.getLatestVersion();
                 String currentVersion = this.rosePlugin.getDescription().getVersion();
 
-                if (this.isUpdateAvailable(latestVersion, currentVersion)) {
+                if (RoseGardenUtils.isUpdateAvailable(latestVersion, currentVersion)) {
                     this.updateVersion = latestVersion;
                     RoseGardenUtils.getLogger().info("An update for " + this.rosePlugin.getName() + " (v" + this.updateVersion + ") is available! You are running v" + currentVersion + ".");
                 }
@@ -59,40 +57,6 @@ public class PluginUpdateManager extends Manager implements Listener {
     @Override
     public void disable() {
 
-    }
-
-    /**
-     * Checks if there is an update available
-     *
-     * @param latest The latest version of the plugin from Spigot
-     * @param current The currently installed version of the plugin
-     * @return true if available, otherwise false
-     */
-    private boolean isUpdateAvailable(String latest, String current) {
-        if (latest == null || current == null)
-            return false;
-
-        // Break versions into individual numerical pieces separated by periods
-        int[] latestSplit = Arrays.stream(latest.replaceAll("[^0-9.]", "").split(Pattern.quote("."))).mapToInt(Integer::parseInt).toArray();
-        int[] currentSplit = Arrays.stream(current.replaceAll("[^0-9.]", "").split(Pattern.quote("."))).mapToInt(Integer::parseInt).toArray();
-
-        // Make sure both arrays are the same length
-        if (latestSplit.length > currentSplit.length) {
-            currentSplit = Arrays.copyOf(currentSplit, latestSplit.length);
-        } else if (currentSplit.length > latestSplit.length) {
-            latestSplit = Arrays.copyOf(latestSplit, currentSplit.length);
-        }
-
-        // Compare pieces from most significant to least significant
-        for (int i = 0; i < latestSplit.length; i++) {
-            if (latestSplit[i] > currentSplit[i]) {
-                return true;
-            } else if (currentSplit[i] > latestSplit[i]) {
-                break;
-            }
-        }
-
-        return false;
     }
 
     /**

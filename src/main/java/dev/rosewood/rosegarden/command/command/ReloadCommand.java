@@ -3,6 +3,7 @@ package dev.rosewood.rosegarden.command.command;
 import dev.rosewood.rosegarden.RosePlugin;
 import dev.rosewood.rosegarden.command.framework.CommandContext;
 import dev.rosewood.rosegarden.command.framework.RoseCommand;
+import dev.rosewood.rosegarden.command.framework.RoseCommandWrapper;
 import dev.rosewood.rosegarden.command.framework.annotation.RoseExecutable;
 import dev.rosewood.rosegarden.manager.AbstractLocaleManager;
 import java.util.Collections;
@@ -10,8 +11,8 @@ import java.util.List;
 
 public class ReloadCommand extends RoseCommand {
 
-    public ReloadCommand(RosePlugin rosePlugin) {
-        super(rosePlugin);
+    public ReloadCommand(RosePlugin rosePlugin, RoseCommandWrapper parent) {
+        super(rosePlugin, parent);
     }
 
     @RoseExecutable
@@ -21,12 +22,12 @@ public class ReloadCommand extends RoseCommand {
     }
 
     @Override
-    public String getName() {
+    public String getDefaultName() {
         return "reload";
     }
 
     @Override
-    public List<String> getAliases() {
+    public List<String> getDefaultAliases() {
         return Collections.emptyList();
     }
 

@@ -10,9 +10,9 @@ import dev.rosewood.rosegarden.utils.StringPlaceholders;
 import java.util.Collections;
 import java.util.List;
 
-public class HelpCommand extends RoseCommand {
+public class BaseCommand extends RoseCommand {
 
-    public HelpCommand(RosePlugin rosePlugin, RoseCommandWrapper parent) {
+    public BaseCommand(RosePlugin rosePlugin, RoseCommandWrapper parent) {
         super(rosePlugin, parent);
     }
 
@@ -20,23 +20,15 @@ public class HelpCommand extends RoseCommand {
     public void execute(CommandContext context) {
         AbstractLocaleManager localeManager = this.rosePlugin.getManager(AbstractLocaleManager.class);
 
-        localeManager.sendCommandMessage(context.getSender(), "command-help-title");
-        for (RoseCommand command : this.parent.getCommands()) {
-            if (!command.hasHelp() || !command.canUse(context.getSender()))
-                continue;
-
-            StringPlaceholders stringPlaceholders = StringPlaceholders.builder("cmd", this.parent.getName())
-                    .addPlaceholder("subcmd", command.getName().toLowerCase())
-                    .addPlaceholder("args", command.getArgumentsString())
-                    .addPlaceholder("desc", localeManager.getLocaleMessage(command.getDescriptionKey()))
-                    .build();
-            localeManager.sendSimpleCommandMessage(context.getSender(), "command-help-list-description", stringPlaceholders);
-        }
+        String baseColor = localeManager.getLocaleMessage("base-command-color");
+        localeManager.sendCustomMessage(context.getSender(), baseColor + "Running <g:#8A2387:#E94057:#F27121>" + this.rosePlugin.getDescription().getName() + baseColor + " v" + this.rosePlugin.getDescription().getVersion());
+        localeManager.sendCustomMessage(context.getSender(), baseColor + "Plugin created by: <g:#41E0F0:#FF8DCE>" + this.rosePlugin.getDescription().getAuthors().get(0));
+        localeManager.sendSimpleMessage(context.getSender(), "base-command-help", StringPlaceholders.single("cmd", this.parent.getName()));
     }
 
     @Override
     public String getDefaultName() {
-        return "help";
+        return "";
     }
 
     @Override
@@ -46,11 +38,23 @@ public class HelpCommand extends RoseCommand {
 
     @Override
     public String getDescriptionKey() {
-        return "command-help-description";
+        return null;
     }
 
     @Override
     public String getRequiredPermission() {
+        return null;
+    }
+
+    @Override
+    public boolean hasHelp() {
+        return false;
+    }
+
+    /**
+     * @return the override command name, or null if this command should be executed as normal
+     */
+    public String getOverrideCommand() {
         return null;
     }
 

@@ -9,9 +9,9 @@ import dev.rosewood.rosegarden.manager.DataMigrationManager;
 import dev.rosewood.rosegarden.manager.Manager;
 import dev.rosewood.rosegarden.manager.PluginUpdateManager;
 import dev.rosewood.rosegarden.objects.RosePluginData;
+import dev.rosewood.rosegarden.utils.CommandMapUtils;
 import dev.rosewood.rosegarden.utils.RoseGardenUtils;
 import java.io.File;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
-import org.bukkit.command.CommandMap;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.ServicePriority;
@@ -70,7 +69,7 @@ public abstract class RosePlugin extends JavaPlugin {
             throw new IllegalArgumentException("dataManagerClass cannot be abstract");
         if (localeManagerClass != null && Modifier.isAbstract(localeManagerClass.getModifiers()))
             throw new IllegalArgumentException("localeManagerClass cannot be abstract");
-        if (configurationManagerClass != null && Modifier.isAbstract(commandManagerClass.getModifiers()))
+        if (commandManagerClass != null && Modifier.isAbstract(commandManagerClass.getModifiers()))
             throw new IllegalArgumentException("commandManagerClass cannot be abstract");
 
         this.spigotId = spigotId;
@@ -244,15 +243,7 @@ public abstract class RosePlugin extends JavaPlugin {
             return;
 
         // Register /rwd command
-        try {
-            Field bukkitCommandMap = Bukkit.getServer().getClass().getDeclaredField("commandMap");
-            bukkitCommandMap.setAccessible(true);
-
-            CommandMap commandMap = (CommandMap) bukkitCommandMap.get(Bukkit.getServer());
-            commandMap.register("rosegarden", new RwdCommand(this));
-        } catch (ReflectiveOperationException e) {
-            e.printStackTrace();
-        }
+        CommandMapUtils.registerCommand("rosegarden", new RwdCommand(this));
     }
 
     /**

@@ -9,7 +9,7 @@ public class CommandMessages {
         // Generic Command Messages
         this.put("no-permission", "&cYou don't have permission for that!");
         this.put("only-player", "&cThis command can only be executed by a player.");
-        this.put("unknown-command", "&cUnknown command, use &b/rl help &cfor more info.");
+        this.put("unknown-command", "&cUnknown command, use &b/%cmd% help &cfor more info.");
         this.put("unknown-command-error", "&cAn unknown error occurred; details have been printed to console. Please contact a server administrator.");
         this.put("invalid-subcommand", "&cInvalid subcommand.");
         this.put("invalid-argument", "&cInvalid argument: %message%.");
@@ -28,7 +28,7 @@ public class CommandMessages {
 
         // Reload Command
         this.put("command-reload-description", "Reloads the plugin");
-        this.put("command-reload-reloaded", "&eConfiguration, locale files, and loot tables were reloaded.");
+        this.put("command-reload-reloaded", "&eConfiguration and locale files were reloaded.");
 
         // Argument Handler Error Messages
         this.put("argument-handler-color-hex", "Hex code [%input%] is in the wrong format");

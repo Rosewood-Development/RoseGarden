@@ -5,10 +5,12 @@ import dev.rosewood.rosegarden.config.CommentedConfigurationSection;
 import dev.rosewood.rosegarden.config.CommentedFileConfiguration;
 import dev.rosewood.rosegarden.config.RoseSettingSection;
 import dev.rosewood.rosegarden.config.RoseSettingValue;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 
@@ -108,6 +110,40 @@ public final class RoseGardenUtils {
         }
 
         return (double) value;
+    }
+
+    /**
+     * Checks if there is an update available
+     *
+     * @param latest The latest version of the plugin from Spigot
+     * @param current The currently installed version of the plugin
+     * @return true if available, otherwise false
+     */
+    public static boolean isUpdateAvailable(String latest, String current) {
+        if (latest == null || current == null)
+            return false;
+
+        // Break versions into individual numerical pieces separated by periods
+        int[] latestSplit = Arrays.stream(latest.replaceAll("[^0-9.]", "").split(Pattern.quote("."))).mapToInt(Integer::parseInt).toArray();
+        int[] currentSplit = Arrays.stream(current.replaceAll("[^0-9.]", "").split(Pattern.quote("."))).mapToInt(Integer::parseInt).toArray();
+
+        // Make sure both arrays are the same length
+        if (latestSplit.length > currentSplit.length) {
+            currentSplit = Arrays.copyOf(currentSplit, latestSplit.length);
+        } else if (currentSplit.length > latestSplit.length) {
+            latestSplit = Arrays.copyOf(latestSplit, currentSplit.length);
+        }
+
+        // Compare pieces from most significant to least significant
+        for (int i = 0; i < latestSplit.length; i++) {
+            if (latestSplit[i] > currentSplit[i]) {
+                return true;
+            } else if (currentSplit[i] > latestSplit[i]) {
+                break;
+            }
+        }
+
+        return false;
     }
 
     /**

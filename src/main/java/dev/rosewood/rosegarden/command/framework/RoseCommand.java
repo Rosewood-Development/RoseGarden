@@ -29,24 +29,48 @@ import org.bukkit.permissions.Permissible;
 public abstract class RoseCommand implements Comparable<RoseCommand> {
 
     protected final RosePlugin rosePlugin;
+    protected final RoseCommandWrapper parent;
     private final Map<String, RoseSubCommand> subCommands;
 
-    public RoseCommand(RosePlugin rosePlugin, Class<?>... subCommandClasses) {
+    private String activeName;
+    private List<String> activeAliases;
+
+    public RoseCommand(RosePlugin rosePlugin, RoseCommandWrapper parent, Class<?>... subCommandClasses) {
         this.rosePlugin = rosePlugin;
+        this.parent = parent;
         this.subCommands = new HashMap<>();
         this.generateSubCommands(subCommandClasses);
         this.validateExecuteMethod();
     }
 
+    protected void setNameAndAliases(String name, List<String> aliases) {
+        this.activeName = name;
+        this.activeAliases = aliases;
+    }
+
     /**
      * @return the name of the command
      */
-    public abstract String getName();
+    public final String getName() {
+        return this.activeName;
+    }
 
     /**
      * @return any aliases that can be used as an alternative to the main command name
      */
-    public List<String> getAliases() {
+    public final List<String> getAliases() {
+        return this.activeAliases;
+    }
+
+    /**
+     * @return the default name of the command
+     */
+    protected abstract String getDefaultName();
+
+    /**
+     * @return any default aliases that can be used as an alternative to the main command name
+     */
+    protected List<String> getDefaultAliases() {
         return Collections.emptyList();
     }
 
@@ -182,7 +206,7 @@ public abstract class RoseCommand implements Comparable<RoseCommand> {
 
     @Override
     public int compareTo(RoseCommand other) {
-        return this.getName().compareTo(other.getName());
+        return this.getDefaultName().compareTo(other.getDefaultName());
     }
 
     /**
@@ -268,18 +292,13 @@ public abstract class RoseCommand implements Comparable<RoseCommand> {
             Class<RoseSubCommand> subCommandClass = (Class<RoseSubCommand>) clazz;
             RoseSubCommand subCommandInstance;
             try {
-                Constructor<RoseSubCommand> pluginConstructor = subCommandClass.getConstructor(RosePlugin.class);
-                subCommandInstance = pluginConstructor.newInstance(this.rosePlugin);
+                Constructor<RoseSubCommand> pluginConstructor = subCommandClass.getConstructor(RosePlugin.class, RoseCommandWrapper.class);
+                subCommandInstance = pluginConstructor.newInstance(this.rosePlugin, this.parent);
             } catch (ReflectiveOperationException e) {
-                try {
-                    Constructor<RoseSubCommand> pluginConstructor = subCommandClass.getConstructor();
-                    subCommandInstance = pluginConstructor.newInstance();
-                } catch (ReflectiveOperationException e2) {
-                    throw new IllegalStateException("Invalid RoseSubCommand constructor for [" + subCommandClass.getName() + "]. Requires an empty constructor or one that accepts a RosePlugin.");
-                }
+                throw new IllegalStateException("Invalid RoseSubCommand constructor for [" + subCommandClass.getName() + "]. Requires a constructor that accepts a RosePlugin and a RoseCommandWrapper.");
             }
 
-            this.subCommands.put(subCommandInstance.getName().toLowerCase(), subCommandInstance);
+            this.subCommands.put(subCommandInstance.getDefaultName().toLowerCase(), subCommandInstance);
             List<String> aliases = subCommandInstance.getAliases();
             if (aliases != null)
                 for (String alias : aliases)
