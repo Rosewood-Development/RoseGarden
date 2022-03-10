@@ -157,6 +157,13 @@ public abstract class RoseCommand implements Comparable<RoseCommand> {
     }
 
     /**
+     * @return the number of required arguments for this command for use with reflection
+     */
+    public int getNumParametersWithInjectible() {
+        return this.getParameters().length;
+    }
+
+    /**
      * @return the number of optional arguments for this command
      */
     public int getNumOptionalParameters() {

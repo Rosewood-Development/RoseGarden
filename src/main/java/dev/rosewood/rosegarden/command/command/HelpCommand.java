@@ -30,7 +30,8 @@ public class HelpCommand extends RoseCommand {
                     .addPlaceholder("args", command.getArgumentsString())
                     .addPlaceholder("desc", localeManager.getLocaleMessage(command.getDescriptionKey()))
                     .build();
-            localeManager.sendSimpleCommandMessage(context.getSender(), "command-help-list-description", stringPlaceholders);
+
+            localeManager.sendSimpleCommandMessage(context.getSender(), "command-help-list-description" + (command.getNumParameters() == 0 ? "-no-args" : ""), stringPlaceholders);
         }
     }
 

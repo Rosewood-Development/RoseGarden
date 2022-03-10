@@ -287,7 +287,7 @@ public abstract class RoseCommandWrapper extends BukkitCommand {
         parsedArgs.forEach(argumentBuilder::add);
 
         // Fill optional parameters with nulls
-        for (int i = parsedArgs.size(); i < command.getNumParameters(); i++)
+        for (int i = parsedArgs.size(); i < command.getNumParametersWithInjectible(); i++)
             argumentBuilder.add(null);
 
         command.getExecuteMethod().invoke(command, argumentBuilder.build().toArray());

@@ -25,6 +25,7 @@ public class CommandMessages {
         this.put("command-help-description", "Displays the help menu... You have arrived");
         this.put("command-help-title", "&eAvailable Commands:");
         this.put("command-help-list-description", "&8 - &d/%cmd% %subcmd% %args% &7- %desc%");
+        this.put("command-help-list-description-no-args", "&8 - &d/%cmd% %subcmd% &7- %desc%");
 
         // Reload Command
         this.put("command-reload-description", "Reloads the plugin");

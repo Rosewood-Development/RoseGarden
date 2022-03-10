@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -73,19 +74,24 @@ public abstract class AbstractCommandManager extends Manager {
     }
 
     public RoseCommandArgumentHandler<?> resolveArgumentHandler(Class<?> handledParameterClass) {
-        if (Enum.class.isAssignableFrom(handledParameterClass))
-            return this.argumentHandlers.get(EnumArgumentHandler.class);
-
         // Map primitive types to their wrapper handlers
         if (handledParameterClass.isPrimitive())
             handledParameterClass = RoseGardenUtils.getPrimitiveAsWrapper(handledParameterClass);
 
         Class<?> finalHandledParameterClass = handledParameterClass;
-        return this.argumentHandlers.values()
+        Optional<RoseCommandArgumentHandler<?>> optionalArgumentHandler = this.argumentHandlers.values()
                 .stream()
                 .filter(x -> x.getHandledType() != null && x.getHandledType() == finalHandledParameterClass)
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("Tried to resolve a RoseCommandArgumentHandler for an unhandled type"));
+                .findFirst();
+
+        // If an argument handler was found, use that one, otherwise pass it to the default enum handler, and if that doesn't exist throw an exception
+        if (optionalArgumentHandler.isPresent()) {
+            return optionalArgumentHandler.get();
+        } else if (Enum.class.isAssignableFrom(handledParameterClass)) {
+            return this.argumentHandlers.get(EnumArgumentHandler.class);
+        } else {
+            throw new IllegalStateException("Tried to resolve a RoseCommandArgumentHandler for an unhandled type");
+        }
     }
 
     public abstract List<Class<? extends RoseCommandWrapper>> getRootCommands();

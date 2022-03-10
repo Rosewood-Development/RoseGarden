@@ -84,7 +84,7 @@ public interface RoseSetting {
      */
     default String getString() {
         this.loadValue();
-        return (String) this.getCachedValue();
+        return String.valueOf(this.getCachedValue());
     }
 
     /**
