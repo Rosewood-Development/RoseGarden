@@ -373,7 +373,7 @@ public class CommentedConfigurationSection implements ConfigurationSection {
     public CommentedConfigurationSection getConfigurationSection(String s) {
         ConfigurationSection section = this.config.getConfigurationSection(s);
         if (section == null)
-            return this.createSection(s);
+            return null;
 
         return new CommentedConfigurationSection(section);
     }
