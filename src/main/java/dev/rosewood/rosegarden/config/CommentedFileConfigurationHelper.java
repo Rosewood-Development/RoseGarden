@@ -177,21 +177,8 @@ public class CommentedFileConfigurationHelper {
                     commentSpacing = trimmed.indexOf(trimmed.trim());
                 } else if (!line.trim().isEmpty()) {
                     lineHadContent = true;
-
-                    if (line.trim().startsWith("-")) {
+                    if (line.trim().startsWith("-"))
                         forceCompact = true;
-
-                        // Code below will process array string values to always contain single quotes
-//                        String[] pieces = line.split("- ", 2);
-//                        if (pieces.length == 2) {
-//                            String value = pieces[1];
-//                            if (!value.startsWith("'") && !NumberUtils.isCreatable(value)) {
-//                                value.replaceAll("'", "''");
-//                                value = "'" + value + "'";
-//                                line = pieces[0] + "- " + value;
-//                            }
-//                        }
-                    }
                 }
 
                 if (!compactLines && !forceCompact && (
@@ -212,8 +199,26 @@ public class CommentedFileConfigurationHelper {
             }
         }
 
+        // Remove all spaces from "empty" lines and replace with a single newline
+        // Only allow at maximum two newlines in a row
+        StringBuilder compactedBuilder = new StringBuilder();
+        try (Scanner scanner = new Scanner(stringBuilder.toString())) {
+            int consecutiveNewlines = 0;
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine();
+                if (line.trim().isEmpty()) {
+                    consecutiveNewlines++;
+                    if (consecutiveNewlines < 2)
+                        compactedBuilder.append('\n');
+                } else {
+                    consecutiveNewlines = 0;
+                    compactedBuilder.append(line).append('\n');
+                }
+            }
+        }
+
         try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(file.getAbsolutePath()), StandardCharsets.UTF_8)) {
-            writer.write(stringBuilder.toString());
+            writer.write(compactedBuilder.toString());
             writer.flush();
         } catch (IOException e) {
             e.printStackTrace();
