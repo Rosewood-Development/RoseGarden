@@ -262,7 +262,8 @@ public abstract class AbstractLocaleManager extends Manager {
      * @param message The message
      */
     protected final void sendParsedMessage(CommandSender sender, String message) {
-        HexUtils.sendMessage(sender, this.parsePlaceholders(sender, message));
+        if (!message.isEmpty())
+            HexUtils.sendMessage(sender, this.parsePlaceholders(sender, message));
     }
 
 }
