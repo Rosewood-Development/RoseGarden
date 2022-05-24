@@ -162,7 +162,11 @@ public abstract class AbstractLocaleManager extends Manager {
      * @param stringPlaceholders The placeholders to apply
      */
     public final void sendMessage(CommandSender sender, String messageKey, StringPlaceholders stringPlaceholders) {
-        this.sendParsedMessage(sender, this.getLocaleMessage("prefix") + this.getLocaleMessage(messageKey, stringPlaceholders));
+        String prefix = this.getLocaleMessage("prefix");
+        String message = this.getLocaleMessage(messageKey, stringPlaceholders);
+        if (message.isEmpty())
+            return;
+        this.sendParsedMessage(sender, prefix + message);
     }
 
     /**
@@ -183,7 +187,11 @@ public abstract class AbstractLocaleManager extends Manager {
      * @param stringPlaceholders The placeholders to apply
      */
     public final void sendCommandMessage(CommandSender sender, String messageKey, StringPlaceholders stringPlaceholders) {
-        this.sendParsedMessage(sender, this.getLocaleMessage("prefix") + this.getCommandLocaleMessage(messageKey, stringPlaceholders));
+        String prefix = this.getLocaleMessage("prefix");
+        String message = this.getCommandLocaleMessage(messageKey, stringPlaceholders);
+        if (message.isEmpty())
+            return;
+        this.sendParsedMessage(sender, prefix + message);
     }
 
     /**
