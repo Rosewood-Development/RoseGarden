@@ -3,6 +3,8 @@ package dev.rosewood.rosegarden.manager;
 import dev.rosewood.rosegarden.RosePlugin;
 import dev.rosewood.rosegarden.database.DataMigration;
 import dev.rosewood.rosegarden.database.DatabaseConnector;
+import dev.rosewood.rosegarden.database.MySQLConnector;
+import dev.rosewood.rosegarden.database.PostgreSQLConnector;
 import dev.rosewood.rosegarden.database.SQLiteConnector;
 import dev.rosewood.rosegarden.utils.RoseGardenUtils;
 import java.sql.PreparedStatement;
@@ -44,8 +46,12 @@ public class DataMigrationManager extends Manager {
             String query;
             if (databaseConnector instanceof SQLiteConnector) {
                 query = "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?";
-            } else {
+            } else if (databaseConnector instanceof MySQLConnector) {
                 query = "SHOW TABLES LIKE ?";
+            } else if (databaseConnector instanceof PostgreSQLConnector) {
+                query = "SELECT 1 FROM pg_tables WHERE tablename = ?";
+            } else {
+                throw new IllegalStateException("DEVELOPER ERROR!!! Unknown database type!");
             }
 
             try (PreparedStatement statement = connection.prepareStatement(query)) {
