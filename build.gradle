@@ -7,7 +7,7 @@ plugins {
 }
 
 group = 'dev.rosewood'
-version = '1.1.0.43-SNAPSHOT'
+version = '1.1.0.1-postgresql-SNAPSHOT'
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
@@ -29,6 +29,7 @@ dependencies {
     api 'com.zaxxer:HikariCP:4.0.3'
     api 'org.slf4j:slf4j-api:1.7.32'
     api 'org.slf4j:slf4j-nop:1.7.32'
+    api 'org.postgresql:postgresql:42.5.0'
 }
 
 task processSource(type: Sync) {
@@ -54,6 +55,7 @@ shadowJar {
     relocate('com.zaxxer.hikari', 'dev.rosewood.rosegarden.lib.hikaricp')
     relocate('org.slf4j', 'dev.rosewood.rosegarden.lib.slf4j')
     relocate('org.bstats', 'dev.rosewood.rosegarden.lib.bstats')
+    relocate('org.postgresql', 'dev.rosewood.rosegarden.lib.postgresql')
 }
 
 publishing {

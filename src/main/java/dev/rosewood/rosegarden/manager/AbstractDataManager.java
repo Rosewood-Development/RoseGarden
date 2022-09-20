@@ -5,6 +5,7 @@ import dev.rosewood.rosegarden.config.RoseSetting;
 import dev.rosewood.rosegarden.database.DataMigration;
 import dev.rosewood.rosegarden.database.DatabaseConnector;
 import dev.rosewood.rosegarden.database.MySQLConnector;
+import dev.rosewood.rosegarden.database.PostgreSQLConnector;
 import dev.rosewood.rosegarden.database.SQLiteConnector;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +36,16 @@ public abstract class AbstractDataManager extends Manager {
 
                 this.databaseConnector = new MySQLConnector(this.rosePlugin, hostname, port, database, username, password, useSSL, poolSize);
                 this.rosePlugin.getLogger().info("Data handler connected using MySQL.");
+            } else if (roseSettings.get("postgresql-settings.enabled").getBoolean()) {
+                String hostname = roseSettings.get("postgresql-settings.hostname").getString();
+                int port = roseSettings.get("postgresql-settings.port").getInt();
+                String database = roseSettings.get("postgresql-settings.database-name").getString();
+                String username = roseSettings.get("postgresql-settings.user-name").getString();
+                String password = roseSettings.get("postgresql-settings.user-password").getString();
+                int poolSize = roseSettings.get("postgresql-settings.connection-pool-size").getInt();
+
+                this.databaseConnector = new PostgreSQLConnector(this.rosePlugin, hostname, port, database, username, password, poolSize);
+                this.rosePlugin.getLogger().info("Data handler connected using PostgreSQL.");
             } else {
                 this.databaseConnector = new SQLiteConnector(this.rosePlugin);
                 this.databaseConnector.cleanup();

@@ -99,7 +99,7 @@ public abstract class AbstractConfigurationManager extends Manager {
         if (this.rosePlugin.hasDataManager()) {
             Arrays.asList(
                     new SingularRoseSetting(this.rosePlugin, "mysql-settings", null, "Settings for if you want to use MySQL for data management"),
-                    new SingularRoseSetting(this.rosePlugin, "mysql-settings.enabled", false, "Enable MySQL", "If false, SQLite will be used instead"),
+                    new SingularRoseSetting(this.rosePlugin, "mysql-settings.enabled", false, "Enable MySQL", "Set to true to use MySQL"),
                     new SingularRoseSetting(this.rosePlugin, "mysql-settings.hostname", "", "MySQL Database Hostname"),
                     new SingularRoseSetting(this.rosePlugin, "mysql-settings.port", 3306, "MySQL Database Port"),
                     new SingularRoseSetting(this.rosePlugin, "mysql-settings.database-name", "", "MySQL Database Name"),
@@ -107,6 +107,17 @@ public abstract class AbstractConfigurationManager extends Manager {
                     new SingularRoseSetting(this.rosePlugin, "mysql-settings.user-password", "", "MySQL Database User Password"),
                     new SingularRoseSetting(this.rosePlugin, "mysql-settings.use-ssl", false, "If the database connection should use SSL", "You should enable this if your database supports SSL"),
                     new SingularRoseSetting(this.rosePlugin, "mysql-settings.connection-pool-size", 3, "The number of connections to make to the database")
+            ).forEach(x -> this.cachedValues.put(x.getKey(), x));
+
+            Arrays.asList(
+                    new SingularRoseSetting(this.rosePlugin, "postgresql-settings", null, "Settings for if you want to use PostgreSQL for data management"),
+                    new SingularRoseSetting(this.rosePlugin, "postgresql-settings.enabled", false, "Enable PostgreSQL", "Set to true to use PostgreSQL"),
+                    new SingularRoseSetting(this.rosePlugin, "postgresql-settings.hostname", "", "PostgreSQL Database Hostname"),
+                    new SingularRoseSetting(this.rosePlugin, "postgresql-settings.port", 3306, "PostgreSQL Database Port"),
+                    new SingularRoseSetting(this.rosePlugin, "postgresql-settings.database-name", "", "PostgreSQL Database Name"),
+                    new SingularRoseSetting(this.rosePlugin, "postgresql-settings.user-name", "", "PostgreSQL Database User Name"),
+                    new SingularRoseSetting(this.rosePlugin, "postgresql-settings.user-password", "", "PostgreSQL Database User Password"),
+                    new SingularRoseSetting(this.rosePlugin, "postgresql-settings.connection-pool-size", 3, "The number of connections to make to the database")
             ).forEach(x -> this.cachedValues.put(x.getKey(), x));
         }
     }
