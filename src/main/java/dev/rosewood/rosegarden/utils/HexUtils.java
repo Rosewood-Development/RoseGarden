@@ -8,6 +8,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import net.md_5.bungee.api.ChatColor;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 
 public final class HexUtils {
@@ -439,7 +440,7 @@ public final class HexUtils {
                 if (range == 0) // No range, don't divide by 0
                     return channelStart;
                 float interval = (channelEnd - channelStart) / range;
-                return Math.round(interval * (step - this.lowerRange) + channelStart);
+                return Math.min(Math.max(Math.round(interval * (step - this.lowerRange) + channelStart), 0), 255);
             }
 
         }
