@@ -12,11 +12,6 @@ import java.util.Map;
 
 public abstract class AbstractConfigurationManager extends Manager {
 
-    private static final String[] FOOTER = new String[] {
-            "That's everything! You reached the end of the configuration.",
-            "Enjoy the plugin!"
-    };
-
     private final Class<? extends RoseSetting> settingEnum;
     private CommentedFileConfiguration configuration;
     private Map<String, RoseSetting> cachedValues;
@@ -45,9 +40,6 @@ public abstract class AbstractConfigurationManager extends Manager {
             setting.reset();
             changed |= setting.setIfNotExists(this.configuration);
         }
-
-        if (setHeaderFooter)
-            this.configuration.addComments(FOOTER);
 
         if (changed)
             this.configuration.save();
