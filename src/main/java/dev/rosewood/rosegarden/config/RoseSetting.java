@@ -161,7 +161,7 @@ public interface RoseSetting {
                 RoseSettingValue value = new RoseSettingValue(key, defaultValue, commentsArray);
                 RoseGardenUtils.recursivelyWriteRoseSettingValues(fileConfiguration, value);
             } else {
-                fileConfiguration.addComments(commentsArray);
+                fileConfiguration.addPathedComments(key, commentsArray);
             }
 
             return true;
