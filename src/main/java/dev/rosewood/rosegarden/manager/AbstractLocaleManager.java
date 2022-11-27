@@ -105,6 +105,16 @@ public abstract class AbstractLocaleManager extends Manager {
     public abstract List<Locale> getLocales();
 
     /**
+     * Handles sending a message, can be edited to add additional functionality
+     *
+     * @param sender The CommandSender to send the message to
+     * @param message The fully parsed message to send
+     */
+    protected void handleMessage(CommandSender sender, String message) {
+        sender.sendMessage(message);
+    }
+
+    /**
      * Gets a locale message
      *
      * @param messageKey The key of the message to get
@@ -270,8 +280,11 @@ public abstract class AbstractLocaleManager extends Manager {
      * @param message The message
      */
     protected final void sendParsedMessage(CommandSender sender, String message) {
-        if (!message.isEmpty())
-            HexUtils.sendMessage(sender, this.parsePlaceholders(sender, message));
+        if (message.isEmpty())
+            return;
+
+        String parsedMessage = HexUtils.colorify(this.parsePlaceholders(sender, message));
+        this.handleMessage(sender, parsedMessage);
     }
 
 }
