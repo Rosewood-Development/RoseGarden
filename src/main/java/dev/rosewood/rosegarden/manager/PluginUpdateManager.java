@@ -17,6 +17,14 @@ import org.bukkit.event.player.PlayerJoinEvent;
 
 public class PluginUpdateManager extends Manager implements Listener {
 
+    private static final String[] SNAPSHOT_HEADER = {
+            "================================================",
+            " You are currently running a DEVELOPMENT BUILD!",
+            " These types of builds are not meant to be run",
+            " on a production server, and are not supported.",
+            "================================================"
+    };
+
     private String updateVersion;
 
     public PluginUpdateManager(RosePlugin rosePlugin) {
@@ -28,6 +36,13 @@ public class PluginUpdateManager extends Manager implements Listener {
     @Override
     public void reload() {
         File configFile = new File(this.rosePlugin.getRoseGardenDataFolder(), "config.yml");
+
+        String currentVersion = this.rosePlugin.getDescription().getVersion();
+        if (currentVersion.contains("-SNAPSHOT")) {
+            for (String line : SNAPSHOT_HEADER)
+                this.rosePlugin.getLogger().warning(line);
+            return;
+        }
 
         CommentedFileConfiguration configuration = CommentedFileConfiguration.loadConfiguration(configFile);
         if (!configuration.contains("check-updates")) {
@@ -42,7 +57,6 @@ public class PluginUpdateManager extends Manager implements Listener {
         Bukkit.getScheduler().runTaskAsynchronously(this.rosePlugin, () -> {
             try {
                 String latestVersion = this.getLatestVersion();
-                String currentVersion = this.rosePlugin.getDescription().getVersion();
 
                 if (RoseGardenUtils.isUpdateAvailable(latestVersion, currentVersion)) {
                     this.updateVersion = latestVersion;
