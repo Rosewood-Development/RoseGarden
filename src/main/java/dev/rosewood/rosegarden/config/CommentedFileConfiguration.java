@@ -3,49 +3,24 @@ package dev.rosewood.rosegarden.config;
 import java.io.File;
 import java.io.Reader;
 import java.lang.reflect.Field;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.yaml.snakeyaml.DumperOptions;
 
 public class CommentedFileConfiguration extends CommentedConfigurationSection {
 
-    private int comments;
-    private CommentedFileConfigurationHelper helper;
-    private File file;
+    private final CommentedFileConfigurationHelper helper;
+    private final File file;
 
     public CommentedFileConfiguration(Reader configStream, File configFile, int comments) {
-        super(YamlConfiguration.loadConfiguration(configStream));
-        this.comments = comments;
+        super(YamlConfiguration.loadConfiguration(configStream), new AtomicInteger(comments));
         this.helper = new CommentedFileConfigurationHelper();
         this.file = configFile;
     }
 
     public static CommentedFileConfiguration loadConfiguration(File file) {
         return new CommentedFileConfigurationHelper().getNewConfig(file);
-    }
-
-    public void set(String path, Object value, String... comments) {
-        this.addPathedComments(path, comments);
-        this.set(path, value);
-    }
-
-    public void addComments(String... comments) {
-        for (String comment : comments) {
-            this.set("_COMMENT_" + this.comments, " " + comment);
-            this.comments++;
-        }
-    }
-
-    public void addPathedComments(String path, String... comments) {
-        if (!this.contains(path)) {
-            int subpathIndex = path.lastIndexOf('.');
-            String subpath = subpathIndex == -1 ? "" : path.substring(0, subpathIndex) + '.';
-
-            for (String comment : comments) {
-                this.set(subpath + "_COMMENT_" + this.comments, " " + comment);
-                this.comments++;
-            }
-        }
     }
 
     public void reloadConfig() {
@@ -88,6 +63,7 @@ public class CommentedFileConfiguration extends CommentedConfigurationSection {
             field_yamlOptions.setAccessible(true);
             DumperOptions yamlOptions = (DumperOptions) field_yamlOptions.get(yamlConfiguration);
             yamlOptions.setWidth(Integer.MAX_VALUE);
+            yamlOptions.setDefaultScalarStyle(DumperOptions.ScalarStyle.PLAIN);
 
             if (Stream.of(DumperOptions.class.getDeclaredMethods()).anyMatch(x -> x.getName().equals("setIndicatorIndent")))
                 yamlOptions.setIndicatorIndent(2);

@@ -4,6 +4,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
@@ -15,10 +16,32 @@ import org.bukkit.util.Vector;
 
 public class CommentedConfigurationSection implements ConfigurationSection {
 
+    private final AtomicInteger commentsCounter;
     protected ConfigurationSection config;
 
-    public CommentedConfigurationSection(ConfigurationSection configuration) {
+    public CommentedConfigurationSection(ConfigurationSection configuration, AtomicInteger commentsCounter) {
         this.config = configuration;
+        this.commentsCounter = commentsCounter;
+    }
+
+    public void set(String path, Object value, String... comments) {
+        this.addPathedComments(path, comments);
+        this.set(path, value);
+    }
+
+    public void addComments(String... comments) {
+        for (String comment : comments)
+            this.set("_COMMENT_" + this.commentsCounter.getAndIncrement(), " " + comment);
+    }
+
+    public void addPathedComments(String path, String... comments) {
+        if (!this.contains(path)) {
+            int subpathIndex = path.lastIndexOf('.');
+            String subpath = subpathIndex == -1 ? "" : path.substring(0, subpathIndex) + '.';
+
+            for (String comment : comments)
+                this.set(subpath + "_COMMENT_" + this.commentsCounter.getAndIncrement(), " " + comment);
+        }
     }
 
     /**
@@ -126,12 +149,12 @@ public class CommentedConfigurationSection implements ConfigurationSection {
 
     @Override
     public CommentedConfigurationSection createSection(String s) {
-        return new CommentedConfigurationSection(this.config.createSection(s));
+        return new CommentedConfigurationSection(this.config.createSection(s), this.commentsCounter);
     }
 
     @Override
     public CommentedConfigurationSection createSection(String s, Map<?, ?> map) {
-        return new CommentedConfigurationSection(this.config.createSection(s, map));
+        return new CommentedConfigurationSection(this.config.createSection(s, map), this.commentsCounter);
     }
 
     @Override
@@ -375,7 +398,7 @@ public class CommentedConfigurationSection implements ConfigurationSection {
         if (section == null)
             return null;
 
-        return new CommentedConfigurationSection(section);
+        return new CommentedConfigurationSection(section, this.commentsCounter);
     }
 
     @Override
@@ -385,7 +408,7 @@ public class CommentedConfigurationSection implements ConfigurationSection {
 
     @Override
     public CommentedConfigurationSection getDefaultSection() {
-        return new CommentedConfigurationSection(this.config.getDefaultSection());
+        return new CommentedConfigurationSection(this.config.getDefaultSection(), this.commentsCounter);
     }
 
     @Override
