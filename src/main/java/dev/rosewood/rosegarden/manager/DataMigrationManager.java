@@ -69,10 +69,36 @@ public class DataMigrationManager extends Manager {
             } else {
                 // Grab the current migration version
                 String selectVersion = "SELECT migration_version FROM " + this.getMigrationsTableName();
+                boolean badState = false;
                 try (PreparedStatement statement = connection.prepareStatement(selectVersion)) {
                     ResultSet result = statement.executeQuery();
-                    result.next();
-                    currentMigration = result.getInt("migration_version");
+                    if (!result.next()) {
+                        badState = true;
+                    } else {
+                        result.next();
+                        currentMigration = result.getInt("migration_version");
+                    }
+                }
+
+                if (badState) {
+                    RoseGardenUtils.getLogger().severe("Database migration table is missing the migration_version row! " +
+                            "The database is currently in a bad state due to an unknown issue. Attempting to fix the migration " +
+                            "column automatically... please contact the plugin developer for assistance if this does not work.");
+
+                    // Find the highest migration version
+                    currentMigration = this.migrations
+                            .stream()
+                            .mapToInt(DataMigration::getRevision)
+                            .max()
+                            .orElse(-1);
+
+                    // Insert a new row into the migration table, assume the highest migration is already applied in an
+                    // attempt to prevent getting into an even worse state
+                    String insertRow = "INSERT INTO " + this.getMigrationsTableName() + " VALUES (?)";
+                    try (PreparedStatement statement = connection.prepareStatement(insertRow)) {
+                        statement.setInt(1, currentMigration);
+                        statement.execute();
+                    }
                 }
             }
 

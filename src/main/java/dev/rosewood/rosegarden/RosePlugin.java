@@ -83,7 +83,7 @@ public abstract class RosePlugin extends JavaPlugin {
     }
 
     @Override
-    public final void onEnable() {
+    public void onEnable() {
         // Log that we are loading
         this.getLogger().info("Initializing using RoseGarden v" + ROSEGARDEN_VERSION);
 
@@ -111,7 +111,7 @@ public abstract class RosePlugin extends JavaPlugin {
     }
 
     @Override
-    public final void onDisable() {
+    public void onDisable() {
         // Run the plugin's disable code
         this.disable();
 
@@ -192,7 +192,7 @@ public abstract class RosePlugin extends JavaPlugin {
      * @return A new or existing instance of the given manager class
      */
     @SuppressWarnings("unchecked")
-    public final <T extends Manager> T getManager(Class<T> managerClass) {
+    public <T extends Manager> T getManager(Class<T> managerClass) {
         if (this.managers.containsKey(managerClass))
             return (T) this.managers.get(managerClass);
 
@@ -220,14 +220,14 @@ public abstract class RosePlugin extends JavaPlugin {
     /**
      * @return the ID of the plugin on Spigot, or -1 if not tracked
      */
-    public int getSpigotId() {
+    public final int getSpigotId() {
         return this.spigotId;
     }
 
     /**
      * @return the ID of this plugin on bStats, or -1 if not tracked
      */
-    public int getBStatsId() {
+    public final int getBStatsId() {
         return this.bStatsId;
     }
 
@@ -249,7 +249,7 @@ public abstract class RosePlugin extends JavaPlugin {
     /**
      * @return data of all RosePlugins installed on the server
      */
-    public List<RosePluginData> getLoadedRosePluginsData() {
+    public final List<RosePluginData> getLoadedRosePluginsData() {
         List<RosePluginData> data = new ArrayList<>();
 
         ServicesManager servicesManager = Bukkit.getServicesManager();
@@ -275,7 +275,7 @@ public abstract class RosePlugin extends JavaPlugin {
     /**
      * @return the data folder for RoseGarden
      */
-    public File getRoseGardenDataFolder() {
+    public final File getRoseGardenDataFolder() {
         File configDir = new File(this.getDataFolder().getParentFile(), "RoseGarden");
         if (!configDir.exists())
             configDir.mkdirs();
@@ -285,23 +285,23 @@ public abstract class RosePlugin extends JavaPlugin {
     /**
      * @return the version of the latest update of this plugin, or null if there is none
      */
-    public String getUpdateVersion() {
+    public final String getUpdateVersion() {
         return this.getManager(PluginUpdateManager.class).getUpdateVersion();
     }
 
-    public boolean hasConfigurationManager() {
+    public final boolean hasConfigurationManager() {
         return this.configurationManagerClass != null;
     }
 
-    public boolean hasDataManager() {
+    public final boolean hasDataManager() {
         return this.dataManagerClass != null;
     }
 
-    public boolean hasLocaleManager() {
+    public final boolean hasLocaleManager() {
         return this.localeManagerClass != null;
     }
 
-    public boolean hasCommandManager() {
+    public final boolean hasCommandManager() {
         return this.commandManagerClass != null;
     }
 
