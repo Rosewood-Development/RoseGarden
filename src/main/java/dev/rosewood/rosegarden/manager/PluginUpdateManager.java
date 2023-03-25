@@ -25,6 +25,7 @@ public class PluginUpdateManager extends Manager implements Listener {
             "================================================"
     };
 
+    private boolean displayedSnapshotHeader;
     private String updateVersion;
 
     public PluginUpdateManager(RosePlugin rosePlugin) {
@@ -38,16 +39,17 @@ public class PluginUpdateManager extends Manager implements Listener {
         File configFile = new File(this.rosePlugin.getRoseGardenDataFolder(), "config.yml");
 
         String currentVersion = this.rosePlugin.getDescription().getVersion();
-        if (currentVersion.contains("-SNAPSHOT")) {
+        if (currentVersion.contains("-SNAPSHOT") && !this.displayedSnapshotHeader) {
             for (String line : SNAPSHOT_HEADER)
                 this.rosePlugin.getLogger().warning(line);
+            this.displayedSnapshotHeader = true;
             return;
         }
 
         CommentedFileConfiguration configuration = CommentedFileConfiguration.loadConfiguration(configFile);
         if (!configuration.contains("check-updates")) {
             configuration.set("check-updates", true, "Should all plugins running RoseGarden check for updates?", "RoseGarden is a core library created by Rosewood Development");
-            configuration.save();
+            configuration.save(configFile);
         }
 
         if (!configuration.getBoolean("check-updates") || this.rosePlugin.getSpigotId() == -1)

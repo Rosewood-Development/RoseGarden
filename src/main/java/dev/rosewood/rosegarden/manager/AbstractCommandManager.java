@@ -30,7 +30,7 @@ public abstract class AbstractCommandManager extends Manager {
     }
 
     @Override
-    public final void reload() {
+    public void reload() {
         if (this.commandWrappers == null) {
             this.commandWrappers = new ArrayList<>();
             for (Class<? extends RoseCommandWrapper> commandWrapperClass : this.getRootCommands()) {
@@ -67,7 +67,7 @@ public abstract class AbstractCommandManager extends Manager {
     }
 
     @Override
-    public final void disable() {
+    public void disable() {
         this.argumentHandlers.clear();
         this.commandWrappers.forEach(RoseCommandWrapper::unregister);
         Bukkit.getOnlinePlayers().forEach(Player::updateCommands);

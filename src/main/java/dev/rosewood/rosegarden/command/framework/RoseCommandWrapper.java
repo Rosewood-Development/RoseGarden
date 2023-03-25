@@ -148,7 +148,7 @@ public abstract class RoseCommandWrapper extends BukkitCommand {
             }
 
             if (modified)
-                commandConfig.save();
+                commandConfig.save(commandConfigFile);
 
             // Load command config values
             this.activeName = commandConfig.getString("name");

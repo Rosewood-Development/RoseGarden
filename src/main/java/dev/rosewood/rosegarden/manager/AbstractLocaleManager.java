@@ -5,32 +5,96 @@ import dev.rosewood.rosegarden.command.framework.CommandMessages;
 import dev.rosewood.rosegarden.config.CommentedFileConfiguration;
 import dev.rosewood.rosegarden.hook.PlaceholderAPIHook;
 import dev.rosewood.rosegarden.locale.Locale;
+import dev.rosewood.rosegarden.locale.YamlFileLocale;
+import dev.rosewood.rosegarden.locale.provider.JarResourceLocaleProvider;
 import dev.rosewood.rosegarden.utils.HexUtils;
 import dev.rosewood.rosegarden.utils.StringPlaceholders;
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import net.md_5.bungee.api.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractLocaleManager extends Manager {
 
-    protected CommentedFileConfiguration locale;
+    protected final File localeDirectory;
+    protected Locale defaultLocale;
+    protected Locale loadedLocale;
 
     public AbstractLocaleManager(RosePlugin rosePlugin) {
         super(rosePlugin);
+
+        this.localeDirectory = new File(this.rosePlugin.getDataFolder(), "locale");
+    }
+
+    @SuppressWarnings("unchecked")
+    private void registerLocales(Collection<Locale> locales) {
+        // Inject {{EXAMPLE}} placeholders into the locale files
+        StringPlaceholders.Builder placeholdersBuilder = StringPlaceholders.builder().setDelimiters("{{", "}}");
+        this.injectPlaceholderConstants(placeholdersBuilder);
+        StringPlaceholders placeholders = placeholdersBuilder.build();
+        for (Locale locale : locales) {
+            for (Map.Entry<String, Object> entry : locale.getLocaleValues().entrySet()) {
+                if (entry.getValue() instanceof String) {
+                    String value = (String) entry.getValue();
+                    locale.getLocaleValues().put(entry.getKey(), placeholders.apply(value));
+                } else if (entry.getValue() instanceof List) {
+                    List<String> list = (List<String>) entry.getValue();
+                    list.replaceAll(placeholders::apply);
+                    locale.getLocaleValues().put(entry.getKey(), list);
+                }
+            }
+        }
+
+        this.defaultLocale = locales.stream()
+                .filter(x -> x.getLocaleName().equals("en_US"))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("No default 'locale/en_US.yml' locale found!"));
+
+        if (!this.localeDirectory.exists())
+            this.localeDirectory.mkdirs();
+
+        // Transform any .lang files to .yml files
+        File[] files = this.localeDirectory.listFiles();
+        if (files != null) {
+            int migrated = 0;
+            for (File file : files) {
+                if (!file.getName().endsWith(".lang"))
+                    continue;
+
+                File newFile = new File(this.localeDirectory, file.getName().replace(".lang", ".yml"));
+                file.renameTo(newFile);
+                migrated++;
+            }
+
+            if (migrated > 0)
+                this.rosePlugin.getLogger().info("Migrated " + migrated + " locale files to the new .yml format");
+        }
+
+        locales.forEach(this::registerLocale);
+
+        // Find the desired locale file in the locale directory, allow both .lang and .yml file extensions
+        String localeName = this.rosePlugin.getManager(AbstractConfigurationManager.class).getConfig().getString("locale");
+        File localeFile = new File(this.localeDirectory, localeName + ".yml");
+        if (localeFile.exists()) {
+            this.loadedLocale = new YamlFileLocale(localeFile);
+        } else {
+            this.rosePlugin.getLogger().warning("Locale file '" + localeFile.getName() + "' not found, using default locale");
+            this.loadedLocale = this.defaultLocale;
+        }
     }
 
     /**
-     * Creates a .lang file if one doesn't exist
-     * Cross merges values between files into the .lang file, the .lang values take priority
+     * Creates a locale file if one doesn't exist
+     * Cross merges values between files into the locale file, the locale values take priority
      *
      * @param locale The Locale to register
      */
     private void registerLocale(Locale locale) {
-        File file = new File(this.rosePlugin.getDataFolder() + "/locale", locale.getLocaleName() + ".lang");
+        File file = new File(this.rosePlugin.getDataFolder() + "/locale", locale.getLocaleName() + ".yml");
         boolean newFile = false;
         if (!file.exists()) {
             try {
@@ -43,66 +107,42 @@ public abstract class AbstractLocaleManager extends Manager {
 
         boolean changed = false;
         CommentedFileConfiguration configuration = CommentedFileConfiguration.loadConfiguration(file);
-        if (newFile) {
-            configuration.addComments(locale.getLocaleName() + " translation by " + locale.getTranslatorName());
-            Map<String, Object> defaultLocaleStrings = locale.getDefaultLocaleValues();
-            for (String key : defaultLocaleStrings.keySet()) {
-                Object value = defaultLocaleStrings.get(key);
-                if (key.startsWith("#")) {
-                    configuration.addComments((String) value);
-                } else {
-                    configuration.set(key, value);
-                }
-            }
-            changed = true;
-        } else {
-            Map<String, Object> defaultLocaleStrings = locale.getDefaultLocaleValues();
-            for (String key : defaultLocaleStrings.keySet()) {
-                if (key.startsWith("#"))
-                    continue;
+        Map<String, Object> defaultLocaleStrings = locale.getLocaleValues();
 
-                Object value = defaultLocaleStrings.get(key);
-                if (!configuration.contains(key)) {
-                    configuration.set(key, value);
-                    changed = true;
-                }
+        // Write new locale values that are missing
+        // If the file is new, also write the comments
+        for (String key : defaultLocaleStrings.keySet()) {
+            Object value = defaultLocaleStrings.get(key);
+            if (newFile && key.startsWith(CommentedFileConfiguration.COMMENT_KEY_PREFIX)) {
+                configuration.addComments(((String) value).substring(1));
+                changed = true;
+            } else if (!configuration.contains(key)) {
+                configuration.set(key, value);
+                changed = true;
             }
         }
 
         if (changed)
-            configuration.save();
+            configuration.save(file);
     }
 
     @Override
-    public final void reload() {
-        File localeDirectory = new File(this.rosePlugin.getDataFolder(), "locale");
-        if (!localeDirectory.exists())
-            localeDirectory.mkdirs();
-
-        this.getLocales().forEach(this::registerLocale);
-
-        String locale;
-        if (this.rosePlugin.hasConfigurationManager()) {
-            locale = this.rosePlugin.getManager(AbstractConfigurationManager.class).getSettings().get("locale").getString();
-        } else {
-            locale = "en_US";
-        }
-
-        File targetLocaleFile = new File(this.rosePlugin.getDataFolder() + "/locale", locale + ".lang");
-        if (!targetLocaleFile.exists()) {
-            targetLocaleFile = new File(this.rosePlugin.getDataFolder() + "/locale", "en_US.lang");
-            this.rosePlugin.getLogger().severe("File " + targetLocaleFile.getName() + " does not exist. Defaulting to en_US.lang");
-        }
-
-        this.locale = CommentedFileConfiguration.loadConfiguration(targetLocaleFile);
+    public void reload() {
+        this.registerLocales(this.getJarResourceLocales());
     }
 
     @Override
-    public final void disable() {
+    public void disable() {
 
     }
 
-    public abstract List<Locale> getLocales();
+    protected Collection<Locale> getJarResourceLocales() {
+        return new JarResourceLocaleProvider("locale").getLocales();
+    }
+
+    protected void injectPlaceholderConstants(StringPlaceholders.Builder builder) {
+        builder.addPlaceholder("PLUGIN_NAME", this.rosePlugin.getName());
+    }
 
     /**
      * Handles sending a message, can be edited to add additional functionality
@@ -112,6 +152,16 @@ public abstract class AbstractLocaleManager extends Manager {
      */
     protected void handleMessage(CommandSender sender, String message) {
         sender.sendMessage(message);
+    }
+
+    @NotNull
+    protected String getLocaleString(String key) {
+        Object value = this.loadedLocale.getLocaleValues().get(key);
+        if (!(value instanceof String))
+            value = this.defaultLocale.getLocaleValues().get(key);
+        if (!(value instanceof String))
+            throw new IllegalStateException("Missing locale string: " + key);
+        return (String) value;
     }
 
     /**
@@ -132,10 +182,7 @@ public abstract class AbstractLocaleManager extends Manager {
      * @return The locale message with the given placeholders applied
      */
     public final String getLocaleMessage(String messageKey, StringPlaceholders stringPlaceholders) {
-        String message = this.locale.getString(messageKey);
-        if (message == null)
-            return ChatColor.RED + "Missing message in locale file: " + messageKey;
-        return HexUtils.colorify(stringPlaceholders.apply(message));
+        return HexUtils.colorify(stringPlaceholders.apply(this.getLocaleString(messageKey)));
     }
 
     /**
@@ -156,11 +203,14 @@ public abstract class AbstractLocaleManager extends Manager {
      * @return The locale message with the given placeholders applied
      */
     public final String getCommandLocaleMessage(String messageKey, StringPlaceholders stringPlaceholders) {
-        String message = this.locale.getString(messageKey);
-        if (message == null)
+        String message;
+        try {
+            message = this.getLocaleMessage(messageKey, stringPlaceholders);
+        } catch (IllegalStateException e) {
             message = CommandMessages.DEFAULT_MESSAGES.get(messageKey);
-        if (message == null)
-            return ChatColor.RED + "Missing message key in command messages: " + messageKey;
+            if (message == null)
+                throw new IllegalStateException("Missing command locale string: " + messageKey, e);
+        }
         return HexUtils.colorify(stringPlaceholders.apply(message));
     }
 

@@ -31,7 +31,7 @@ public class CommentedConfigurationSection implements ConfigurationSection {
 
     public void addComments(String... comments) {
         for (String comment : comments)
-            this.set("_COMMENT_" + this.commentsCounter.getAndIncrement(), " " + comment);
+            this.set(CommentedFileConfiguration.COMMENT_KEY_PREFIX + this.commentsCounter.getAndIncrement(), " " + comment);
     }
 
     public void addPathedComments(String path, String... comments) {
@@ -40,7 +40,7 @@ public class CommentedConfigurationSection implements ConfigurationSection {
             String subpath = subpathIndex == -1 ? "" : path.substring(0, subpathIndex) + '.';
 
             for (String comment : comments)
-                this.set(subpath + "_COMMENT_" + this.commentsCounter.getAndIncrement(), " " + comment);
+                this.set(subpath + CommentedFileConfiguration.COMMENT_KEY_PREFIX + this.commentsCounter.getAndIncrement(), " " + comment);
         }
     }
 
@@ -88,7 +88,7 @@ public class CommentedConfigurationSection implements ConfigurationSection {
     @Override
     public Set<String> getKeys(boolean b) {
         Set<String> keys = new LinkedHashSet<>(this.config.getKeys(b));
-        keys.removeIf(x -> x.startsWith("_COMMENT_"));
+        keys.removeIf(x -> x.startsWith(CommentedFileConfiguration.COMMENT_KEY_PREFIX));
         return keys;
     }
 

@@ -1,6 +1,7 @@
 package dev.rosewood.rosegarden.manager;
 
 import dev.rosewood.rosegarden.RosePlugin;
+import dev.rosewood.rosegarden.config.CommentedFileConfiguration;
 import dev.rosewood.rosegarden.config.RoseSetting;
 import dev.rosewood.rosegarden.database.DataMigration;
 import dev.rosewood.rosegarden.database.DatabaseConnector;
@@ -19,19 +20,19 @@ public abstract class AbstractDataManager extends Manager {
     }
 
     @Override
-    public final void reload() {
+    public void reload() {
         try {
             AbstractConfigurationManager configurationManager = this.rosePlugin.getManager(AbstractConfigurationManager.class);
-            Map<String, RoseSetting> roseSettings = configurationManager.getSettings();
+            CommentedFileConfiguration roseSettings = configurationManager.getConfig();
 
-            if (roseSettings.get("mysql-settings.enabled").getBoolean()) {
-                String hostname = roseSettings.get("mysql-settings.hostname").getString();
-                int port = roseSettings.get("mysql-settings.port").getInt();
-                String database = roseSettings.get("mysql-settings.database-name").getString();
-                String username = roseSettings.get("mysql-settings.user-name").getString();
-                String password = roseSettings.get("mysql-settings.user-password").getString();
-                boolean useSSL = roseSettings.get("mysql-settings.use-ssl").getBoolean();
-                int poolSize = roseSettings.get("mysql-settings.connection-pool-size").getInt();
+            if (roseSettings.getBoolean("mysql-settings.enabled")) {
+                String hostname = roseSettings.getString("mysql-settings.hostname");
+                int port = roseSettings.getInt("mysql-settings.port");
+                String database = roseSettings.getString("mysql-settings.database-name");
+                String username = roseSettings.getString("mysql-settings.user-name");
+                String password = roseSettings.getString("mysql-settings.user-password");
+                boolean useSSL = roseSettings.getBoolean("mysql-settings.use-ssl");
+                int poolSize = roseSettings.getInt("mysql-settings.connection-pool-size");
 
                 this.databaseConnector = new MySQLConnector(this.rosePlugin, hostname, port, database, username, password, useSSL, poolSize);
                 this.rosePlugin.getLogger().info("Data handler connected using MySQL.");
@@ -48,7 +49,7 @@ public abstract class AbstractDataManager extends Manager {
     }
 
     @Override
-    public final void disable() {
+    public void disable() {
         if (this.databaseConnector == null)
             return;
 

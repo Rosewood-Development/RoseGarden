@@ -46,6 +46,7 @@ public final class CommandMapUtils {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private static Map<String, Command> getKnownCommands() {
         try {
             return (Map<String, Command>) knownCommandsField.get(getCommandMap());

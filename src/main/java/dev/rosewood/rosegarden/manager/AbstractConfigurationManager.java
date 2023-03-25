@@ -26,14 +26,14 @@ public abstract class AbstractConfigurationManager extends Manager {
     }
 
     @Override
-    public final void reload() {
+    public void reload() {
         File configFile = new File(this.rosePlugin.getDataFolder(), "config.yml");
-        boolean setHeaderFooter = !configFile.exists();
-        boolean changed = setHeaderFooter;
+        boolean appendHeader = !configFile.exists();
+        boolean changed = appendHeader;
 
         this.configuration = CommentedFileConfiguration.loadConfiguration(configFile);
 
-        if (setHeaderFooter)
+        if (appendHeader)
             this.configuration.addComments(this.getHeader());
 
         for (RoseSetting setting : this.getSettings().values()) {
@@ -42,11 +42,11 @@ public abstract class AbstractConfigurationManager extends Manager {
         }
 
         if (changed)
-            this.configuration.save();
+            this.configuration.save(configFile);
     }
 
     @Override
-    public final void disable() {
+    public void disable() {
         for (RoseSetting setting : this.getSettings().values())
             setting.reset();
     }
@@ -59,14 +59,14 @@ public abstract class AbstractConfigurationManager extends Manager {
     /**
      * @return the config.yml as a CommentedFileConfiguration
      */
-    public final CommentedFileConfiguration getConfig() {
+    public CommentedFileConfiguration getConfig() {
         return this.configuration;
     }
 
     /**
      * @return the values of the setting enum
      */
-    public Map<String, RoseSetting> getSettings() {
+    private Map<String, RoseSetting> getSettings() {
         if (this.cachedValues == null) {
             try {
                 RoseSetting[] roseSettings = (RoseSetting[]) this.settingEnum.getDeclaredMethod("values").invoke(null);
