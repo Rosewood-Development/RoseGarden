@@ -72,11 +72,10 @@ public class DataMigrationManager extends Manager {
                 boolean badState = false;
                 try (PreparedStatement statement = connection.prepareStatement(selectVersion)) {
                     ResultSet result = statement.executeQuery();
-                    if (!result.next()) {
-                        badState = true;
-                    } else {
-                        result.next();
+                    if (result.next()) {
                         currentMigration = result.getInt("migration_version");
+                    } else {
+                        badState = true;
                     }
                 }
 
