@@ -33,7 +33,7 @@ public abstract class AbstractLocaleManager extends Manager {
     @SuppressWarnings("unchecked")
     private void registerLocales(Collection<Locale> locales) {
         // Inject {{EXAMPLE}} placeholders into the locale files
-        StringPlaceholders.Builder placeholdersBuilder = StringPlaceholders.builder().setDelimiters("{{", "}}");
+        StringPlaceholders.Builder placeholdersBuilder = StringPlaceholders.builder().delimiters("{{", "}}");
         this.injectPlaceholderConstants(placeholdersBuilder);
         StringPlaceholders placeholders = placeholdersBuilder.build();
         for (Locale locale : locales) {
@@ -141,7 +141,7 @@ public abstract class AbstractLocaleManager extends Manager {
     }
 
     protected void injectPlaceholderConstants(StringPlaceholders.Builder builder) {
-        builder.addPlaceholder("PLUGIN_NAME", this.rosePlugin.getName());
+        builder.add("PLUGIN_NAME", this.rosePlugin.getName());
     }
 
     /**

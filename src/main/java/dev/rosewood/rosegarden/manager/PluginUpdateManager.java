@@ -112,7 +112,7 @@ public class PluginUpdateManager extends Manager implements Listener {
                 (website != null ? " " + website : "");
 
         StringPlaceholders placeholders = StringPlaceholders.builder("new", this.updateVersion)
-                .addPlaceholder("current", this.rosePlugin.getDescription().getVersion())
+                .add("current", this.rosePlugin.getDescription().getVersion())
                 .build();
 
         RoseGardenUtils.sendMessage(player, updateMessage, placeholders);

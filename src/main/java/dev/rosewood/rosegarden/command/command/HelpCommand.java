@@ -26,9 +26,9 @@ public class HelpCommand extends RoseCommand {
                 continue;
 
             StringPlaceholders stringPlaceholders = StringPlaceholders.builder("cmd", this.parent.getName())
-                    .addPlaceholder("subcmd", command.getName().toLowerCase())
-                    .addPlaceholder("args", command.getArgumentsString())
-                    .addPlaceholder("desc", localeManager.getLocaleMessage(command.getDescriptionKey()))
+                    .add("subcmd", command.getName().toLowerCase())
+                    .add("args", command.getArgumentsString())
+                    .add("desc", localeManager.getLocaleMessage(command.getDescriptionKey()))
                     .build();
 
             localeManager.sendSimpleCommandMessage(context.getSender(), "command-help-list-description" + (command.getNumParameters() == 0 ? "-no-args" : ""), stringPlaceholders);

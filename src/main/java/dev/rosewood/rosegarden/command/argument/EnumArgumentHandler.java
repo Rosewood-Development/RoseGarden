@@ -27,8 +27,8 @@ public class EnumArgumentHandler<T extends Enum<T>> extends RoseCommandArgumentH
         if (!value.isPresent()) {
             String messageKey;
             StringPlaceholders placeholders = StringPlaceholders.builder("enum", this.handledType.getSimpleName())
-                    .addPlaceholder("input", input)
-                    .addPlaceholder("types", Stream.of(enumConstants).map(x -> x.name().toLowerCase()).collect(Collectors.joining(", ")))
+                    .add("input", input)
+                    .add("types", Stream.of(enumConstants).map(x -> x.name().toLowerCase()).collect(Collectors.joining(", ")))
                     .build();
             if (enumConstants.length <= 10) {
                 messageKey = "argument-handler-enum-list";
