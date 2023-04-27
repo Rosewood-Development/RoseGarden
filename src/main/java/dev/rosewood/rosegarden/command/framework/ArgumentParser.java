@@ -1,17 +1,21 @@
 package dev.rosewood.rosegarden.command.framework;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ArgumentParser {
 
     private final CommandContext context;
     private final List<String> arguments;
     private String previous;
+    private final Map<Class<?>, Object> contextValues;
 
     public ArgumentParser(CommandContext context, List<String> arguments) {
         this.context = context;
         this.arguments = arguments;
         this.previous = "";
+        this.contextValues = new HashMap<>();
     }
 
     /**
@@ -52,6 +56,29 @@ public class ArgumentParser {
         if (!this.hasNext())
             return "";
         return this.arguments.get(0);
+    }
+
+    /**
+     * Sets a context value that will be available for other handlers using this ArgumentParser
+     *
+     * @param clazz The class of the value
+     * @param value The value
+     * @param <T> The type of the value
+     */
+    public <T> void setContextValue(Class<T> clazz, T value) {
+        this.contextValues.put(clazz, value);
+    }
+
+    /**
+     * Gets a context value set by other handlers using this ArgumentParser
+     *
+     * @param clazz The class of the value
+     * @param <T> The type of the value
+     * @return The value, or null if not found
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T getContextValue(Class<T> clazz) {
+        return (T) this.contextValues.get(clazz);
     }
 
 }
