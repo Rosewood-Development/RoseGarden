@@ -51,7 +51,7 @@ public abstract class AbstractColorArgumentHandler<T> extends RoseCommandArgumen
                 java.awt.Color color = java.awt.Color.decode(input);
                 return this.rgbToColor(color.getRed(), color.getGreen(), color.getBlue());
             } catch (NumberFormatException e) {
-                throw new HandledArgumentException("argument-handler-color-hex", StringPlaceholders.single("input", input));
+                throw new HandledArgumentException("argument-handler-color-hex", StringPlaceholders.of("input", input));
             }
         }
 
@@ -65,7 +65,7 @@ public abstract class AbstractColorArgumentHandler<T> extends RoseCommandArgumen
         String input3 = argumentParser.next();
 
         if (input2.isEmpty() && input3.isEmpty())
-            throw new HandledArgumentException("argument-handler-color-hex", StringPlaceholders.single("input", input));
+            throw new HandledArgumentException("argument-handler-color-hex", StringPlaceholders.of("input", input));
 
         try {
             return this.rgbToColor(Integer.parseInt(input), Integer.parseInt(input2), Integer.parseInt(input3));

@@ -20,7 +20,7 @@ public class ByteArgumentHandler extends RoseCommandArgumentHandler<Byte> {
         try {
             return Byte.parseByte(input);
         } catch (Exception e) {
-            throw new HandledArgumentException("argument-handler-byte", StringPlaceholders.single("input", input));
+            throw new HandledArgumentException("argument-handler-byte", StringPlaceholders.of("input", input));
         }
     }
 

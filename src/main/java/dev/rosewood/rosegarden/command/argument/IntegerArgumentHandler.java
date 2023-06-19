@@ -20,7 +20,7 @@ public class IntegerArgumentHandler extends RoseCommandArgumentHandler<Integer> 
         try {
             return Integer.parseInt(input);
         } catch (Exception e) {
-            throw new HandledArgumentException("argument-handler-integer", StringPlaceholders.single("input", input));
+            throw new HandledArgumentException("argument-handler-integer", StringPlaceholders.of("input", input));
         }
     }
 

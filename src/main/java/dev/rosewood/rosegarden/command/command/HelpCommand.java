@@ -25,11 +25,12 @@ public class HelpCommand extends RoseCommand {
             if (!command.hasHelp() || !command.canUse(context.getSender()))
                 continue;
 
-            StringPlaceholders stringPlaceholders = StringPlaceholders.builder("cmd", this.parent.getName())
-                    .add("subcmd", command.getName().toLowerCase())
-                    .add("args", command.getArgumentsString())
-                    .add("desc", localeManager.getLocaleMessage(command.getDescriptionKey()))
-                    .build();
+            StringPlaceholders stringPlaceholders = StringPlaceholders.of(
+                    "cmd", this.parent.getName(),
+                    "subcmd", command.getName().toLowerCase(),
+                    "args", command.getArgumentsString(),
+                    "desc", localeManager.getLocaleMessage(command.getDescriptionKey())
+            );
 
             localeManager.sendSimpleCommandMessage(context.getSender(), "command-help-list-description" + (command.getNumParameters() == 0 ? "-no-args" : ""), stringPlaceholders);
         }

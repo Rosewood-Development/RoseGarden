@@ -20,7 +20,7 @@ public class BooleanArgumentHandler extends RoseCommandArgumentHandler<Boolean> 
         try {
             return Boolean.parseBoolean(input);
         } catch (Exception e) {
-            throw new HandledArgumentException("argument-handler-boolean", StringPlaceholders.single("input", input));
+            throw new HandledArgumentException("argument-handler-boolean", StringPlaceholders.of("input", input));
         }
     }
 

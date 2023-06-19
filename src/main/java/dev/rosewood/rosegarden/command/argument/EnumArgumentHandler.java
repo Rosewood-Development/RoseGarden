@@ -25,16 +25,19 @@ public class EnumArgumentHandler<T extends Enum<T>> extends RoseCommandArgumentH
                 .findFirst();
 
         if (!value.isPresent()) {
+            StringPlaceholders placeholders = StringPlaceholders.of(
+                    "enum", this.handledType.getSimpleName(),
+                    "input", input,
+                    "types", Stream.of(enumConstants).map(x -> x.name().toLowerCase()).collect(Collectors.joining(", "))
+            );
+
             String messageKey;
-            StringPlaceholders placeholders = StringPlaceholders.builder("enum", this.handledType.getSimpleName())
-                    .add("input", input)
-                    .add("types", Stream.of(enumConstants).map(x -> x.name().toLowerCase()).collect(Collectors.joining(", ")))
-                    .build();
             if (enumConstants.length <= 10) {
                 messageKey = "argument-handler-enum-list";
             } else {
                 messageKey = "argument-handler-enum";
             }
+
             throw new HandledArgumentException(messageKey, placeholders);
         }
 

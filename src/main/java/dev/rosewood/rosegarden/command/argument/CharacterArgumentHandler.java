@@ -18,7 +18,7 @@ public class CharacterArgumentHandler extends RoseCommandArgumentHandler<Charact
     protected Character handleInternal(RoseCommandArgumentInfo argumentInfo, ArgumentParser argumentParser) {
         String input = argumentParser.next();
         if (input.length() != 1)
-            throw new HandledArgumentException("argument-handler-character", StringPlaceholders.single("input", input));
+            throw new HandledArgumentException("argument-handler-character", StringPlaceholders.of("input", input));
         return input.charAt(0);
     }
 

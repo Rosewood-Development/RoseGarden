@@ -190,7 +190,7 @@ public abstract class RoseCommandWrapper extends BukkitCommand {
         try {
             RoseCommand command = this.getCommand(args.length == 0 ? "" : args[0]);
             if (command == null) {
-                this.localeManager.sendCommandMessage(sender, "unknown-command", StringPlaceholders.single("cmd", this.getName()));
+                this.localeManager.sendCommandMessage(sender, "unknown-command", StringPlaceholders.of("cmd", this.getName()));
                 return true;
             }
 
@@ -246,9 +246,9 @@ public abstract class RoseCommandWrapper extends BukkitCommand {
 
                 // Ran out of arguments while parsing
                 if (command.hasSubCommand()) {
-                    this.localeManager.sendCommandMessage(sender, "missing-arguments-extra", StringPlaceholders.single("amount", command.getNumRequiredArguments()));
+                    this.localeManager.sendCommandMessage(sender, "missing-arguments-extra", StringPlaceholders.of("amount", command.getNumRequiredArguments()));
                 } else {
-                    this.localeManager.sendCommandMessage(sender, "missing-arguments", StringPlaceholders.single("amount", parsedArgs.size() + command.getNumRequiredArguments() + commandLayer));
+                    this.localeManager.sendCommandMessage(sender, "missing-arguments", StringPlaceholders.of("amount", parsedArgs.size() + command.getNumRequiredArguments() + commandLayer));
                 }
                 return;
             }
@@ -267,14 +267,14 @@ public abstract class RoseCommandWrapper extends BukkitCommand {
             try {
                 Object parsedArgument = this.commandManager.resolveArgumentHandler(argumentInfo.getType()).handle(argumentInfo, argumentParser);
                 if (parsedArgument == null) {
-                    this.localeManager.sendCommandMessage(sender, "invalid-argument-null", StringPlaceholders.single("name", argumentInfo.toString()));
+                    this.localeManager.sendCommandMessage(sender, "invalid-argument-null", StringPlaceholders.of("name", argumentInfo.toString()));
                     return;
                 }
 
                 parsedArgs.add(parsedArgument);
             } catch (RoseCommandArgumentHandler.HandledArgumentException e) {
                 String message = this.localeManager.getCommandLocaleMessage(e.getMessage(), e.getPlaceholders());
-                this.localeManager.sendCommandMessage(sender, "invalid-argument", StringPlaceholders.single("message", message));
+                this.localeManager.sendCommandMessage(sender, "invalid-argument", StringPlaceholders.of("message", message));
                 return;
             }
         }

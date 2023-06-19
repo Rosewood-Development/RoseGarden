@@ -20,7 +20,7 @@ public class ShortArgumentHandler extends RoseCommandArgumentHandler<Short> {
         try {
             return Short.parseShort(input);
         } catch (Exception e) {
-            throw new HandledArgumentException("argument-handler-short", StringPlaceholders.single("input", input));
+            throw new HandledArgumentException("argument-handler-short", StringPlaceholders.of("input", input));
         }
     }
 

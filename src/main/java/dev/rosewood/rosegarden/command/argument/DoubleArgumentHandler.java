@@ -20,7 +20,7 @@ public class DoubleArgumentHandler extends RoseCommandArgumentHandler<Double> {
         try {
             return Double.parseDouble(input);
         } catch (Exception e) {
-            throw new HandledArgumentException("argument-handler-double", StringPlaceholders.single("input", input));
+            throw new HandledArgumentException("argument-handler-double", StringPlaceholders.of("input", input));
         }
     }
 

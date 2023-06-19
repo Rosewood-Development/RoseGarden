@@ -21,7 +21,7 @@ public class PlayerArgumentHandler extends RoseCommandArgumentHandler<Player> {
         String input = argumentParser.next();
         Player player = Bukkit.getPlayer(input);
         if (player == null)
-            throw new HandledArgumentException("argument-handler-player", StringPlaceholders.single("input", input));
+            throw new HandledArgumentException("argument-handler-player", StringPlaceholders.of("input", input));
         return player;
     }
 

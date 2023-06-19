@@ -20,7 +20,7 @@ public class LongArgumentHandler extends RoseCommandArgumentHandler<Long> {
         try {
             return Long.parseLong(input);
         } catch (Exception e) {
-            throw new HandledArgumentException("argument-handler-long", StringPlaceholders.single("input", input));
+            throw new HandledArgumentException("argument-handler-long", StringPlaceholders.of("input", input));
         }
     }
 

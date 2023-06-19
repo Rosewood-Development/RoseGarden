@@ -20,7 +20,7 @@ public class FloatArgumentHandler extends RoseCommandArgumentHandler<Float> {
         try {
             return Float.parseFloat(input);
         } catch (Exception e) {
-            throw new HandledArgumentException("argument-handler-float", StringPlaceholders.single("input", input));
+            throw new HandledArgumentException("argument-handler-float", StringPlaceholders.of("input", input));
         }
     }
 
