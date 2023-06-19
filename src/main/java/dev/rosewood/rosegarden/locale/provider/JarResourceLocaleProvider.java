@@ -8,6 +8,7 @@ import java.io.InputStreamReader;
 import java.net.JarURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
@@ -50,7 +51,7 @@ public class JarResourceLocaleProvider implements LocaleProvider {
 
                 String localeName = name.substring(prefix.length(), name.length() - 4);
                 try (InputStream inputStream = jarFile.getInputStream(entry);
-                     InputStreamReader inputStreamReader = new InputStreamReader(inputStream)) {
+                     InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8)) {
                     Locale locale = new YamlFileLocale(localeName, inputStreamReader);
                     locales.add(locale);
                 }
