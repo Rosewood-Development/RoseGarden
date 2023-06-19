@@ -217,6 +217,18 @@ public final class StringPlaceholders {
         }
 
         /**
+         * Adds a placeholder with any % characters in the value removed
+         *
+         * @param placeholder The placeholder to add
+         * @param value The value to replace the placeholder with
+         * @return this
+         */
+        public Builder addSanitized(String placeholder, Object value) {
+            this.placeholders.put(placeholder, Objects.toString(value, "null").replace("%", ""));
+            return this;
+        }
+
+        /**
          * @deprecated use {@link #add(String, Object)}
          */
         @Deprecated
