@@ -20,6 +20,7 @@ public class MySQLConnector implements DatabaseConnector {
         this.lock = new Object();
 
         HikariConfig config = new HikariConfig();
+        config.setDriverClassName("com.mysql.cj.jdbc.Driver");
         config.setJdbcUrl("jdbc:mysql://" + hostname + ":" + port + "/" + database + "?useSSL=" + useSSL + "&allowPublicKeyRetrieval=true&serverTimezone=UTC&useUnicode=true&characterEncoding=UTF-8");
         config.setUsername(username);
         config.setPassword(password);
