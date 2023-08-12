@@ -107,7 +107,7 @@ public class DataMigrationManager extends Manager {
                     .stream()
                     .filter(x -> x.getRevision() > finalCurrentMigration)
                     .sorted(Comparator.comparingInt(DataMigration::getRevision))
-                    .collect(Collectors.toList());
+                    .toList();
 
             // Nothing to migrate, abort
             if (requiredMigrations.isEmpty())

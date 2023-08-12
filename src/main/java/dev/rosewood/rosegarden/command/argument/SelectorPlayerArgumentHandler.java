@@ -55,7 +55,7 @@ public class SelectorPlayerArgumentHandler extends RoseCommandArgumentHandler<Se
     protected List<String> suggestInternal(RoseCommandArgumentInfo argumentInfo, ArgumentParser argumentParser) {
         argumentParser.next();
         List<String> suggestions = new ArrayList<>(Arrays.asList("@p", "@r"));
-        suggestions.addAll(Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList()));
+        suggestions.addAll(Bukkit.getOnlinePlayers().stream().map(Player::getName).toList());
         return suggestions;
     }
 

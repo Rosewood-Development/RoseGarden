@@ -38,8 +38,7 @@ public abstract class AbstractLocaleManager extends Manager {
         StringPlaceholders placeholders = placeholdersBuilder.build();
         for (Locale locale : locales) {
             for (Map.Entry<String, Object> entry : locale.getLocaleValues().entrySet()) {
-                if (entry.getValue() instanceof String) {
-                    String value = (String) entry.getValue();
+                if (entry.getValue() instanceof String value) {
                     locale.getLocaleValues().put(entry.getKey(), placeholders.apply(value));
                 } else if (entry.getValue() instanceof List) {
                     List<String> list = (List<String>) entry.getValue();

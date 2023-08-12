@@ -36,6 +36,9 @@ public class PluginUpdateManager extends Manager implements Listener {
 
     @Override
     public void reload() {
+        if (this.rosePlugin.getSpigotId() == -1)
+            return;
+
         File configFile = new File(this.rosePlugin.getRoseGardenDataFolder(), "config.yml");
 
         String currentVersion = this.rosePlugin.getDescription().getVersion();
@@ -46,13 +49,15 @@ public class PluginUpdateManager extends Manager implements Listener {
             return;
         }
 
+        boolean firstLoad = false;
         CommentedFileConfiguration configuration = CommentedFileConfiguration.loadConfiguration(configFile);
         if (!configuration.contains("check-updates")) {
             configuration.set("check-updates", true, "Should all plugins running RoseGarden check for updates?", "RoseGarden is a core library created by Rosewood Development");
             configuration.save(configFile);
+            firstLoad = true;
         }
 
-        if (!configuration.getBoolean("check-updates") || this.rosePlugin.getSpigotId() == -1)
+        if (firstLoad || !configuration.getBoolean("check-updates"))
             return;
 
         // Check for updates

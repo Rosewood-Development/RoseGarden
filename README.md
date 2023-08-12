@@ -1,2 +1,2 @@
 # RoseGarden
-Library to be used by all Rose plugins.
+The internal library used by all Rosewood Development plugins.

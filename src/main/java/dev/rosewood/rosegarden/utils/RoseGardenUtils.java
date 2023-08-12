@@ -79,11 +79,10 @@ public final class RoseGardenUtils {
 
         String keyPath = currentSection.getCurrentPath() == null ? key : currentSection.getCurrentPath() + "." + key;
 
-        if (defaultValue instanceof RoseSettingSection) {
+        if (defaultValue instanceof RoseSettingSection settingSection) {
             baseConfiguration.addPathedComments(keyPath, comments);
             currentSection = currentSection.createSection(key);
 
-            RoseSettingSection settingSection = (RoseSettingSection) defaultValue;
             for (RoseSettingValue value : settingSection.getValues())
                 recursivelyWriteRoseSettingValues(baseConfiguration, currentSection, value);
         } else {

@@ -5,7 +5,7 @@ import java.util.Map;
 
 public class CommandMessages {
 
-    public static final Map<String, String> DEFAULT_MESSAGES = new LinkedHashMap<String, String>() {{
+    public static final Map<String, String> DEFAULT_MESSAGES = new LinkedHashMap<>() {{
         // Generic Command Messages
         this.put("no-permission", "&cYou don't have permission for that!");
         this.put("only-player", "&cThis command can only be executed by a player.");

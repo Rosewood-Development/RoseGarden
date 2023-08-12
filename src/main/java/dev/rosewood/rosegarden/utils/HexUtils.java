@@ -11,6 +11,7 @@ import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 
+@SuppressWarnings("deprecation")
 public final class HexUtils {
 
     private static final int CHARS_UNTIL_LOOP = 30;

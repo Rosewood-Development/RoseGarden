@@ -17,6 +17,7 @@ import net.md_5.bungee.api.chat.hover.content.Text;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.defaults.BukkitCommand;
 
+@SuppressWarnings("deprecation")
 public class RwdCommand extends BukkitCommand {
 
     private final RosePlugin rosePlugin;
@@ -46,20 +47,20 @@ public class RwdCommand extends BukkitCommand {
                 builder.append(TextComponent.fromLegacyText(HexUtils.colorify("&e, ")), FormatRetention.NONE);
             first = false;
 
-            String updateVersion = data.getUpdateVersion();
-            String website = data.getWebsite();
+            String updateVersion = data.updateVersion();
+            String website = data.website();
 
             List<Text> content = new ArrayList<>();
-            content.add(new Text(TextComponent.fromLegacyText(HexUtils.colorify("&eVersion: &b" + data.getVersion()))));
-            content.add(new Text(TextComponent.fromLegacyText(HexUtils.colorify("\n&eRoseGarden Version: &b" + data.getRoseGardenVersion()))));
+            content.add(new Text(TextComponent.fromLegacyText(HexUtils.colorify("&eVersion: &b" + data.version()))));
+            content.add(new Text(TextComponent.fromLegacyText(HexUtils.colorify("\n&eRoseGarden Version: &b" + data.roseGardenVersion()))));
             if (updateVersion != null)
                 content.add(new Text(TextComponent.fromLegacyText(HexUtils.colorify("\n&eAn update (&bv" + updateVersion + "&e) is available! Click to open the Spigot page."))));
 
-            TextComponent pluginName = new TextComponent(TextComponent.fromLegacyText(HexUtils.colorify(RoseGardenUtils.GRADIENT + data.getName())));
+            TextComponent pluginName = new TextComponent(TextComponent.fromLegacyText(HexUtils.colorify(RoseGardenUtils.GRADIENT + data.name())));
             pluginName.setHoverEvent(new HoverEvent(Action.SHOW_TEXT, content.toArray(new Text[0])));
 
             if (website != null)
-                pluginName.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, data.getWebsite()));
+                pluginName.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, data.website()));
 
             builder.append(pluginName);
         }

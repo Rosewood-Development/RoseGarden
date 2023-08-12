@@ -82,19 +82,6 @@ public final class StringPlaceholders {
     }
 
     /**
-     * Creates a new StringPlaceholders instance with delimiters set to % and a placeholder added
-     *
-     * @param placeholder the placeholder to add
-     * @param value the value to replace the placeholder with
-     * @return a new StringPlaceholders instance with delimiters set to % and a placeholder added
-     * @deprecated use {@link #of(String, Object)}
-     */
-    @Deprecated
-    public static StringPlaceholders single(String placeholder, Object value) {
-        return builder(placeholder, value).build();
-    }
-
-    /**
      * Creates a new StringPlaceholders instance with delimiters set to % and one placeholder added
      *
      * @param placeholder the placeholder to add
@@ -226,14 +213,6 @@ public final class StringPlaceholders {
         public Builder addSanitized(String placeholder, Object value) {
             this.placeholders.put(placeholder, Objects.toString(value, "null").replace("%", ""));
             return this;
-        }
-
-        /**
-         * @deprecated use {@link #add(String, Object)}
-         */
-        @Deprecated
-        public Builder addPlaceholder(String placeholder, Object value) {
-            return this.add(placeholder, value);
         }
 
         /**

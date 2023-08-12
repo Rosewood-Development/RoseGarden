@@ -35,10 +35,9 @@ public class JarResourceLocaleProvider implements LocaleProvider {
                 throw new IllegalArgumentException("JarResourceLocaleProvider could not find resource path: " + this.resourcePath);
 
             URLConnection connection = url.openConnection();
-            if (!(connection instanceof JarURLConnection))
+            if (!(connection instanceof JarURLConnection jarConnection))
                 throw new IllegalArgumentException("JarResourceLocaleProvider can only handle jar URLs: " + url);
 
-            JarURLConnection jarConnection = (JarURLConnection) connection;
             JarFile jarFile = jarConnection.getJarFile();
             String prefix = jarConnection.getEntryName() + "/";
 

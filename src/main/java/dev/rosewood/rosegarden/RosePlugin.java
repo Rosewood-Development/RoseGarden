@@ -83,21 +83,24 @@ public abstract class RosePlugin extends JavaPlugin {
     }
 
     @Override
-    public void onEnable() {
+    public void onLoad() {
         // Log that we are loading
         this.getLogger().info("Initializing using RoseGarden v" + ROSEGARDEN_VERSION);
-
-        // bStats Metrics
-        if (this.bStatsId != -1) {
-            Metrics metrics = new Metrics(this, this.bStatsId);
-            this.addCustomMetricsCharts(metrics);
-        }
 
         // Check if the library is relocated properly
         if (!RoseGardenUtils.isRelocated()) {
             RoseGardenUtils.getLogger().severe("DEVELOPER ERROR!!! RoseGarden has not been relocated! Plugin has been forcefully disabled.");
             Bukkit.getPluginManager().disablePlugin(this);
             return;
+        }
+    }
+
+    @Override
+    public void onEnable() {
+        // bStats Metrics
+        if (this.bStatsId != -1) {
+            Metrics metrics = new Metrics(this, this.bStatsId);
+            this.addCustomMetricsCharts(metrics);
         }
         
         // Load managers
@@ -121,12 +124,12 @@ public abstract class RosePlugin extends JavaPlugin {
     }
 
     /**
-     * Called during {@link JavaPlugin#onEnable}
+     * Called during {@link JavaPlugin#onEnable} after managers have been enabled
      */
     protected abstract void enable();
 
     /**
-     * Called during {@link JavaPlugin#onDisable}
+     * Called during {@link JavaPlugin#onDisable} before managers have been disabled
      */
     protected abstract void disable();
 

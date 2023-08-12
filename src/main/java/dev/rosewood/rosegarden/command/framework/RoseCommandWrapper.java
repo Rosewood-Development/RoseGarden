@@ -195,8 +195,7 @@ public abstract class RoseCommandWrapper extends BukkitCommand {
             }
 
             boolean isOverridden = false;
-            if (command instanceof BaseCommand) {
-                BaseCommand baseCommand = (BaseCommand) command;
+            if (command instanceof BaseCommand baseCommand) {
                 String override = baseCommand.getOverrideCommand();
                 if (override != null) {
                     RoseCommand overrideCommand = this.getCommand(override);
@@ -298,7 +297,7 @@ public abstract class RoseCommandWrapper extends BukkitCommand {
         if (args.length == 0)
             return new ArrayList<>(this.commandLookupMap.keySet());
 
-        if (args.length <= 1)
+        if (args.length == 1)
             return this.commandLookupMap.keySet().stream()
                     .filter(x -> StringUtil.startsWithIgnoreCase(x, args[args.length - 1]))
                     .collect(Collectors.toList());

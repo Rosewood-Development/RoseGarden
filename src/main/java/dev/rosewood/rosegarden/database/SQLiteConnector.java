@@ -32,8 +32,7 @@ public class SQLiteConnector implements DatabaseConnector {
             // We often find that the /var/tmp directory is set to noexec which breaks our plugins.
             // This moves the temp directory to somewhere we know will absolutely have exec permissions.
             // If this gets overridden by another plugin or something else, that's also fine.
-            if (plugin instanceof RosePlugin) {
-                RosePlugin rosePlugin = (RosePlugin) plugin;
+            if (plugin instanceof RosePlugin rosePlugin) {
                 File tmpdir = new File(rosePlugin.getRoseGardenDataFolder(), "tmp");
                 if (!tmpdir.exists())
                     tmpdir.mkdirs();
