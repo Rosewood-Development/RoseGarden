@@ -8,6 +8,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public abstract class AbstractConfigurationManager extends Manager {
@@ -96,19 +97,22 @@ public abstract class AbstractConfigurationManager extends Manager {
 
         this.cachedValues.putAll(values);
 
-        if (this.rosePlugin.hasDataManager()) {
-            Arrays.asList(
-                    new SingularRoseSetting(this.rosePlugin, "mysql-settings", null, "Settings for if you want to use MySQL for data management"),
-                    new SingularRoseSetting(this.rosePlugin, "mysql-settings.enabled", false, "Enable MySQL", "If false, SQLite will be used instead"),
-                    new SingularRoseSetting(this.rosePlugin, "mysql-settings.hostname", "", "MySQL Database Hostname"),
-                    new SingularRoseSetting(this.rosePlugin, "mysql-settings.port", 3306, "MySQL Database Port"),
-                    new SingularRoseSetting(this.rosePlugin, "mysql-settings.database-name", "", "MySQL Database Name"),
-                    new SingularRoseSetting(this.rosePlugin, "mysql-settings.user-name", "", "MySQL Database User Name"),
-                    new SingularRoseSetting(this.rosePlugin, "mysql-settings.user-password", "", "MySQL Database User Password"),
-                    new SingularRoseSetting(this.rosePlugin, "mysql-settings.use-ssl", false, "If the database connection should use SSL", "You should enable this if your database supports SSL"),
-                    new SingularRoseSetting(this.rosePlugin, "mysql-settings.connection-pool-size", 3, "The number of connections to make to the database")
-            ).forEach(x -> this.cachedValues.put(x.getKey(), x));
-        }
+        if (this.rosePlugin.hasDataManager())
+            this.getDatabaseSettings().forEach(x -> this.cachedValues.put(x.getKey(), x));
+    }
+
+    protected List<RoseSetting> getDatabaseSettings() {
+        return Arrays.asList(
+                new SingularRoseSetting(this.rosePlugin, "mysql-settings", null, "Settings for if you want to use MySQL for data management"),
+                new SingularRoseSetting(this.rosePlugin, "mysql-settings.enabled", false, "Enable MySQL", "If false, SQLite will be used instead"),
+                new SingularRoseSetting(this.rosePlugin, "mysql-settings.hostname", "", "MySQL Database Hostname"),
+                new SingularRoseSetting(this.rosePlugin, "mysql-settings.port", 3306, "MySQL Database Port"),
+                new SingularRoseSetting(this.rosePlugin, "mysql-settings.database-name", "", "MySQL Database Name"),
+                new SingularRoseSetting(this.rosePlugin, "mysql-settings.user-name", "", "MySQL Database User Name"),
+                new SingularRoseSetting(this.rosePlugin, "mysql-settings.user-password", "", "MySQL Database User Password"),
+                new SingularRoseSetting(this.rosePlugin, "mysql-settings.use-ssl", false, "If the database connection should use SSL", "You should enable this if your database supports SSL"),
+                new SingularRoseSetting(this.rosePlugin, "mysql-settings.connection-pool-size", 3, "The number of connections to make to the database")
+        );
     }
 
 }

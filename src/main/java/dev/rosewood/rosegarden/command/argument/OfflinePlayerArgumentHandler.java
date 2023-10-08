@@ -6,7 +6,6 @@ import dev.rosewood.rosegarden.command.framework.RoseCommandArgumentHandler;
 import dev.rosewood.rosegarden.command.framework.RoseCommandArgumentInfo;
 import dev.rosewood.rosegarden.utils.NMSUtil;
 import dev.rosewood.rosegarden.utils.StringPlaceholders;
-import java.lang.reflect.Method;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.bukkit.Bukkit;

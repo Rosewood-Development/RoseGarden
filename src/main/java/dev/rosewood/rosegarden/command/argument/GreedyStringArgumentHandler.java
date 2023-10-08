@@ -1,10 +1,10 @@
 package dev.rosewood.rosegarden.command.argument;
 
 import dev.rosewood.rosegarden.RosePlugin;
+import dev.rosewood.rosegarden.command.argument.GreedyStringArgumentHandler.GreedyString;
 import dev.rosewood.rosegarden.command.framework.ArgumentParser;
 import dev.rosewood.rosegarden.command.framework.RoseCommandArgumentHandler;
 import dev.rosewood.rosegarden.command.framework.RoseCommandArgumentInfo;
-import dev.rosewood.rosegarden.command.framework.types.GreedyString;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -33,5 +33,7 @@ public class GreedyStringArgumentHandler extends RoseCommandArgumentHandler<Gree
             argumentParser.next();
         return Collections.singletonList(argumentInfo.toString());
     }
+
+    public record GreedyString(String value) { }
 
 }
