@@ -1,101 +1,45 @@
 package dev.rosewood.rosegarden.manager;
 
 import dev.rosewood.rosegarden.RosePlugin;
-import dev.rosewood.rosegarden.command.argument.EnumArgumentHandler;
-import dev.rosewood.rosegarden.command.framework.RoseCommandArgumentHandler;
+import dev.rosewood.rosegarden.command.RwdCommand;
+import dev.rosewood.rosegarden.command.framework.BaseRoseCommand;
 import dev.rosewood.rosegarden.command.framework.RoseCommandWrapper;
-import dev.rosewood.rosegarden.utils.ClassUtils;
-import dev.rosewood.rosegarden.utils.RoseGardenUtils;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.function.Function;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-@SuppressWarnings("rawtypes")
 public abstract class AbstractCommandManager extends Manager {
 
-    private static final String ARGUMENT_PACKAGE = "dev.rosewood.rosegarden.command.argument";
-    private final Map<Class<? extends RoseCommandArgumentHandler>, RoseCommandArgumentHandler<?>> argumentHandlers;
-    private List<RoseCommandWrapper> commandWrappers;
+    private final List<RoseCommandWrapper> commandWrappers;
 
     public AbstractCommandManager(RosePlugin rosePlugin) {
         super(rosePlugin);
 
-        this.argumentHandlers = new HashMap<>();
+        this.commandWrappers = new ArrayList<>();
+
+        if (rosePlugin.isFirstToRegister())
+            this.commandWrappers.add(new RoseCommandWrapper("rosegarden", rosePlugin.getRoseGardenDataFolder(), rosePlugin, new RwdCommand(rosePlugin)));
+
+        this.getRootCommands().stream()
+                .map(x -> x.apply(this.rosePlugin))
+                .map(x -> new RoseCommandWrapper(this.rosePlugin, x))
+                .forEach(this.commandWrappers::add);
     }
 
     @Override
     public void reload() {
-        if (this.commandWrappers == null) {
-            this.commandWrappers = new ArrayList<>();
-            for (Class<? extends RoseCommandWrapper> commandWrapperClass : this.getRootCommands()) {
-                try {
-                    Constructor<? extends RoseCommandWrapper> constructor = commandWrapperClass.getConstructor(RosePlugin.class);
-                    RoseCommandWrapper commandWrapper = constructor.newInstance(this.rosePlugin);
-                    this.commandWrappers.add(commandWrapper);
-                } catch (ReflectiveOperationException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        try {
-            // Load argument handlers
-            List<Class<RoseCommandArgumentHandler>> argumentHandlerClasses = new ArrayList<>(ClassUtils.getClassesOf(this.rosePlugin, ARGUMENT_PACKAGE, RoseCommandArgumentHandler.class));
-            this.getArgumentHandlerPackages().stream().map(x -> ClassUtils.getClassesOf(this.rosePlugin, x, RoseCommandArgumentHandler.class)).forEach(argumentHandlerClasses::addAll);
-
-            for (Class<RoseCommandArgumentHandler> argumentHandlerClass : argumentHandlerClasses) {
-                // Ignore abstract/interface classes
-                if (Modifier.isAbstract(argumentHandlerClass.getModifiers()) || Modifier.isInterface(argumentHandlerClass.getModifiers()))
-                    continue;
-
-                RoseCommandArgumentHandler<?> argumentHandler = argumentHandlerClass.getConstructor(RosePlugin.class).newInstance(this.rosePlugin);
-                this.argumentHandlers.put(argumentHandlerClass, argumentHandler);
-            }
-        } catch (Exception e) {
-            this.rosePlugin.getLogger().severe("Fatal error initializing command argument handlers");
-            e.printStackTrace();
-        }
-
         this.commandWrappers.forEach(RoseCommandWrapper::register);
         Bukkit.getOnlinePlayers().forEach(Player::updateCommands);
     }
 
     @Override
     public void disable() {
-        this.argumentHandlers.clear();
         this.commandWrappers.forEach(RoseCommandWrapper::unregister);
         Bukkit.getOnlinePlayers().forEach(Player::updateCommands);
     }
 
-    public RoseCommandArgumentHandler<?> resolveArgumentHandler(Class<?> handledParameterClass) {
-        // Map primitive types to their wrapper handlers
-        if (handledParameterClass.isPrimitive())
-            handledParameterClass = RoseGardenUtils.getPrimitiveAsWrapper(handledParameterClass);
-
-        Class<?> finalHandledParameterClass = handledParameterClass;
-        Optional<RoseCommandArgumentHandler<?>> optionalArgumentHandler = this.argumentHandlers.values()
-                .stream()
-                .filter(x -> x.getHandledType() != null && x.getHandledType() == finalHandledParameterClass)
-                .findFirst();
-
-        // If an argument handler was found, use that one, otherwise pass it to the default enum handler, and if that doesn't exist throw an exception
-        if (optionalArgumentHandler.isPresent()) {
-            return optionalArgumentHandler.get();
-        } else if (Enum.class.isAssignableFrom(handledParameterClass)) {
-            return this.argumentHandlers.get(EnumArgumentHandler.class);
-        } else {
-            throw new IllegalStateException("Tried to resolve a RoseCommandArgumentHandler for an unhandled type");
-        }
-    }
-
-    public abstract List<Class<? extends RoseCommandWrapper>> getRootCommands();
-
-    public abstract List<String> getArgumentHandlerPackages();
+    public abstract List<Function<RosePlugin, BaseRoseCommand>> getRootCommands();
 
 }

@@ -1,6 +1,5 @@
 package dev.rosewood.rosegarden;
 
-import dev.rosewood.rosegarden.command.RwdCommand;
 import dev.rosewood.rosegarden.manager.AbstractCommandManager;
 import dev.rosewood.rosegarden.manager.AbstractConfigurationManager;
 import dev.rosewood.rosegarden.manager.AbstractDataManager;
@@ -9,7 +8,6 @@ import dev.rosewood.rosegarden.manager.DataMigrationManager;
 import dev.rosewood.rosegarden.manager.Manager;
 import dev.rosewood.rosegarden.manager.PluginUpdateManager;
 import dev.rosewood.rosegarden.objects.RosePluginData;
-import dev.rosewood.rosegarden.utils.CommandMapUtils;
 import dev.rosewood.rosegarden.utils.RoseGardenUtils;
 import java.io.File;
 import java.lang.reflect.Method;
@@ -57,6 +55,8 @@ public abstract class RosePlugin extends JavaPlugin {
      */
     private final Map<Class<? extends Manager>, Manager> managers;
 
+    private boolean firstToRegister = false;
+
     public RosePlugin(int spigotId,
                       int bStatsId,
                       Class<? extends AbstractConfigurationManager> configurationManagerClass,
@@ -102,15 +102,15 @@ public abstract class RosePlugin extends JavaPlugin {
             Metrics metrics = new Metrics(this, this.bStatsId);
             this.addCustomMetricsCharts(metrics);
         }
+
+        // Inject the plugin class into the spigot services manager
+        this.injectService();
         
         // Load managers
         this.reload();
 
         // Run the plugin's enable code
         this.enable();
-
-        // Inject the plugin class into the spigot services manager
-        this.injectService();
     }
 
     @Override
@@ -234,19 +234,19 @@ public abstract class RosePlugin extends JavaPlugin {
         return this.bStatsId;
     }
 
+    /**
+     * @return true if this plugin is the first to register, false otherwise
+     */
+    public final boolean isFirstToRegister() {
+        return this.firstToRegister;
+    }
+
     private void injectService() {
-        // Search for other RoseGarden services
-        boolean exists = !this.getLoadedRosePluginsData().isEmpty();
+        if (this.getLoadedRosePluginsData().isEmpty())
+            this.firstToRegister = true;
 
         // Register our service
         Bukkit.getServicesManager().register(RosePlugin.class, this, this, ServicePriority.Normal);
-
-        // If we aren't the first then don't continue
-        if (exists)
-            return;
-
-        // Register /rwd command
-        CommandMapUtils.registerCommand("rosegarden", new RwdCommand(this));
     }
 
     /**

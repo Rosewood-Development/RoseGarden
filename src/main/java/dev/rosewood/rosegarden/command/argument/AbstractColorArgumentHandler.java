@@ -1,19 +1,17 @@
 package dev.rosewood.rosegarden.command.argument;
 
-import dev.rosewood.rosegarden.RosePlugin;
-import dev.rosewood.rosegarden.command.framework.ArgumentParser;
-import dev.rosewood.rosegarden.command.framework.RoseCommandArgumentHandler;
-import dev.rosewood.rosegarden.command.framework.RoseCommandArgumentInfo;
+import dev.rosewood.rosegarden.command.framework.Argument;
+import dev.rosewood.rosegarden.command.framework.ArgumentHandler;
+import dev.rosewood.rosegarden.command.framework.CommandContext;
+import dev.rosewood.rosegarden.command.framework.InputIterator;
 import dev.rosewood.rosegarden.utils.StringPlaceholders;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.bukkit.Color;
 
-public abstract class AbstractColorArgumentHandler<T> extends RoseCommandArgumentHandler<T> {
+public abstract class AbstractColorArgumentHandler<T> extends ArgumentHandler<T> {
 
     private static final Map<String, Color> COLOR_NAME_MAP = new HashMap<>();
     static {
@@ -35,15 +33,15 @@ public abstract class AbstractColorArgumentHandler<T> extends RoseCommandArgumen
         COLOR_NAME_MAP.put("white", Color.fromRGB(255, 255, 255));
     }
 
-    public AbstractColorArgumentHandler(RosePlugin rosePlugin, Class<T> clazz) {
-        super(rosePlugin, clazz);
+    protected AbstractColorArgumentHandler(Class<T> clazz) {
+        super(clazz);
     }
 
     protected abstract T rgbToColor(int r, int g, int b);
 
     @Override
-    protected final T handleInternal(RoseCommandArgumentInfo argumentInfo, ArgumentParser argumentParser) {
-        String input = argumentParser.next();
+    public final T handle(CommandContext context, Argument argument, InputIterator inputIterator) {
+        String input = inputIterator.next();
 
         // Try hex values first
         if (input.startsWith("#")) {
@@ -61,8 +59,8 @@ public abstract class AbstractColorArgumentHandler<T> extends RoseCommandArgumen
             return this.rgbToColor(namedColor.getRed(), namedColor.getGreen(), namedColor.getBlue());
 
         // Try RGB
-        String input2 = argumentParser.next();
-        String input3 = argumentParser.next();
+        String input2 = inputIterator.next();
+        String input3 = inputIterator.next();
 
         if (input2.isEmpty() && input3.isEmpty())
             throw new HandledArgumentException("argument-handler-color-hex", StringPlaceholders.of("input", input));
@@ -75,35 +73,17 @@ public abstract class AbstractColorArgumentHandler<T> extends RoseCommandArgumen
     }
 
     @Override
-    protected final List<String> suggestInternal(RoseCommandArgumentInfo argumentInfo, ArgumentParser argumentParser) {
-        String input = argumentParser.next();
-        List<String> inputs = new ArrayList<>(Arrays.asList("<#hexCode>", "<0-255> <0-255> <0-255>"));
-        inputs.addAll(COLOR_NAME_MAP.keySet());
-        if (input.isEmpty() && !argumentParser.hasNext() || input.startsWith("#"))
+    public final List<String> suggest(CommandContext context, Argument argument, String[] args) {
+        if (args.length == 0 || args.length == 1) {
+            List<String> inputs = new ArrayList<>(List.of("<#hexCode>", "<0-255> <0-255> <0-255>"));
+            inputs.addAll(COLOR_NAME_MAP.keySet());
             return inputs;
-
-        boolean isFirstNumber;
-        try {
-            Integer.parseInt(input);
-            isFirstNumber = true;
-        } catch (Exception e) {
-            isFirstNumber = false;
+        } else if (args.length == 2) {
+            return List.of("<0-255> <0-255>");
+        } else if (args.length == 3) {
+            return List.of("<0-255>");
         }
-
-        if (!isFirstNumber)
-            return inputs;
-
-        // Always try to consume at least 2 more inputs
-        String input2 = argumentParser.next();
-        String input3 = argumentParser.next();
-
-        if (input2.isEmpty())
-            return Collections.singletonList("<0-255> <0-255>");
-
-        if (input3.isEmpty())
-            return Collections.singletonList("<0-255>");
-
-        return Collections.emptyList();
+        return List.of();
     }
 
 }

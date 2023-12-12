@@ -1,11 +1,13 @@
 package dev.rosewood.rosegarden.command;
 
 import dev.rosewood.rosegarden.RosePlugin;
+import dev.rosewood.rosegarden.command.framework.BaseRoseCommand;
+import dev.rosewood.rosegarden.command.framework.CommandContext;
+import dev.rosewood.rosegarden.command.framework.CommandInfo;
 import dev.rosewood.rosegarden.objects.RosePluginData;
 import dev.rosewood.rosegarden.utils.HexUtils;
 import dev.rosewood.rosegarden.utils.RoseGardenUtils;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -14,27 +16,23 @@ import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.HoverEvent.Action;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.chat.hover.content.Text;
-import org.bukkit.command.CommandSender;
-import org.bukkit.command.defaults.BukkitCommand;
 
 @SuppressWarnings("deprecation")
-public class RwdCommand extends BukkitCommand {
-
-    private final RosePlugin rosePlugin;
+public class RwdCommand extends BaseRoseCommand {
 
     public RwdCommand(RosePlugin rosePlugin) {
-        super("rwd", "Rosewood Development information command", "/rwd", Collections.emptyList());
-
-        this.rosePlugin = rosePlugin;
+        super(rosePlugin);
     }
 
     @Override
-    public boolean execute(CommandSender sender, String label, String[] args) {
-        if (!sender.isOp()) {
-            RoseGardenUtils.sendMessage(sender, "&cYou do not have permission to use this command.");
-            return true;
-        }
+    protected CommandInfo createCommandInfo() {
+        return CommandInfo.builder("rwd")
+                .permission("rosegarden.rwd")
+                .build();
+    }
 
+    @Override
+    public void execute(CommandContext context) {
         List<RosePluginData> pluginData = this.rosePlugin.getLoadedRosePluginsData();
 
         ComponentBuilder builder = new ComponentBuilder();
@@ -65,14 +63,7 @@ public class RwdCommand extends BukkitCommand {
             builder.append(pluginName);
         }
 
-        sender.spigot().sendMessage(builder.create());
-
-        return true;
-    }
-
-    @Override
-    public List<String> tabComplete(CommandSender sender, String alias,String[] args) throws IllegalArgumentException {
-        return Collections.emptyList();
+        context.getSender().spigot().sendMessage(builder.create());
     }
 
 }

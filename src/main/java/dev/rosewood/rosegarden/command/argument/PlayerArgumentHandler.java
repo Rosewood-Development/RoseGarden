@@ -1,24 +1,24 @@
 package dev.rosewood.rosegarden.command.argument;
 
-import dev.rosewood.rosegarden.RosePlugin;
-import dev.rosewood.rosegarden.command.framework.ArgumentParser;
-import dev.rosewood.rosegarden.command.framework.RoseCommandArgumentHandler;
-import dev.rosewood.rosegarden.command.framework.RoseCommandArgumentInfo;
+import dev.rosewood.rosegarden.command.framework.Argument;
+import dev.rosewood.rosegarden.command.framework.ArgumentHandler;
+import dev.rosewood.rosegarden.command.framework.CommandContext;
+import dev.rosewood.rosegarden.command.framework.InputIterator;
 import dev.rosewood.rosegarden.utils.StringPlaceholders;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-public class PlayerArgumentHandler extends RoseCommandArgumentHandler<Player> {
+public class PlayerArgumentHandler extends ArgumentHandler<Player> {
 
-    public PlayerArgumentHandler(RosePlugin rosePlugin) {
-        super(rosePlugin, Player.class);
+    protected PlayerArgumentHandler() {
+        super(Player.class);
     }
 
     @Override
-    protected Player handleInternal(RoseCommandArgumentInfo argumentInfo, ArgumentParser argumentParser) {
-        String input = argumentParser.next();
+    public Player handle(CommandContext context, Argument argument, InputIterator inputIterator) {
+        String input = inputIterator.next();
         Player player = Bukkit.getPlayer(input);
         if (player == null)
             throw new HandledArgumentException("argument-handler-player", StringPlaceholders.of("input", input));
@@ -26,9 +26,10 @@ public class PlayerArgumentHandler extends RoseCommandArgumentHandler<Player> {
     }
 
     @Override
-    protected List<String> suggestInternal(RoseCommandArgumentInfo argumentInfo, ArgumentParser argumentParser) {
-        argumentParser.next();
-        return Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList());
+    public List<String> suggest(CommandContext context, Argument argument, String[] args) {
+        return Bukkit.getOnlinePlayers().stream()
+                .map(Player::getName)
+                .toList();
     }
 
 }

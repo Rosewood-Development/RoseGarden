@@ -1,9 +1,9 @@
 package dev.rosewood.rosegarden.command.argument;
 
-import dev.rosewood.rosegarden.RosePlugin;
-import dev.rosewood.rosegarden.command.framework.ArgumentParser;
-import dev.rosewood.rosegarden.command.framework.RoseCommandArgumentHandler;
-import dev.rosewood.rosegarden.command.framework.RoseCommandArgumentInfo;
+import dev.rosewood.rosegarden.command.framework.Argument;
+import dev.rosewood.rosegarden.command.framework.ArgumentHandler;
+import dev.rosewood.rosegarden.command.framework.CommandContext;
+import dev.rosewood.rosegarden.command.framework.InputIterator;
 import dev.rosewood.rosegarden.utils.NMSUtil;
 import dev.rosewood.rosegarden.utils.StringPlaceholders;
 import java.util.List;
@@ -12,15 +12,15 @@ import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
-public class OfflinePlayerArgumentHandler extends RoseCommandArgumentHandler<OfflinePlayer> {
+public class OfflinePlayerArgumentHandler extends ArgumentHandler<OfflinePlayer> {
 
-    public OfflinePlayerArgumentHandler(RosePlugin rosePlugin) {
-        super(rosePlugin, OfflinePlayer.class);
+    protected OfflinePlayerArgumentHandler() {
+        super(OfflinePlayer.class);
     }
 
     @Override
-    protected OfflinePlayer handleInternal(RoseCommandArgumentInfo argumentInfo, ArgumentParser argumentParser) {
-        String input = argumentParser.next();
+    public OfflinePlayer handle(CommandContext context, Argument argument, InputIterator inputIterator) {
+        String input = inputIterator.next();
         OfflinePlayer offlinePlayer;
         if (NMSUtil.isPaper()) {
             offlinePlayer = Bukkit.getOfflinePlayerIfCached(input);
@@ -35,9 +35,10 @@ public class OfflinePlayerArgumentHandler extends RoseCommandArgumentHandler<Off
     }
 
     @Override
-    protected List<String> suggestInternal(RoseCommandArgumentInfo argumentInfo, ArgumentParser argumentParser) {
-        argumentParser.next();
-        return Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList());
+    public List<String> suggest(CommandContext context, Argument argument, String[] args) {
+        return Bukkit.getOnlinePlayers().stream()
+                .map(Player::getName)
+                .toList();
     }
 
 }

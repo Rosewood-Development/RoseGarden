@@ -1,22 +1,21 @@
 package dev.rosewood.rosegarden.command.argument;
 
-import dev.rosewood.rosegarden.RosePlugin;
-import dev.rosewood.rosegarden.command.framework.ArgumentParser;
-import dev.rosewood.rosegarden.command.framework.RoseCommandArgumentHandler;
-import dev.rosewood.rosegarden.command.framework.RoseCommandArgumentInfo;
+import dev.rosewood.rosegarden.command.framework.Argument;
+import dev.rosewood.rosegarden.command.framework.ArgumentHandler;
+import dev.rosewood.rosegarden.command.framework.CommandContext;
+import dev.rosewood.rosegarden.command.framework.InputIterator;
 import dev.rosewood.rosegarden.utils.StringPlaceholders;
-import java.util.Collections;
 import java.util.List;
 
-public class ShortArgumentHandler extends RoseCommandArgumentHandler<Short> {
+public class ShortArgumentHandler extends ArgumentHandler<Short> {
 
-    public ShortArgumentHandler(RosePlugin rosePlugin) {
-        super(rosePlugin, Short.class);
+    protected ShortArgumentHandler() {
+        super(Short.class);
     }
 
     @Override
-    protected Short handleInternal(RoseCommandArgumentInfo argumentInfo, ArgumentParser argumentParser) {
-        String input = argumentParser.next();
+    public Short handle(CommandContext context, Argument argument, InputIterator inputIterator) {
+        String input = inputIterator.next();
         try {
             return Short.parseShort(input);
         } catch (Exception e) {
@@ -25,9 +24,8 @@ public class ShortArgumentHandler extends RoseCommandArgumentHandler<Short> {
     }
 
     @Override
-    protected List<String> suggestInternal(RoseCommandArgumentInfo argumentInfo, ArgumentParser argumentParser) {
-        argumentParser.next();
-        return Collections.singletonList(argumentInfo.toString());
+    public List<String> suggest(CommandContext context, Argument argument, String[] args) {
+        return List.of(argument.parameter());
     }
 
 }

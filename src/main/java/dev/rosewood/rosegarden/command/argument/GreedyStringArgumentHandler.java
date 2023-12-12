@@ -1,39 +1,33 @@
 package dev.rosewood.rosegarden.command.argument;
 
-import dev.rosewood.rosegarden.RosePlugin;
-import dev.rosewood.rosegarden.command.argument.GreedyStringArgumentHandler.GreedyString;
-import dev.rosewood.rosegarden.command.framework.ArgumentParser;
-import dev.rosewood.rosegarden.command.framework.RoseCommandArgumentHandler;
-import dev.rosewood.rosegarden.command.framework.RoseCommandArgumentInfo;
+import dev.rosewood.rosegarden.command.framework.Argument;
+import dev.rosewood.rosegarden.command.framework.ArgumentHandler;
+import dev.rosewood.rosegarden.command.framework.CommandContext;
+import dev.rosewood.rosegarden.command.framework.InputIterator;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
-public class GreedyStringArgumentHandler extends RoseCommandArgumentHandler<GreedyString> {
+public class GreedyStringArgumentHandler extends ArgumentHandler<String> {
 
-    public GreedyStringArgumentHandler(RosePlugin rosePlugin) {
-        super(rosePlugin, GreedyString.class);
+    protected GreedyStringArgumentHandler() {
+        super(String.class);
     }
 
     @Override
-    protected GreedyString handleInternal(RoseCommandArgumentInfo argumentInfo, ArgumentParser argumentParser) {
+    public String handle(CommandContext context, Argument argument, InputIterator inputIterator) {
         List<String> inputs = new ArrayList<>();
-        while (argumentParser.hasNext())
-            inputs.add(argumentParser.next());
+        while (inputIterator.hasNext())
+            inputs.add(inputIterator.next());
 
         String combined = String.join(" ", inputs);
         if (combined.isEmpty())
             throw new HandledArgumentException("argument-handler-string");
-        return new GreedyString(combined);
+        return combined;
     }
 
     @Override
-    protected List<String> suggestInternal(RoseCommandArgumentInfo argumentInfo, ArgumentParser argumentParser) {
-        while (argumentParser.hasNext())
-            argumentParser.next();
-        return Collections.singletonList(argumentInfo.toString());
+    public List<String> suggest(CommandContext context, Argument argument, String[] args) {
+        return List.of(argument.parameter());
     }
-
-    public record GreedyString(String value) { }
 
 }

@@ -1,30 +1,28 @@
 package dev.rosewood.rosegarden.command.argument;
 
-import dev.rosewood.rosegarden.RosePlugin;
-import dev.rosewood.rosegarden.command.framework.ArgumentParser;
-import dev.rosewood.rosegarden.command.framework.RoseCommandArgumentHandler;
-import dev.rosewood.rosegarden.command.framework.RoseCommandArgumentInfo;
-import java.util.Collections;
+import dev.rosewood.rosegarden.command.framework.Argument;
+import dev.rosewood.rosegarden.command.framework.ArgumentHandler;
+import dev.rosewood.rosegarden.command.framework.CommandContext;
+import dev.rosewood.rosegarden.command.framework.InputIterator;
 import java.util.List;
 
-public class StringArgumentHandler extends RoseCommandArgumentHandler<String> {
+public class StringArgumentHandler extends ArgumentHandler<String> {
 
-    public StringArgumentHandler(RosePlugin rosePlugin) {
-        super(rosePlugin, String.class);
+    protected StringArgumentHandler() {
+        super(String.class);
     }
 
     @Override
-    protected String handleInternal(RoseCommandArgumentInfo argumentInfo, ArgumentParser argumentParser) {
-        String input = argumentParser.next();
+    public String handle(CommandContext context, Argument argument, InputIterator inputIterator) {
+        String input = inputIterator.next();
         if (input.trim().isEmpty())
             throw new HandledArgumentException("argument-handler-string");
         return input;
     }
 
     @Override
-    protected List<String> suggestInternal(RoseCommandArgumentInfo argumentInfo, ArgumentParser argumentParser) {
-        argumentParser.next();
-        return Collections.singletonList(argumentInfo.toString());
+    public List<String> suggest(CommandContext context, Argument argument, String[] args) {
+        return List.of(argument.parameter());
     }
 
 }

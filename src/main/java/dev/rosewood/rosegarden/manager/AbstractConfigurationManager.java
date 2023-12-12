@@ -76,7 +76,7 @@ public abstract class AbstractConfigurationManager extends Manager {
                     this.cachedValues.put(roseSetting.getKey(), roseSetting);
             } catch (ReflectiveOperationException ex) {
                 ex.printStackTrace();
-                this.cachedValues = Collections.emptyMap();
+                this.cachedValues = Map.of();
             }
 
             this.injectAdditionalSettings();
@@ -102,7 +102,7 @@ public abstract class AbstractConfigurationManager extends Manager {
     }
 
     protected List<RoseSetting> getDatabaseSettings() {
-        return Arrays.asList(
+        return List.of(
                 new SingularRoseSetting(this.rosePlugin, "mysql-settings", null, "Settings for if you want to use MySQL for data management"),
                 new SingularRoseSetting(this.rosePlugin, "mysql-settings.enabled", false, "Enable MySQL", "If false, SQLite will be used instead"),
                 new SingularRoseSetting(this.rosePlugin, "mysql-settings.hostname", "", "MySQL Database Hostname"),

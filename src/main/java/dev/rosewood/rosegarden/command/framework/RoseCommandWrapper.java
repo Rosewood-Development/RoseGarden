@@ -1,26 +1,16 @@
 package dev.rosewood.rosegarden.command.framework;
 
 import dev.rosewood.rosegarden.RosePlugin;
-import dev.rosewood.rosegarden.command.command.BaseCommand;
-import dev.rosewood.rosegarden.command.command.HelpCommand;
-import dev.rosewood.rosegarden.command.command.ReloadCommand;
 import dev.rosewood.rosegarden.config.CommentedFileConfiguration;
-import dev.rosewood.rosegarden.manager.AbstractCommandManager;
 import dev.rosewood.rosegarden.manager.AbstractLocaleManager;
-import dev.rosewood.rosegarden.utils.ClassUtils;
 import dev.rosewood.rosegarden.utils.CommandMapUtils;
 import dev.rosewood.rosegarden.utils.StringPlaceholders;
 import java.io.File;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.defaults.BukkitCommand;
@@ -28,352 +18,321 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.util.StringUtil;
 
-public abstract class RoseCommandWrapper extends BukkitCommand {
+public class RoseCommandWrapper extends BukkitCommand {
 
-    private String activeName;
-    private List<String> activeAliases;
+    private final String namespace;
+    private final File dataFolder;
+    private final RosePlugin rosePlugin;
+    private final BaseRoseCommand command;
 
-    protected final RosePlugin rosePlugin;
-    protected final List<RoseCommand> commands;
-    protected final Map<String, RoseCommand> commandLookupMap;
-    protected final AbstractCommandManager commandManager;
-    protected final AbstractLocaleManager localeManager;
+    public RoseCommandWrapper(RosePlugin rosePlugin, BaseRoseCommand command) {
+        this(rosePlugin.getName().toLowerCase(), rosePlugin.getDataFolder(), rosePlugin, command);
+    }
 
-    public RoseCommandWrapper(RosePlugin rosePlugin) {
+    public RoseCommandWrapper(String namespace, File dataFolder, RosePlugin rosePlugin, BaseRoseCommand command) {
         super("");
+
+        this.namespace = namespace;
+        this.dataFolder = dataFolder;
         this.rosePlugin = rosePlugin;
-        this.commands = new ArrayList<>();
-        this.commandLookupMap = new HashMap<>();
-        this.commandManager = rosePlugin.getManager(AbstractCommandManager.class);
-        this.localeManager = rosePlugin.getManager(AbstractLocaleManager.class);
+        this.command = command;
     }
 
     public void register() {
-        try {
-            // Load commands
-            List<Class<? extends RoseCommand>> commandClasses = new ArrayList<>();
+        // Register commands
+        File commandsDirectory = new File(this.dataFolder, "commands");
+        commandsDirectory.mkdirs();
 
-            if (this.includeBaseCommand())
-                commandClasses.add(BaseCommand.class);
+        String commandName = this.command.getCommandInfo().name();
+        File commandConfigFile = new File(commandsDirectory, commandName + ".yml");
+        boolean exists = commandConfigFile.exists();
+        CommentedFileConfiguration commandConfig = CommentedFileConfiguration.loadConfiguration(commandConfigFile);
 
-            if (this.includeHelpCommand())
-                commandClasses.add(HelpCommand.class);
+        AtomicBoolean modified = new AtomicBoolean(false);
+        if (!exists) {
+            commandConfig.addComments("This file lets you change the name and aliases for the " + commandName + " command.",
+                    "If you edit the name/aliases at the top of this file, you will need to restart the server to see all the changes applied properly.");
+            modified.set(true);
+        }
 
-            if (this.includeReloadCommand())
-                commandClasses.add(ReloadCommand.class);
+        // Write default config values if they don't exist
+        if (!commandConfig.contains("name")) {
+            commandConfig.set("name", commandName);
+            modified.set(true);
+        }
 
-            this.getCommandPackages().stream().map(x -> ClassUtils.getClassesOf(this.rosePlugin, x, RoseCommand.class)).forEach(commandClasses::addAll);
+        // Write default alias values if they don't exist
+        if (!commandConfig.contains("aliases")) {
+            commandConfig.set("aliases", new ArrayList<>(this.command.getCommandInfo().aliases()));
+            modified.set(true);
+        }
 
-            for (Class<? extends RoseCommand> commandClass : commandClasses) {
-                // Ignore abstract/interface classes
-                if (Modifier.isAbstract(commandClass.getModifiers()) || Modifier.isInterface(commandClass.getModifiers()))
-                    continue;
+        // Write subcommands
+        this.writeSubcommands(commandConfig, this.command, modified);
 
-                // Subcommands get loaded within commands
-                if (RoseSubCommand.class.isAssignableFrom(commandClass))
-                    continue;
+        if (modified.get())
+            commandConfig.save(commandConfigFile);
 
-                RoseCommand command = commandClass.getConstructor(RosePlugin.class, RoseCommandWrapper.class).newInstance(this.rosePlugin, this);
-                this.commands.add(command);
-            }
+        // Load command config values
+        this.command.setNameAndAliases(commandConfig.getString("name"), commandConfig.getStringList("aliases"));
 
-            // Register commands
-            File commandsDirectory = new File(this.rosePlugin.getDataFolder(), "commands");
-            commandsDirectory.mkdirs();
+        // Load subcommand config values
+        this.loadSubCommands(commandConfig, this.command);
 
-            File commandConfigFile = new File(commandsDirectory, this.getDefaultName() + ".yml");
-            boolean exists = commandConfigFile.exists();
-            CommentedFileConfiguration commandConfig = CommentedFileConfiguration.loadConfiguration(commandConfigFile);
+        // Finally, register the command with the server
+        CommandMapUtils.registerCommand(this.namespace, this);
+    }
 
-            boolean modified = false;
-            if (!exists) {
-                commandConfig.addComments("This file lets you change the name and aliases for the " + this.getDefaultName() + " command.",
-                        "If you edit the name/aliases at the top of this file, you will need to restart the server to see all the changes applied properly.");
-                modified = true;
-            }
+    private void writeSubcommands(ConfigurationSection section, RoseCommand command, AtomicBoolean modified) {
+        CommandExecutionWalker walker = new CommandExecutionWalker(command);
+        while (walker.hasNext()) {
+            walker.step((cmd, argument) -> true, argument -> {
+                List<BaseRoseCommand> editableSubcommands = argument.subCommands().stream()
+                        .filter(BaseRoseCommand.class::isInstance)
+                        .map(BaseRoseCommand.class::cast)
+                        .toList();
 
-            // Write default config values if they don't exist
-            if (!commandConfig.contains("name")) {
-                commandConfig.set("name", this.getDefaultName());
-                modified = true;
-            }
+                if (editableSubcommands.isEmpty())
+                    return null;
 
-            // Write default alias values if they don't exist
-            if (!commandConfig.contains("aliases")) {
-                commandConfig.set("aliases", new ArrayList<>(this.getDefaultAliases()));
-                modified = true;
-            }
-
-            // Write subcommands
-            if (!this.commands.isEmpty()) {
-                ConfigurationSection subcommandsSection = commandConfig.getConfigurationSection("subcommands");
-                if (subcommandsSection == null) {
-                    subcommandsSection = commandConfig.createSection("subcommands");
-                    modified = true;
+                ConfigurationSection subCommandsSection = section.getConfigurationSection("subcommands");
+                if (subCommandsSection == null) {
+                    subCommandsSection = section.createSection("subcommands");
+                    modified.set(true);
                 }
 
-                for (RoseCommand command : this.commands) {
-                    // Skip base command
-                    if (command.getDefaultName().isEmpty()) {
-                        command.setNameAndAliases("", Collections.emptyList());
-                        this.commandLookupMap.put("", command);
+                for (BaseRoseCommand subCommand : editableSubcommands) {
+                    ConfigurationSection subCommandSection = subCommandsSection.getConfigurationSection(subCommand.getCommandInfo().name());
+                    if (subCommandSection == null) {
+                        subCommandSection = subCommandsSection.createSection(subCommand.getCommandInfo().name());
+                        modified.set(true);
+                    }
+
+                    if (!subCommandSection.contains("name")) {
+                        subCommandSection.set("name", subCommand.getCommandInfo().name());
+                        modified.set(true);
+                    }
+
+                    if (!subCommandSection.contains("aliases")) {
+                        subCommandSection.set("aliases", new ArrayList<>(subCommand.getCommandInfo().aliases()));
+                        modified.set(true);
+                    }
+
+                    this.writeSubcommands(subCommandSection, subCommand, modified);
+                }
+
+                return null;
+            });
+        }
+    }
+
+    private void loadSubCommands(ConfigurationSection section, BaseRoseCommand command) {
+        CommandExecutionWalker walker = new CommandExecutionWalker(command);
+        while (walker.hasNext()) {
+            walker.step((cmd, argument) -> true, argument -> {
+                List<BaseRoseCommand> editableSubcommands = argument.subCommands().stream()
+                        .filter(BaseRoseCommand.class::isInstance)
+                        .map(BaseRoseCommand.class::cast)
+                        .toList();
+
+                if (editableSubcommands.isEmpty())
+                    return null;
+
+                ConfigurationSection subCommandsSection = section.getConfigurationSection("subcommands");
+                if (subCommandsSection == null)
+                    return null;
+
+                for (BaseRoseCommand subCommand : editableSubcommands) {
+                    ConfigurationSection subCommandSection = subCommandsSection.getConfigurationSection(subCommand.getCommandInfo().name());
+                    if (subCommandSection == null)
                         continue;
-                    }
 
-                    ConfigurationSection commandSection = subcommandsSection.getConfigurationSection(command.getDefaultName());
-                    if (commandSection == null) {
-                        commandSection = subcommandsSection.createSection(command.getDefaultName());
-                        modified = true;
-                    }
-
-                    if (!commandSection.contains("name")) {
-                        commandSection.set("name", command.getDefaultName());
-                        modified = true;
-                    }
-
-                    if (!commandSection.contains("aliases")) {
-                        commandSection.set("aliases", new ArrayList<>(command.getDefaultAliases()));
-                        modified = true;
-                    }
-
-                    String name = commandSection.getString("name", command.getDefaultName());
-                    List<String> aliases = commandSection.getStringList("aliases");
-
-                    command.setNameAndAliases(name, aliases);
-
-                    // Add to command lookup map
-                    this.commandLookupMap.put(name.toLowerCase(), command);
-                    aliases.forEach(x -> this.commandLookupMap.put(x.toLowerCase(), command));
+                    subCommand.setNameAndAliases(subCommandSection.getString("name"), subCommandSection.getStringList("aliases"));
+                    this.loadSubCommands(subCommandSection, subCommand);
                 }
-            }
 
-            if (modified)
-                commandConfig.save(commandConfigFile);
-
-            // Load command config values
-            this.activeName = commandConfig.getString("name");
-            this.activeAliases = commandConfig.getStringList("aliases");
-
-            // Finally, register the command with the server
-            CommandMapUtils.registerCommand(this.rosePlugin.getName().toLowerCase(), this);
-        } catch (Exception e) {
-            this.rosePlugin.getLogger().severe("Fatal error initializing command argument handlers");
-            e.printStackTrace();
+                return null;
+            });
         }
     }
 
     public void unregister() {
-        this.commands.clear();
-        this.commandLookupMap.clear();
-
         CommandMapUtils.unregisterCommand(this);
     }
 
-    public RoseCommand getCommand(String commandName) {
-        return this.commandLookupMap.get(commandName);
-    }
-
-    public List<RoseCommand> getCommands() {
-        return this.commandLookupMap.values().stream()
-                .distinct()
-                .filter(x -> !x.getDefaultName().isEmpty())
-                .sorted(Comparator.comparing(RoseCommand::getName))
-                .collect(Collectors.toList());
-    }
-
-    public RoseSubCommand getSubCommand(RoseCommand command, String commandName) {
-        return command.getSubCommands().get(commandName.toLowerCase());
-    }
-
     @Override
-    public boolean execute(CommandSender sender, String label, String[] args) {
-        try {
-            RoseCommand command = this.getCommand(args.length == 0 ? "" : args[0]);
-            if (command == null) {
-                this.localeManager.sendCommandMessage(sender, "unknown-command", StringPlaceholders.of("cmd", this.getName()));
+    public boolean execute(CommandSender sender, String commandLabel, String[] args) {
+        AbstractLocaleManager localeManager = this.rosePlugin.getManager(AbstractLocaleManager.class);
+        if (this.command.isPlayerOnly() && !(sender instanceof Player)) {
+            localeManager.sendCommandMessage(sender, "only-player");
+            return true;
+        }
+
+        if (!this.command.canUse(sender)) {
+            localeManager.sendCommandMessage(sender, "no-permission");
+            return true;
+        }
+
+        CommandContext context = new CommandContext(sender, commandLabel, args);
+        CommandContext readonlyContext = context.readonly();
+        CommandExecutionWalker walker = new CommandExecutionWalker(this.command);
+        InputIterator inputIterator = new InputIterator(Arrays.asList(args));
+
+        while (walker.hasNext()) {
+            if (!inputIterator.hasNext()) {
+                List<Argument> remainingArguments = walker.walkRemaining();
+                if (remainingArguments.stream().allMatch(Argument::optional))
+                    break; // All remaining arguments are optional, this command execution is valid
+
+                long missingRequired = remainingArguments.stream().filter(Predicate.not(Argument::optional)).count();
+                if (remainingArguments.stream().anyMatch(x -> x instanceof Argument.SubCommandArgument)) {
+                    localeManager.sendCommandMessage(sender, "missing-arguments-extra", StringPlaceholders.of("amount", missingRequired));
+                } else {
+                    localeManager.sendCommandMessage(sender, "missing-arguments", StringPlaceholders.of("amount", missingRequired));
+                }
                 return true;
             }
 
-            boolean isOverridden = false;
-            if (command instanceof BaseCommand baseCommand) {
-                String override = baseCommand.getOverrideCommand();
-                if (override != null) {
-                    RoseCommand overrideCommand = this.getCommand(override);
-                    if (overrideCommand != null) {
-                        command = overrideCommand;
-                        isOverridden = true;
+            walker.step((command, argument) -> {
+                try {
+                    ArgumentHandler<?> handler = argument.handler();
+                    Object parsedArgument = handler.handle(readonlyContext, argument, inputIterator);
+                    if (parsedArgument == null) {
+                        localeManager.sendCommandMessage(sender, "invalid-argument-null", StringPlaceholders.of("name", argument.name()));
+                        return false;
                     }
+
+                    context.put(argument, parsedArgument);
+                    return true;
+                } catch (ArgumentHandler.HandledArgumentException e) {
+                    String message = localeManager.getCommandLocaleMessage(e.getMessage(), e.getPlaceholders());
+                    localeManager.sendCommandMessage(sender, "invalid-argument", StringPlaceholders.of("message", message));
+                    return false;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    localeManager.sendCommandMessage(sender, "unknown-command-error");
+                    return false;
                 }
-            }
-
-            String[] cmdArgs;
-            if (args.length > 0) {
-                cmdArgs = new String[args.length - 1];
-                System.arraycopy(args, 1, cmdArgs, 0, cmdArgs.length);
-            } else {
-                cmdArgs = new String[0];
-            }
-
-            CommandContext context = new CommandContext(sender, cmdArgs);
-            ArgumentParser argumentParser = new ArgumentParser(context, new LinkedList<>(Arrays.asList(cmdArgs)));
-
-            this.runCommand(sender, command, argumentParser, new ArrayList<>(), 0, isOverridden);
-        } catch (Exception e) {
-            e.printStackTrace();
-            this.localeManager.sendCommandMessage(sender, "unknown-command-error");
+            }, argument -> {
+                if (inputIterator.hasNext()) {
+                    String input = inputIterator.next();
+                    RoseCommand match = argument.subCommands().stream()
+                            .filter(subCommand -> Stream.concat(Stream.of(subCommand.getName()), subCommand.getAliases().stream()).anyMatch(s -> s.equalsIgnoreCase(input)))
+                            .findFirst()
+                            .orElse(null);
+                    if (match == null)
+                        localeManager.sendCommandMessage(sender, "invalid-subcommand");
+                    return match;
+                }
+                localeManager.sendCommandMessage(sender, "invalid-subcommand");
+                return null;
+            });
         }
+
+        if (walker.isCompleted()) {
+            RoseCommand commandToExecute = walker.getCurrentCommand();
+            if (!commandToExecute.canUse(sender)) {
+                localeManager.sendCommandMessage(sender, "no-permission");
+                return true;
+            }
+
+            commandToExecute.execute(context);
+        }
+
         return true;
     }
 
-    private void runCommand(CommandSender sender, RoseCommand command, ArgumentParser argumentParser, List<Object> parsedArgs, int commandLayer, boolean skipPermissionCheck) throws ReflectiveOperationException {
-        if (!skipPermissionCheck && !command.canUse(sender)) {
-            this.localeManager.sendCommandMessage(sender, "no-permission");
-            return;
-        }
-
-        if (command.isPlayerOnly() && !(sender instanceof Player)) {
-            this.localeManager.sendCommandMessage(sender, "only-player");
-            return;
-        }
-
-        // Start parsing parameters based on the command requirements, print errors out as we go
-        for (RoseCommandArgumentInfo argumentInfo : command.getArgumentInfo()) {
-            if (!argumentParser.hasNext()) {
-                // All other arguments are optional, this is fine
-                if (argumentInfo.isOptional())
-                    break;
-
-                // Ran out of arguments while parsing
-                if (command.hasSubCommand()) {
-                    this.localeManager.sendCommandMessage(sender, "missing-arguments-extra", StringPlaceholders.of("amount", command.getNumRequiredArguments()));
-                } else {
-                    this.localeManager.sendCommandMessage(sender, "missing-arguments", StringPlaceholders.of("amount", parsedArgs.size() + command.getNumRequiredArguments() + commandLayer));
-                }
-                return;
-            }
-
-            if (argumentInfo.isSubCommand()) {
-                RoseSubCommand subCommand = this.getSubCommand(command, argumentParser.next());
-                if (subCommand == null) {
-                    this.localeManager.sendCommandMessage(sender, "invalid-subcommand");
-                    return;
-                }
-
-                this.runCommand(sender, subCommand, argumentParser, parsedArgs, commandLayer + 1, false);
-                return;
-            }
-
-            try {
-                Object parsedArgument = this.commandManager.resolveArgumentHandler(argumentInfo.getType()).handle(argumentInfo, argumentParser);
-                if (parsedArgument == null) {
-                    this.localeManager.sendCommandMessage(sender, "invalid-argument-null", StringPlaceholders.of("name", argumentInfo.toString()));
-                    return;
-                }
-
-                parsedArgs.add(parsedArgument);
-            } catch (RoseCommandArgumentHandler.HandledArgumentException e) {
-                String message = this.localeManager.getCommandLocaleMessage(e.getMessage(), e.getPlaceholders());
-                this.localeManager.sendCommandMessage(sender, "invalid-argument", StringPlaceholders.of("message", message));
-                return;
-            }
-        }
-
-        this.executeCommand(argumentParser.getContext(), command, parsedArgs);
-    }
-
-    private void executeCommand(CommandContext context, RoseCommand command, List<Object> parsedArgs) throws ReflectiveOperationException {
-        Stream.Builder<Object> argumentBuilder = Stream.builder().add(context);
-        parsedArgs.forEach(argumentBuilder::add);
-
-        // Fill optional parameters with nulls
-        for (int i = parsedArgs.size(); i < command.getNumParametersWithInjectible(); i++)
-            argumentBuilder.add(null);
-
-        command.getExecuteMethod().invoke(command, argumentBuilder.build().toArray());
-    }
-
     @Override
-    public List<String> tabComplete(CommandSender sender, String alias, String[] args) throws IllegalArgumentException {
-        if (args.length == 0)
-            return new ArrayList<>(this.commandLookupMap.keySet());
+    public List<String> tabComplete(CommandSender sender, String commandLabel, String[] args) {
+        boolean isPlayer = sender instanceof Player;
+        if (this.command.isPlayerOnly() && !isPlayer || !this.command.canUse(sender))
+            return List.of();
 
-        if (args.length == 1)
-            return this.commandLookupMap.keySet().stream()
-                    .filter(x -> StringUtil.startsWithIgnoreCase(x, args[args.length - 1]))
-                    .collect(Collectors.toList());
+        CommandContext context = new CommandContext(sender, commandLabel, args);
+        CommandContext readonlyContext = context.readonly();
+        CommandExecutionWalker walker = new CommandExecutionWalker(this.command);
+        InputIterator inputIterator = new InputIterator(Arrays.asList(args));
 
-        RoseCommand command = this.getCommand(args[0]);
-        if (command == null)
-            return Collections.emptyList();
+        List<String> suggestions = new ArrayList<>();
+        while (walker.hasNext()) {
+            walker.step((command, argument) -> {
+                if (!inputIterator.hasNext()) {
+                    suggestions.addAll(argument.handler().suggest(readonlyContext, argument, new String[0]));
+                    return false;
+                }
 
-        String[] cmdArgs = new String[args.length - 1];
-        System.arraycopy(args, 1, cmdArgs, 0, cmdArgs.length);
-        CommandContext context = new CommandContext(sender, cmdArgs);
-        ArgumentParser argumentParser = new ArgumentParser(context, new LinkedList<>(Arrays.asList(cmdArgs)));
+                inputIterator.clearStack();
+                try {
+                    ArgumentHandler<?> handler = argument.handler();
+                    Object parsedArgument = handler.handle(readonlyContext, argument, inputIterator);
+                    if (parsedArgument == null || !inputIterator.hasNext())
+                        return false;
 
-        return this.tabCompleteCommand(sender, command, argumentParser);
-    }
+                    context.put(argument, parsedArgument);
+                    return true;
+                } catch (ArgumentHandler.HandledArgumentException e) {
+                    List<String> remainingInput = new ArrayList<>(inputIterator.getStack());
+                    while (inputIterator.hasNext())
+                        remainingInput.add(inputIterator.next());
+                    String[] remainingArgs = remainingInput.toArray(String[]::new);
+                    argument.handler().suggest(readonlyContext, argument, remainingArgs).stream()
+                            .filter(x -> StringUtil.startsWithIgnoreCase(x, String.join(" ", remainingInput)))
+                            .forEach(suggestions::add);
+                    return false;
+                } catch (Exception e) {
+                    return false;
+                }
+            }, argument -> {
+                if (!inputIterator.hasNext()) {
+                    this.streamUsableSubCommands(argument, sender)
+                            .flatMap(x -> Stream.concat(Stream.of(x.getName()), x.getAliases().stream()))
+                            .forEach(suggestions::add);
+                    return null;
+                }
 
-    private List<String> tabCompleteCommand(CommandSender sender, RoseCommand command, ArgumentParser argumentParser) {
-        if (!command.canUse(sender) || (command.isPlayerOnly() && !(sender instanceof Player)))
-            return Collections.emptyList();
+                String input = inputIterator.next();
+                RoseCommand subCommand = this.streamUsableSubCommands(argument, sender)
+                        .filter(x -> Stream.concat(Stream.of(x.getName()), x.getAliases().stream()).anyMatch(s -> s.equalsIgnoreCase(input)))
+                        .findFirst()
+                        .orElse(null);
 
-        // Consume all arguments until there are no more, then print those results
-        for (RoseCommandArgumentInfo argumentInfo : command.getArgumentInfo()) {
-            if (argumentInfo.isSubCommand()) {
-                if (!argumentParser.hasNext())
-                    return new ArrayList<>(command.getSubCommands().keySet());
+                if (subCommand != null) {
+                    if (!inputIterator.hasNext())
+                        return null;
+                    return subCommand;
+                }
 
-                String input = argumentParser.next();
-                RoseSubCommand subCommand = this.getSubCommand(command, input);
-                if (subCommand == null)
-                    return command.getSubCommands().keySet()
-                            .stream()
-                            .filter(x -> StringUtil.startsWithIgnoreCase(x, input))
-                            .collect(Collectors.toList());
-
-                if (argumentParser.hasNext())
-                    return this.tabCompleteCommand(sender, subCommand, argumentParser);
-
-                return Collections.emptyList();
-            }
-
-            List<String> suggestions = this.commandManager.resolveArgumentHandler(argumentInfo.getType()).suggest(argumentInfo, argumentParser);
-            String input = argumentParser.previous();
-            if (!argumentParser.hasNext())
-                return suggestions.stream()
+                this.streamUsableSubCommands(argument, sender)
+                        .flatMap(x -> Stream.concat(Stream.of(x.getName()), x.getAliases().stream()))
                         .filter(x -> StringUtil.startsWithIgnoreCase(x, input))
-                        .collect(Collectors.toList());
+                        .forEach(suggestions::add);
+
+                return null;
+            });
         }
 
-        return Collections.emptyList();
+        return suggestions;
     }
 
-    @Override
-    public String getPermission() {
-        return this.rosePlugin.getName().toLowerCase() + ".basecommand";
+    private Stream<RoseCommand> streamUsableSubCommands(Argument.SubCommandArgument argument, CommandSender sender) {
+        return argument.subCommands().stream()
+                .filter(x -> x.canUse(sender))
+                .filter(x -> !x.isPlayerOnly() || x instanceof Player);
     }
 
     @Override
     public String getName() {
-        return this.activeName;
+        return this.command.getName();
     }
 
     @Override
     public List<String> getAliases() {
-        return this.activeAliases;
+        return this.command.getAliases();
     }
 
-    public abstract String getDefaultName();
-
-    public abstract List<String> getDefaultAliases();
-
-    public abstract List<String> getCommandPackages();
-
-    public abstract boolean includeBaseCommand();
-
-    public abstract boolean includeHelpCommand();
-
-    public abstract boolean includeReloadCommand();
+    @Override
+    public String getPermission() {
+        return this.command.getPermission();
+    }
 
 }

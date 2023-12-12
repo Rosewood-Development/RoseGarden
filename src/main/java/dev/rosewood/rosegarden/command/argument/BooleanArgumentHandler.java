@@ -1,22 +1,21 @@
 package dev.rosewood.rosegarden.command.argument;
 
-import dev.rosewood.rosegarden.RosePlugin;
-import dev.rosewood.rosegarden.command.framework.ArgumentParser;
-import dev.rosewood.rosegarden.command.framework.RoseCommandArgumentHandler;
-import dev.rosewood.rosegarden.command.framework.RoseCommandArgumentInfo;
+import dev.rosewood.rosegarden.command.framework.Argument;
+import dev.rosewood.rosegarden.command.framework.ArgumentHandler;
+import dev.rosewood.rosegarden.command.framework.CommandContext;
+import dev.rosewood.rosegarden.command.framework.InputIterator;
 import dev.rosewood.rosegarden.utils.StringPlaceholders;
-import java.util.Arrays;
 import java.util.List;
 
-public class BooleanArgumentHandler extends RoseCommandArgumentHandler<Boolean> {
+public class BooleanArgumentHandler extends ArgumentHandler<Boolean> {
 
-    public BooleanArgumentHandler(RosePlugin rosePlugin) {
-        super(rosePlugin, Boolean.class);
+    protected BooleanArgumentHandler() {
+        super(Boolean.class);
     }
 
     @Override
-    protected Boolean handleInternal(RoseCommandArgumentInfo argumentInfo, ArgumentParser argumentParser) {
-        String input = argumentParser.next();
+    public Boolean handle(CommandContext context, Argument argument, InputIterator inputIterator) {
+        String input = inputIterator.next();
         try {
             return Boolean.parseBoolean(input);
         } catch (Exception e) {
@@ -25,9 +24,8 @@ public class BooleanArgumentHandler extends RoseCommandArgumentHandler<Boolean> 
     }
 
     @Override
-    protected List<String> suggestInternal(RoseCommandArgumentInfo argumentInfo, ArgumentParser argumentParser) {
-        argumentParser.next();
-        return Arrays.asList("true", "false");
+    public List<String> suggest(CommandContext context, Argument argument, String[] args) {
+        return List.of("true", "false");
     }
 
 }
