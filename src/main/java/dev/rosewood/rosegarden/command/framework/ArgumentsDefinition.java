@@ -62,6 +62,14 @@ public class ArgumentsDefinition {
             return new ArgumentsDefinition(this.arguments);
         }
 
+        public ArgumentsDefinition requiredSub(RoseCommand... subCommands) {
+            return this.requiredSub("subcommand", subCommands);
+        }
+
+        public ArgumentsDefinition optionalSub(RoseCommand... subCommands) {
+            return this.optionalSub("subcommand", subCommands);
+        }
+
         public ArgumentsDefinition build() {
             return new ArgumentsDefinition(this.arguments);
         }
@@ -83,6 +91,10 @@ public class ArgumentsDefinition {
 
         public ArgumentsDefinition optionalSub(String name, RoseCommand... subCommands) {
             return this.originalBuilder.optionalSub(name, subCommands);
+        }
+
+        public ArgumentsDefinition optionalSub(RoseCommand... subCommands) {
+            return this.originalBuilder.optionalSub(subCommands);
         }
 
         public ArgumentsDefinition build() {

@@ -159,7 +159,7 @@ public abstract class AbstractLocaleManager extends Manager {
         if (!(value instanceof String))
             value = this.defaultLocale.getLocaleValues().get(key);
         if (!(value instanceof String))
-            throw new IllegalStateException("Missing locale string: " + key);
+            value = this.getErrorMessage(key);
         return (String) value;
     }
 
@@ -169,7 +169,7 @@ public abstract class AbstractLocaleManager extends Manager {
      * @param messageKey The key of the message to get
      * @return The locale message
      */
-    public final String getLocaleMessage(String messageKey) {
+    public String getLocaleMessage(String messageKey) {
         return this.getLocaleMessage(messageKey, StringPlaceholders.empty());
     }
 
@@ -180,7 +180,7 @@ public abstract class AbstractLocaleManager extends Manager {
      * @param stringPlaceholders The placeholders to apply
      * @return The locale message with the given placeholders applied
      */
-    public final String getLocaleMessage(String messageKey, StringPlaceholders stringPlaceholders) {
+    public String getLocaleMessage(String messageKey, StringPlaceholders stringPlaceholders) {
         return HexUtils.colorify(stringPlaceholders.apply(this.getLocaleString(messageKey)));
     }
 
@@ -190,7 +190,7 @@ public abstract class AbstractLocaleManager extends Manager {
      * @param messageKey The key of the message to get
      * @return The locale message
      */
-    public final String getCommandLocaleMessage(String messageKey) {
+    public String getCommandLocaleMessage(String messageKey) {
         return this.getCommandLocaleMessage(messageKey, StringPlaceholders.empty());
     }
 
@@ -201,14 +201,14 @@ public abstract class AbstractLocaleManager extends Manager {
      * @param stringPlaceholders The placeholders to apply
      * @return The locale message with the given placeholders applied
      */
-    public final String getCommandLocaleMessage(String messageKey, StringPlaceholders stringPlaceholders) {
+    public String getCommandLocaleMessage(String messageKey, StringPlaceholders stringPlaceholders) {
         String message;
         try {
             message = this.getLocaleMessage(messageKey, stringPlaceholders);
         } catch (IllegalStateException e) {
             message = CommandMessages.DEFAULT_MESSAGES.get(messageKey);
             if (message == null)
-                throw new IllegalStateException("Missing command locale string: " + messageKey, e);
+                message = this.getErrorMessage(messageKey);
         }
         return HexUtils.colorify(stringPlaceholders.apply(message));
     }
@@ -220,7 +220,7 @@ public abstract class AbstractLocaleManager extends Manager {
      * @param messageKey The message key of the Locale to send
      * @param stringPlaceholders The placeholders to apply
      */
-    public final void sendMessage(CommandSender sender, String messageKey, StringPlaceholders stringPlaceholders) {
+    public void sendMessage(CommandSender sender, String messageKey, StringPlaceholders stringPlaceholders) {
         String prefix = this.getLocaleMessage("prefix");
         String message = this.getLocaleMessage(messageKey, stringPlaceholders);
         if (message.isEmpty())
@@ -234,7 +234,7 @@ public abstract class AbstractLocaleManager extends Manager {
      * @param sender The CommandSender to send to
      * @param messageKey The message key of the Locale to send
      */
-    public final void sendMessage(CommandSender sender, String messageKey) {
+    public void sendMessage(CommandSender sender, String messageKey) {
         this.sendMessage(sender, messageKey, StringPlaceholders.empty());
     }
 
@@ -245,7 +245,7 @@ public abstract class AbstractLocaleManager extends Manager {
      * @param messageKey The message key of the Locale to send
      * @param stringPlaceholders The placeholders to apply
      */
-    public final void sendCommandMessage(CommandSender sender, String messageKey, StringPlaceholders stringPlaceholders) {
+    public void sendCommandMessage(CommandSender sender, String messageKey, StringPlaceholders stringPlaceholders) {
         String prefix = this.getLocaleMessage("prefix");
         String message = this.getCommandLocaleMessage(messageKey, stringPlaceholders);
         if (message.isEmpty())
@@ -259,7 +259,7 @@ public abstract class AbstractLocaleManager extends Manager {
      * @param sender The CommandSender to send to
      * @param messageKey The message key of the Locale to send
      */
-    public final void sendCommandMessage(CommandSender sender, String messageKey) {
+    public void sendCommandMessage(CommandSender sender, String messageKey) {
         this.sendCommandMessage(sender, messageKey, StringPlaceholders.empty());
     }
 
@@ -270,7 +270,7 @@ public abstract class AbstractLocaleManager extends Manager {
      * @param messageKey The message key of the Locale to send
      * @param stringPlaceholders The placeholders to apply
      */
-    public final void sendSimpleMessage(CommandSender sender, String messageKey, StringPlaceholders stringPlaceholders) {
+    public void sendSimpleMessage(CommandSender sender, String messageKey, StringPlaceholders stringPlaceholders) {
         this.sendParsedMessage(sender, this.getLocaleMessage(messageKey, stringPlaceholders));
     }
 
@@ -280,7 +280,7 @@ public abstract class AbstractLocaleManager extends Manager {
      * @param sender The CommandSender to send to
      * @param messageKey The message key of the Locale to send
      */
-    public final void sendSimpleMessage(CommandSender sender, String messageKey) {
+    public void sendSimpleMessage(CommandSender sender, String messageKey) {
         this.sendSimpleMessage(sender, messageKey, StringPlaceholders.empty());
     }
 
@@ -291,11 +291,11 @@ public abstract class AbstractLocaleManager extends Manager {
      * @param messageKey The message key of the Locale to send
      * @param stringPlaceholders The placeholders to apply
      */
-    public final void sendSimpleCommandMessage(CommandSender sender, String messageKey, StringPlaceholders stringPlaceholders) {
+    public void sendSimpleCommandMessage(CommandSender sender, String messageKey, StringPlaceholders stringPlaceholders) {
         this.sendParsedMessage(sender, this.getCommandLocaleMessage(messageKey, stringPlaceholders));
     }
 
-    public final void sendSimpleCommandMessage(CommandSender sender, String messageKey) {
+    public void sendSimpleCommandMessage(CommandSender sender, String messageKey) {
         this.sendSimpleCommandMessage(sender, messageKey, StringPlaceholders.empty());
     }
 
@@ -305,7 +305,7 @@ public abstract class AbstractLocaleManager extends Manager {
      * @param sender The CommandSender to send to
      * @param message The message to send
      */
-    public final void sendCustomMessage(CommandSender sender, String message) {
+    public void sendCustomMessage(CommandSender sender, String message) {
         this.sendParsedMessage(sender, message);
     }
 
@@ -316,9 +316,9 @@ public abstract class AbstractLocaleManager extends Manager {
      * @param message The message
      * @return A placeholder-replaced message
      */
-    protected final String parsePlaceholders(CommandSender sender, String message) {
-        if (sender instanceof Player)
-            return PlaceholderAPIHook.applyPlaceholders((Player) sender, message);
+    protected String parsePlaceholders(CommandSender sender, String message) {
+        if (sender instanceof Player player)
+            return PlaceholderAPIHook.applyPlaceholders(player, message);
         return message;
     }
 
@@ -328,12 +328,25 @@ public abstract class AbstractLocaleManager extends Manager {
      * @param sender The sender to send the message to
      * @param message The message
      */
-    protected final void sendParsedMessage(CommandSender sender, String message) {
+    protected void sendParsedMessage(CommandSender sender, String message) {
         if (message.isEmpty())
             return;
 
         String parsedMessage = HexUtils.colorify(this.parsePlaceholders(sender, message));
         this.handleMessage(sender, parsedMessage);
+    }
+
+    protected String getErrorMessage(String messageKey) {
+        new LocaleException(messageKey).printStackTrace();
+        return "&cMissing locale string: " + messageKey;
+    }
+
+    public static class LocaleException extends RuntimeException {
+
+        public LocaleException(String messageKey) {
+            super(String.format("Missing locale string: %s", messageKey));
+        }
+
     }
 
 }
