@@ -1,5 +1,6 @@
 package dev.rosewood.rosegarden;
 
+import com.tcoded.folialib.FoliaLib;
 import dev.rosewood.rosegarden.manager.AbstractCommandManager;
 import dev.rosewood.rosegarden.manager.AbstractConfigurationManager;
 import dev.rosewood.rosegarden.manager.AbstractDataManager;
@@ -41,6 +42,11 @@ public abstract class RosePlugin extends JavaPlugin {
      * The plugin ID on bStats
      */
     private final int bStatsId;
+
+    /**
+     * The Folia compatibility library
+     */
+    private FoliaLib foliaLib;
 
     /**
      * The classes that extend the abstract managers
@@ -86,6 +92,9 @@ public abstract class RosePlugin extends JavaPlugin {
     public void onLoad() {
         // Log that we are loading
         this.getLogger().info("Initializing using RoseGarden v" + ROSEGARDEN_VERSION);
+
+        // Load FoliaLib
+        this.foliaLib = new FoliaLib(this);
 
         // Check if the library is relocated properly
         if (!RoseGardenUtils.isRelocated()) {
@@ -319,4 +328,10 @@ public abstract class RosePlugin extends JavaPlugin {
 
     }
 
+    /**
+     * @return the APIs FoliaLib instance
+     */
+    public FoliaLib getFoliaLib() {
+        return foliaLib;
+    }
 }
