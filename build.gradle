@@ -25,6 +25,10 @@ repositories {
     maven { url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
     maven { url = 'https://repo.extendedclip.com/content/repositories/placeholderapi/' }
     maven { url = 'https://repo.rosewooddev.io/repository/public/' }
+    maven {
+        name = "devmart-other"
+        url = "https://nexuslite.gcnt.net/repos/other/"
+    }
 }
 
 dependencies {
@@ -44,6 +48,9 @@ dependencies {
     testImplementation 'org.mockito:mockito-core:5.8.0'
     testCompileOnly 'io.papermc.paper:paper-api:1.20.2-R0.1-SNAPSHOT'
     testImplementation 'com.github.seeseemelk:MockBukkit-v1.20:3.9.0'
+
+    // Other dependencies
+    implementation "com.tcoded:FoliaLib:0.3.2"
 }
 
 tasks.register('processSource', Sync) {
@@ -68,6 +75,7 @@ shadowJar {
     relocate('com.zaxxer.hikari', 'dev.rosewood.rosegarden.lib.hikaricp')
     relocate('org.slf4j', 'dev.rosewood.rosegarden.lib.slf4j')
     relocate('org.bstats', 'dev.rosewood.rosegarden.lib.bstats')
+    relocate('com.tcoded.FoliaLib', 'dev.rosewood.rosegarden.lib.folialib')
 }
 
 publishing {
@@ -97,4 +105,4 @@ publishing {
 }
 
 build.dependsOn shadowJar
-publishShadowPublicationToMavenRepository.dependsOn jar
+//publishShadowPublicationToMavenRepository.dependsOn jar

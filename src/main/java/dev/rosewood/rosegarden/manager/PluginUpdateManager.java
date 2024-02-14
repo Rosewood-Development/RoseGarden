@@ -61,7 +61,7 @@ public class PluginUpdateManager extends Manager implements Listener {
             return;
 
         // Check for updates
-        Bukkit.getScheduler().runTaskAsynchronously(this.rosePlugin, () -> {
+        rosePlugin.getFoliaLib().getImpl().runAsync((task) -> {
             try {
                 String latestVersion = this.getLatestVersion();
 
