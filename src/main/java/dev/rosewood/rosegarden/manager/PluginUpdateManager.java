@@ -9,6 +9,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.concurrent.CompletableFuture;
+
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -61,7 +63,7 @@ public class PluginUpdateManager extends Manager implements Listener {
             return;
 
         // Check for updates
-        Bukkit.getScheduler().runTaskAsynchronously(this.rosePlugin, () -> {
+        CompletableFuture.runAsync(() -> {
             try {
                 String latestVersion = this.getLatestVersion();
 
