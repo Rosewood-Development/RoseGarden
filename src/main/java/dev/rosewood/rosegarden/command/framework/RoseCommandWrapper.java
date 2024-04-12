@@ -317,7 +317,7 @@ public class RoseCommandWrapper extends BukkitCommand {
     private Stream<RoseCommand> streamUsableSubCommands(Argument.SubCommandArgument argument, CommandSender sender) {
         return argument.subCommands().stream()
                 .filter(x -> x.canUse(sender))
-                .filter(x -> !x.isPlayerOnly() || x instanceof Player);
+                .filter(x -> !x.isPlayerOnly() || sender instanceof Player);
     }
 
     @Override
