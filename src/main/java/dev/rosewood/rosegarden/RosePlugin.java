@@ -87,11 +87,11 @@ public abstract class RosePlugin extends JavaPlugin {
         // Log that we are loading
         this.getLogger().info("Initializing using RoseGarden v" + ROSEGARDEN_VERSION);
 
-        // Check if the library is relocated properly
+        // Log severe if the library is not relocated
         if (!RoseGardenUtils.isRelocated()) {
-            RoseGardenUtils.getLogger().severe("DEVELOPER ERROR!!! RoseGarden has not been relocated! Plugin has been forcefully disabled.");
-            Bukkit.getPluginManager().disablePlugin(this);
-            return;
+            RoseGardenUtils.getLogger().severe("=====================================================");
+            RoseGardenUtils.getLogger().severe("DEVELOPER ERROR!!! RoseGarden has not been relocated!");
+            RoseGardenUtils.getLogger().severe("=====================================================");
         }
     }
 

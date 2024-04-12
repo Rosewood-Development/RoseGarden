@@ -12,8 +12,10 @@ import dev.rosewood.rosegarden.utils.StringPlaceholders;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -48,10 +50,21 @@ public abstract class AbstractLocaleManager extends Manager {
             }
         }
 
-        this.defaultLocale = locales.stream()
+        Optional<Locale> defaultLocaleOptional = locales.stream()
                 .filter(x -> x.getLocaleName().equals("en_US"))
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("No default 'locale/en_US.yml' locale found!"));
+                .findFirst();
+
+        if (defaultLocaleOptional.isPresent()) {
+            this.defaultLocale = defaultLocaleOptional.get();
+        } else {
+            this.rosePlugin.getLogger().warning("No default 'locale/en_US.yml' locale found!");
+            this.defaultLocale = new Locale() {
+                public String getLocaleName() { return "none"; }
+                public Map<String, Object> getLocaleValues() { return Collections.emptyMap(); }
+            };
+        }
+
+        //        .orElseThrow(() -> new IllegalStateException("No default 'locale/en_US.yml' locale found!"));
 
         if (!this.localeDirectory.exists())
             this.localeDirectory.mkdirs();
