@@ -19,7 +19,7 @@ public class PlayerArgumentHandler extends ArgumentHandler<Player> {
     @Override
     public Player handle(CommandContext context, Argument argument, InputIterator inputIterator) {
         String input = inputIterator.next();
-        Player player = Bukkit.getPlayer(input);
+        Player player = Bukkit.getPlayerExact(input);
         if (player == null)
             throw new HandledArgumentException("argument-handler-player", StringPlaceholders.of("input", input));
         return player;

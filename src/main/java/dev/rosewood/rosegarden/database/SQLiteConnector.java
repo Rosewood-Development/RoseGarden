@@ -6,23 +6,22 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.bukkit.plugin.Plugin;
 
 public class SQLiteConnector implements DatabaseConnector {
 
-    private final Plugin plugin;
+    private final RosePlugin rosePlugin;
     private final String connectionString;
     private Connection connection;
     private final AtomicInteger openConnections;
     private final Object lock;
 
-    public SQLiteConnector(Plugin plugin) {
-        this(plugin, plugin.getDescription().getName().toLowerCase());
+    public SQLiteConnector(RosePlugin rosePlugin) {
+        this(rosePlugin, rosePlugin.getDescription().getName().toLowerCase());
     }
 
-    public SQLiteConnector(Plugin plugin, String dbName) {
-        this.plugin = plugin;
-        this.connectionString = "jdbc:sqlite:" + plugin.getDataFolder() + File.separator + dbName + ".db";
+    public SQLiteConnector(RosePlugin rosePlugin, String dbName) {
+        this.rosePlugin = rosePlugin;
+        this.connectionString = "jdbc:sqlite:" + rosePlugin.getDataFolder() + File.separator + dbName + ".db";
         this.openConnections = new AtomicInteger();
         this.lock = new Object();
 
@@ -32,12 +31,10 @@ public class SQLiteConnector implements DatabaseConnector {
             // We often find that the /var/tmp directory is set to noexec which breaks our plugins.
             // This moves the temp directory to somewhere we know will absolutely have exec permissions.
             // If this gets overridden by another plugin or something else, that's also fine.
-            if (plugin instanceof RosePlugin rosePlugin) {
-                File tmpdir = new File(rosePlugin.getRoseGardenDataFolder(), "tmp");
-                if (!tmpdir.exists())
-                    tmpdir.mkdirs();
-                System.setProperty("org.sqlite.tmpdir", tmpdir.getAbsolutePath());
-            }
+            File tmpdir = new File(this.rosePlugin.getRoseGardenDataFolder(), "tmp");
+            if (!tmpdir.exists())
+                tmpdir.mkdirs();
+            System.setProperty("org.sqlite.tmpdir", tmpdir.getAbsolutePath());
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
@@ -50,7 +47,7 @@ public class SQLiteConnector implements DatabaseConnector {
                 this.connection.close();
             }
         } catch (SQLException ex) {
-            this.plugin.getLogger().severe("An error occurred closing the SQLite database connection: " + ex.getMessage());
+            this.rosePlugin.getLogger().severe("An error occurred closing the SQLite database connection: " + ex.getMessage());
         }
     }
 
@@ -62,7 +59,7 @@ public class SQLiteConnector implements DatabaseConnector {
                 this.connection.setAutoCommit(false);
             }
         } catch (SQLException ex) {
-            this.plugin.getLogger().severe("An error occurred retrieving the SQLite database connection: " + ex.getMessage());
+            this.rosePlugin.getLogger().severe("An error occurred retrieving the SQLite database connection: " + ex.getMessage());
         }
 
         this.openConnections.incrementAndGet();
@@ -82,7 +79,7 @@ public class SQLiteConnector implements DatabaseConnector {
                 } catch (SQLException ignored) { }
             }
         } catch (Exception ex) {
-            this.plugin.getLogger().severe("An error occurred executing an SQLite query: " + ex.getMessage());
+            this.rosePlugin.getLogger().severe("An error occurred executing an SQLite query: " + ex.getMessage());
             ex.printStackTrace();
         } finally {
             int open = this.openConnections.decrementAndGet();
@@ -104,7 +101,7 @@ public class SQLiteConnector implements DatabaseConnector {
             if (this.connection == null || this.connection.isClosed())
                 this.connection = DriverManager.getConnection(this.connectionString);
         } catch (SQLException ex) {
-            this.plugin.getLogger().severe("An error occurred retrieving the SQLite database connection: " + ex.getMessage());
+            this.rosePlugin.getLogger().severe("An error occurred retrieving the SQLite database connection: " + ex.getMessage());
         }
 
         this.openConnections.incrementAndGet();
@@ -114,7 +111,7 @@ public class SQLiteConnector implements DatabaseConnector {
 
             callback.accept(this.connection);
         } catch (Exception ex) {
-            this.plugin.getLogger().severe("An error occurred executing an SQLite query: " + ex.getMessage());
+            this.rosePlugin.getLogger().severe("An error occurred executing an SQLite query: " + ex.getMessage());
             ex.printStackTrace();
         } finally {
             int open = this.openConnections.decrementAndGet();
@@ -141,7 +138,7 @@ public class SQLiteConnector implements DatabaseConnector {
             try {
                 connection.createStatement().execute("VACUUM");
             } catch (Exception e) {
-                this.plugin.getLogger().warning("Failed to run vacuum on database, unable to access temp directory: no read/write access.");
+                this.rosePlugin.getLogger().warning("Failed to run vacuum on database, unable to access temp directory: no read/write access.");
             }
         }, false);
     }

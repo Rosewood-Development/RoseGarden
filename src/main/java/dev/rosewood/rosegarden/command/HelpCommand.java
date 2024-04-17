@@ -34,14 +34,15 @@ public abstract class HelpCommand extends BaseRoseCommand {
 
         localeManager.sendCommandMessage(context.getSender(), "command-help-title");
         for (RoseCommand command : subCommandArgument.subCommands()) {
-            if (!command.canUse(context.getSender()))
+            String descriptionKey = command.getDescriptionKey();
+            if (!command.canUse(context.getSender()) || descriptionKey == null)
                 continue;
 
             StringPlaceholders stringPlaceholders = StringPlaceholders.of(
                     "cmd", context.getCommandLabel().toLowerCase(),
                     "subcmd", command.getName().toLowerCase(),
                     "args", command.getParametersString(),
-                    "desc", localeManager.getLocaleMessage(command.getDescriptionKey())
+                    "desc", localeManager.getLocaleMessage(descriptionKey)
             );
 
             localeManager.sendSimpleCommandMessage(context.getSender(), "command-help-list-description" + (command.getCommandArguments().size() == 0 ? "-no-args" : ""), stringPlaceholders);
