@@ -2,20 +2,20 @@ package dev.rosewood.rosegarden.database;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import dev.rosewood.rosegarden.RosePlugin;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.bukkit.plugin.Plugin;
 
 public class MySQLConnector implements DatabaseConnector {
 
-    private final Plugin plugin;
+    private final RosePlugin rosePlugin;
     private HikariDataSource hikari;
     private final AtomicInteger openConnections;
     private final Object lock;
 
-    public MySQLConnector(Plugin plugin, String hostname, int port, String database, String username, String password, boolean useSSL, int poolSize) {
-        this.plugin = plugin;
+    public MySQLConnector(RosePlugin rosePlugin, String hostname, int port, String database, String username, String password, boolean useSSL, int poolSize) {
+        this.rosePlugin = rosePlugin;
         this.openConnections = new AtomicInteger();
         this.lock = new Object();
 
@@ -36,7 +36,7 @@ public class MySQLConnector implements DatabaseConnector {
         try {
             this.hikari = new HikariDataSource(config);
         } catch (Exception ex) {
-            this.plugin.getLogger().severe("Failed to connect to the MySQL server. Are your credentials correct?");
+            this.rosePlugin.getLogger().severe("Failed to connect to the MySQL server. Are your credentials correct?");
             ex.printStackTrace();
         }
     }
@@ -52,7 +52,7 @@ public class MySQLConnector implements DatabaseConnector {
         try (Connection connection = this.hikari.getConnection()) {
             callback.accept(connection);
         } catch (SQLException ex) {
-            this.plugin.getLogger().severe("An error occurred executing a MySQL query: " + ex.getMessage());
+            this.rosePlugin.getLogger().severe("An error occurred executing a MySQL query: " + ex.getMessage());
             ex.printStackTrace();
         } finally {
             int open = this.openConnections.decrementAndGet();

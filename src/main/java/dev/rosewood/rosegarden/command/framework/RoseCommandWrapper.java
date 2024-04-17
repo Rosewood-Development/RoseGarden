@@ -264,6 +264,10 @@ public class RoseCommandWrapper extends BukkitCommand {
                 inputIterator.clearStack();
                 try {
                     ArgumentHandler<?> handler = argument.handler();
+                    String input = inputIterator.peek();
+                    if (input.isEmpty())
+                        throw new ArgumentHandler.HandledArgumentException("");
+
                     Object parsedArgument = handler.handle(readonlyContext, argument, inputIterator);
                     if (parsedArgument == null || !inputIterator.hasNext())
                         return false;

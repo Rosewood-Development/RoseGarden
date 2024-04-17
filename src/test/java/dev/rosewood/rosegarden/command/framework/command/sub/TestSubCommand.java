@@ -116,6 +116,13 @@ public class TestSubCommand extends BaseRoseCommand {
             return CommandInfo.builder("secret-option3").build();
         }
 
+        @Override
+        protected ArgumentsDefinition createArgumentsDefinition() {
+            return ArgumentsDefinition.builder()
+                    .required("arg3", ArgumentHandlers.BOOLEAN)
+                    .build();
+        }
+
     }
 
 }

@@ -38,18 +38,6 @@ public class SubCommandSuggestionTest {
     }
 
     @Test
-    public void testSuggestion_arg2_empty() {
-        BaseRoseCommand command = new TestSubCommand(this.rosePlugin);
-        RoseCommandWrapper commandWrapper = new RoseCommandWrapper(this.rosePlugin, command);
-
-        String input = "value_1 ";
-
-        List<String> suggestions = commandWrapper.tabComplete(this.sender, command.getName(), this.splitInput(input));
-
-        assertEquals(List.of("option1", "option2", "secret-option3"), suggestions);
-    }
-
-    @Test
     public void testSuggestion_arg1_partial() {
         BaseRoseCommand command = new TestSubCommand(this.rosePlugin);
         RoseCommandWrapper commandWrapper = new RoseCommandWrapper(this.rosePlugin, command);
@@ -59,6 +47,30 @@ public class SubCommandSuggestionTest {
         List<String> suggestions = commandWrapper.tabComplete(this.sender, command.getName(), this.splitInput(input));
 
         assertEquals(List.of("value_1", "value_2"), suggestions);
+    }
+
+    @Test
+    public void testSuggestion_arg1_complete() {
+        BaseRoseCommand command = new TestSubCommand(this.rosePlugin);
+        RoseCommandWrapper commandWrapper = new RoseCommandWrapper(this.rosePlugin, command);
+
+        String input = "value_1";
+
+        List<String> suggestions = commandWrapper.tabComplete(this.sender, command.getName(), this.splitInput(input));
+
+        assertEquals(List.of(), suggestions);
+    }
+
+    @Test
+    public void testSuggestion_arg2_empty() {
+        BaseRoseCommand command = new TestSubCommand(this.rosePlugin);
+        RoseCommandWrapper commandWrapper = new RoseCommandWrapper(this.rosePlugin, command);
+
+        String input = "value_1 ";
+
+        List<String> suggestions = commandWrapper.tabComplete(this.sender, command.getName(), this.splitInput(input));
+
+        assertEquals(List.of("option1", "option2", "secret-option3"), suggestions);
     }
 
     @Test
@@ -74,11 +86,11 @@ public class SubCommandSuggestionTest {
     }
 
     @Test
-    public void testSuggestion_arg1_complete() {
+    public void testSuggestion_arg2_complete() {
         BaseRoseCommand command = new TestSubCommand(this.rosePlugin);
         RoseCommandWrapper commandWrapper = new RoseCommandWrapper(this.rosePlugin, command);
 
-        String input = "apple";
+        String input = "value_1 option_1";
 
         List<String> suggestions = commandWrapper.tabComplete(this.sender, command.getName(), this.splitInput(input));
 
@@ -86,15 +98,27 @@ public class SubCommandSuggestionTest {
     }
 
     @Test
-    public void testSuggestion_arg2_complete() {
+    public void testSuggestion_arg3_complete_space() {
         BaseRoseCommand command = new TestSubCommand(this.rosePlugin);
         RoseCommandWrapper commandWrapper = new RoseCommandWrapper(this.rosePlugin, command);
 
-        String input = "apple option_1";
+        String input = "value_1 secret-option3 ";
 
         List<String> suggestions = commandWrapper.tabComplete(this.sender, command.getName(), this.splitInput(input));
 
-        assertEquals(List.of(), suggestions);
+        assertEquals(List.of("true", "false"), suggestions);
+    }
+
+    @Test
+    public void testSuggestion_arg3_complete_partial() {
+        BaseRoseCommand command = new TestSubCommand(this.rosePlugin);
+        RoseCommandWrapper commandWrapper = new RoseCommandWrapper(this.rosePlugin, command);
+
+        String input = "value_1 secret-option3 t";
+
+        List<String> suggestions = commandWrapper.tabComplete(this.sender, command.getName(), this.splitInput(input));
+
+        assertEquals(List.of("true"), suggestions);
     }
 
     private String[] splitInput(String input) {

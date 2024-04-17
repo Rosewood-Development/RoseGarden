@@ -19,7 +19,7 @@ public final class RoseGardenUtils {
     public static final String GRADIENT = "<g:#8A2387:#E94057:#F27121>";
     public static final String PREFIX = "&7[" + GRADIENT + "RoseGarden&7] ";
 
-    public static final Map<Class<?>, Class<?>> PRIMITIVE_TO_WRAPPER = new HashMap<Class<?>, Class<?>>() {{
+    public static final Map<Class<?>, Class<?>> PRIMITIVE_TO_WRAPPER = new HashMap<>() {{
         this.put(boolean.class, Boolean.class);
         this.put(byte.class, Byte.class);
         this.put(char.class, Character.class);

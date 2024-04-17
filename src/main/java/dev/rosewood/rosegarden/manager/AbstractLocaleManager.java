@@ -236,8 +236,6 @@ public abstract class AbstractLocaleManager extends Manager {
     public void sendMessage(CommandSender sender, String messageKey, StringPlaceholders stringPlaceholders) {
         String prefix = this.getLocaleMessage("prefix");
         String message = this.getLocaleMessage(messageKey, stringPlaceholders);
-        if (message.isEmpty())
-            return;
         this.sendParsedMessage(sender, prefix + message);
     }
 
@@ -261,9 +259,7 @@ public abstract class AbstractLocaleManager extends Manager {
     public void sendCommandMessage(CommandSender sender, String messageKey, StringPlaceholders stringPlaceholders) {
         String prefix = this.getLocaleMessage("prefix");
         String message = this.getCommandLocaleMessage(messageKey, stringPlaceholders);
-        if (message.isEmpty())
-            return;
-        this.sendParsedMessage(sender, prefix + message);
+        this.sendUnparsedMessage(sender, prefix + message);
     }
 
     /**
@@ -305,7 +301,7 @@ public abstract class AbstractLocaleManager extends Manager {
      * @param stringPlaceholders The placeholders to apply
      */
     public void sendSimpleCommandMessage(CommandSender sender, String messageKey, StringPlaceholders stringPlaceholders) {
-        this.sendParsedMessage(sender, this.getCommandLocaleMessage(messageKey, stringPlaceholders));
+        this.sendUnparsedMessage(sender, this.getCommandLocaleMessage(messageKey, stringPlaceholders));
     }
 
     public void sendSimpleCommandMessage(CommandSender sender, String messageKey) {
@@ -346,6 +342,20 @@ public abstract class AbstractLocaleManager extends Manager {
             return;
 
         String parsedMessage = HexUtils.colorify(this.parsePlaceholders(sender, message));
+        this.handleMessage(sender, parsedMessage);
+    }
+
+    /**
+     * Sends a message with only colors parsed to a CommandSender
+     *
+     * @param sender The sender to send the message to
+     * @param message The message
+     */
+    protected void sendUnparsedMessage(CommandSender sender, String message) {
+        if (message.isEmpty())
+            return;
+
+        String parsedMessage = HexUtils.colorify(message);
         this.handleMessage(sender, parsedMessage);
     }
 

@@ -16,11 +16,11 @@ public class BooleanArgumentHandler extends ArgumentHandler<Boolean> {
     @Override
     public Boolean handle(CommandContext context, Argument argument, InputIterator inputIterator) {
         String input = inputIterator.next();
-        try {
-            return Boolean.parseBoolean(input);
-        } catch (Exception e) {
-            throw new HandledArgumentException("argument-handler-boolean", StringPlaceholders.of("input", input));
-        }
+        return switch (input.toLowerCase()) {
+            case "true" -> true;
+            case "false" -> false;
+            default -> throw new HandledArgumentException("argument-handler-boolean", StringPlaceholders.of("input", input));
+        };
     }
 
     @Override
