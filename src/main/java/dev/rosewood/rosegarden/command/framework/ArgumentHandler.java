@@ -5,7 +5,7 @@ import java.util.List;
 
 public abstract class ArgumentHandler<T> {
 
-    protected Class<T> handledType;
+    private final Class<T> handledType;
 
     public ArgumentHandler(Class<T> handledType) {
         this.handledType = handledType;
@@ -43,7 +43,7 @@ public abstract class ArgumentHandler<T> {
     /**
      * Thrown when an argument has an issue while parsing, the exception message is the reason why the argument failed to parse
      */
-    public static class HandledArgumentException extends RuntimeException {
+    public static class HandledArgumentException extends Exception {
 
         private final StringPlaceholders placeholders;
 

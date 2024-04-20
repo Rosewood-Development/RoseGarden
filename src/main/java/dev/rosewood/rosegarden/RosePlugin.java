@@ -24,6 +24,7 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.ServicesManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class RosePlugin extends JavaPlugin {
 
@@ -136,6 +137,7 @@ public abstract class RosePlugin extends JavaPlugin {
     /**
      * @return the order in which Managers should be loaded
      */
+    @NotNull
     protected abstract List<Class<? extends Manager>> getManagerLoadPriority();
 
     /**
@@ -193,8 +195,10 @@ public abstract class RosePlugin extends JavaPlugin {
      * @param managerClass The class of the manager to get
      * @param <T> extends Manager
      * @return A new or existing instance of the given manager class
+     * @throws ManagerNotFoundException if the manager could not be found or failed to load
      */
     @SuppressWarnings("unchecked")
+    @NotNull
     public <T extends Manager> T getManager(Class<T> managerClass) {
         if (this.managers.containsKey(managerClass))
             return (T) this.managers.get(managerClass);
@@ -252,6 +256,7 @@ public abstract class RosePlugin extends JavaPlugin {
     /**
      * @return data of all RosePlugins installed on the server
      */
+    @NotNull
     public final List<RosePluginData> getLoadedRosePluginsData() {
         List<RosePluginData> data = new ArrayList<>();
 
@@ -278,6 +283,7 @@ public abstract class RosePlugin extends JavaPlugin {
     /**
      * @return the data folder for RoseGarden
      */
+    @NotNull
     public final File getRoseGardenDataFolder() {
         File configDir = new File(this.getDataFolder().getParentFile(), "RoseGarden");
         if (!configDir.exists())
@@ -288,6 +294,7 @@ public abstract class RosePlugin extends JavaPlugin {
     /**
      * @return the version of the latest update of this plugin, or null if there is none
      */
+    @NotNull
     public final String getUpdateVersion() {
         return this.getManager(PluginUpdateManager.class).getUpdateVersion();
     }

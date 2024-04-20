@@ -14,7 +14,7 @@ public class DoubleArgumentHandler extends ArgumentHandler<Double> {
     }
 
     @Override
-    public Double handle(CommandContext context, Argument argument, InputIterator inputIterator) {
+    public Double handle(CommandContext context, Argument argument, InputIterator inputIterator) throws HandledArgumentException {
         String input = inputIterator.next();
         try {
             return Double.parseDouble(input);

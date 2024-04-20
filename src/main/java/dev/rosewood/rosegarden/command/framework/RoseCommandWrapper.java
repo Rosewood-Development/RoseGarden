@@ -194,6 +194,13 @@ public class RoseCommandWrapper extends BukkitCommand {
             }
 
             walker.step((command, argument) -> {
+                // Skip the argument if the condition is not met, insert a null
+                if (!argument.condition().test(context)) {
+                    context.put(argument, null);
+                    return true;
+                }
+
+                InputIterator beforeState = inputIterator.clone();
                 try {
                     ArgumentHandler<?> handler = argument.handler();
                     Object parsedArgument = handler.handle(readonlyContext, argument, inputIterator);
@@ -205,6 +212,12 @@ public class RoseCommandWrapper extends BukkitCommand {
                     context.put(argument, parsedArgument);
                     return true;
                 } catch (ArgumentHandler.HandledArgumentException e) {
+                    if (argument.optional() && walker.hasNextStep()) { // Skip if optional and we have more arguments, try the next argument instead and insert a null
+                        inputIterator.restore(beforeState);
+                        context.put(argument, null);
+                        return true;
+                    }
+
                     String message = localeManager.getCommandLocaleMessage(e.getMessage(), e.getPlaceholders());
                     localeManager.sendCommandMessage(sender, "invalid-argument", StringPlaceholders.of("message", message));
                     return false;
@@ -214,6 +227,10 @@ public class RoseCommandWrapper extends BukkitCommand {
                     return false;
                 }
             }, argument -> {
+                // Skip the argument if the condition is not met
+                if (!argument.condition().test(context))
+                    return null;
+
                 if (inputIterator.hasNext()) {
                     String input = inputIterator.next();
                     RoseCommand match = argument.subCommands().stream()
@@ -237,6 +254,8 @@ public class RoseCommandWrapper extends BukkitCommand {
             }
 
             commandToExecute.execute(context);
+        } else {
+            // TODO: Usage message
         }
 
         return true;
@@ -256,16 +275,21 @@ public class RoseCommandWrapper extends BukkitCommand {
         List<String> suggestions = new ArrayList<>();
         while (walker.hasNext()) {
             walker.step((command, argument) -> {
+                // Skip the argument if the condition is not met
+                if (!argument.condition().test(context))
+                    return true;
+
                 if (!inputIterator.hasNext()) {
                     suggestions.addAll(argument.handler().suggest(readonlyContext, argument, new String[0]));
-                    return false;
+                    return argument.optional();
                 }
 
                 inputIterator.clearStack();
+                InputIterator beforeState = inputIterator.clone();
                 try {
                     ArgumentHandler<?> handler = argument.handler();
                     String input = inputIterator.peek();
-                    if (input.isEmpty())
+                    if (input.isEmpty()) // Force into the catch block, empty input should never be valid
                         throw new ArgumentHandler.HandledArgumentException("");
 
                     Object parsedArgument = handler.handle(readonlyContext, argument, inputIterator);
@@ -282,11 +306,21 @@ public class RoseCommandWrapper extends BukkitCommand {
                     argument.handler().suggest(readonlyContext, argument, remainingArgs).stream()
                             .filter(x -> StringUtil.startsWithIgnoreCase(x, String.join(" ", remainingInput)))
                             .forEach(suggestions::add);
+
+                    if (argument.optional() && walker.hasNextStep()) {
+                        inputIterator.restore(beforeState);
+                        return true;
+                    }
+
                     return false;
                 } catch (Exception e) {
                     return false;
                 }
             }, argument -> {
+                // Skip the argument if the condition is not met
+                if (!argument.condition().test(context))
+                    return null;
+
                 if (!inputIterator.hasNext()) {
                     this.streamUsableSubCommands(argument, sender)
                             .flatMap(x -> Stream.concat(Stream.of(x.getName()), x.getAliases().stream()))

@@ -5,19 +5,27 @@ import dev.rosewood.rosegarden.command.framework.Argument;
 import dev.rosewood.rosegarden.command.framework.ArgumentsDefinition;
 import dev.rosewood.rosegarden.command.framework.BaseRoseCommand;
 import dev.rosewood.rosegarden.command.framework.CommandContext;
+import dev.rosewood.rosegarden.command.framework.CommandInfo;
 import dev.rosewood.rosegarden.command.framework.RoseCommand;
 import dev.rosewood.rosegarden.command.framework.annotation.RoseExecutable;
 import dev.rosewood.rosegarden.manager.AbstractLocaleManager;
 import dev.rosewood.rosegarden.utils.StringPlaceholders;
 
-public abstract class HelpCommand extends BaseRoseCommand {
+public class HelpCommand extends BaseRoseCommand {
 
     private final BaseRoseCommand parent;
+    private final CommandInfo commandInfo;
 
-    public HelpCommand(RosePlugin rosePlugin, BaseRoseCommand parent) {
+    public HelpCommand(RosePlugin rosePlugin, BaseRoseCommand parent, CommandInfo commandInfo) {
         super(rosePlugin);
 
         this.parent = parent;
+        this.commandInfo = commandInfo;
+    }
+
+    @Override
+    protected CommandInfo createCommandInfo() {
+        return this.commandInfo;
     }
 
     @RoseExecutable
@@ -41,7 +49,7 @@ public abstract class HelpCommand extends BaseRoseCommand {
             StringPlaceholders stringPlaceholders = StringPlaceholders.of(
                     "cmd", context.getCommandLabel().toLowerCase(),
                     "subcmd", command.getName().toLowerCase(),
-                    "args", command.getParametersString(),
+                    "args", command.getParametersString(context),
                     "desc", localeManager.getLocaleMessage(descriptionKey)
             );
 

@@ -18,7 +18,7 @@ public class SelectorPlayerArgumentHandler extends ArgumentHandler<Player> {
     }
 
     @Override
-    public Player handle(CommandContext context, Argument argument, InputIterator inputIterator) {
+    public Player handle(CommandContext context, Argument argument, InputIterator inputIterator) throws HandledArgumentException {
         String input = inputIterator.next();
         if (input.startsWith("@")) {
             // Running a selector, try to find exactly one entity which must be a player

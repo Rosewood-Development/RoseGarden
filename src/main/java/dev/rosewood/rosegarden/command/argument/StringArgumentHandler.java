@@ -13,7 +13,7 @@ public class StringArgumentHandler extends ArgumentHandler<String> {
     }
 
     @Override
-    public String handle(CommandContext context, Argument argument, InputIterator inputIterator) {
+    public String handle(CommandContext context, Argument argument, InputIterator inputIterator) throws HandledArgumentException {
         String input = inputIterator.next();
         if (input.trim().isEmpty())
             throw new HandledArgumentException("argument-handler-string");

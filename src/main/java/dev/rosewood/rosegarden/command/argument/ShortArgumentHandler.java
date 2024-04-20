@@ -14,7 +14,7 @@ public class ShortArgumentHandler extends ArgumentHandler<Short> {
     }
 
     @Override
-    public Short handle(CommandContext context, Argument argument, InputIterator inputIterator) {
+    public Short handle(CommandContext context, Argument argument, InputIterator inputIterator) throws HandledArgumentException {
         String input = inputIterator.next();
         try {
             return Short.parseShort(input);

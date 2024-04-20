@@ -14,7 +14,7 @@ public class CharacterArgumentHandler extends ArgumentHandler<Character> {
     }
 
     @Override
-    public Character handle(CommandContext context, Argument argument, InputIterator inputIterator) {
+    public Character handle(CommandContext context, Argument argument, InputIterator inputIterator) throws HandledArgumentException {
         String input = inputIterator.next();
         if (input.length() != 1)
             throw new HandledArgumentException("argument-handler-character", StringPlaceholders.of("input", input));

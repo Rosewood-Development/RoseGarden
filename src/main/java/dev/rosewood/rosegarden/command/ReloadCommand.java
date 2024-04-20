@@ -3,13 +3,23 @@ package dev.rosewood.rosegarden.command;
 import dev.rosewood.rosegarden.RosePlugin;
 import dev.rosewood.rosegarden.command.framework.BaseRoseCommand;
 import dev.rosewood.rosegarden.command.framework.CommandContext;
+import dev.rosewood.rosegarden.command.framework.CommandInfo;
 import dev.rosewood.rosegarden.command.framework.annotation.RoseExecutable;
 import dev.rosewood.rosegarden.manager.AbstractLocaleManager;
 
-public abstract class ReloadCommand extends BaseRoseCommand {
+public class ReloadCommand extends BaseRoseCommand {
 
-    public ReloadCommand(RosePlugin rosePlugin) {
+    private final CommandInfo commandInfo;
+
+    public ReloadCommand(RosePlugin rosePlugin, CommandInfo commandInfo) {
         super(rosePlugin);
+
+        this.commandInfo = commandInfo;
+    }
+
+    @Override
+    protected CommandInfo createCommandInfo() {
+        return this.commandInfo;
     }
 
     @RoseExecutable

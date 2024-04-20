@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.function.Function;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractCommandManager extends Manager {
 
@@ -40,6 +41,7 @@ public abstract class AbstractCommandManager extends Manager {
         Bukkit.getOnlinePlayers().forEach(Player::updateCommands);
     }
 
+    @NotNull
     public abstract List<Function<RosePlugin, BaseRoseCommand>> getRootCommands();
 
 }

@@ -40,7 +40,7 @@ public abstract class AbstractColorArgumentHandler<T> extends ArgumentHandler<T>
     protected abstract T rgbToColor(int r, int g, int b);
 
     @Override
-    public final T handle(CommandContext context, Argument argument, InputIterator inputIterator) {
+    public final T handle(CommandContext context, Argument argument, InputIterator inputIterator) throws HandledArgumentException {
         String input = inputIterator.next();
 
         // Try hex values first

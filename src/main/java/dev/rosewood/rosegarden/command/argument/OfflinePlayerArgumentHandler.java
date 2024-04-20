@@ -19,7 +19,7 @@ public class OfflinePlayerArgumentHandler extends ArgumentHandler<OfflinePlayer>
     }
 
     @Override
-    public OfflinePlayer handle(CommandContext context, Argument argument, InputIterator inputIterator) {
+    public OfflinePlayer handle(CommandContext context, Argument argument, InputIterator inputIterator) throws HandledArgumentException {
         String input = inputIterator.next();
         OfflinePlayer offlinePlayer;
         if (NMSUtil.isPaper()) {
