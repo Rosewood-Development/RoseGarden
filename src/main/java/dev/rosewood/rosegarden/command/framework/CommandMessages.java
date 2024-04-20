@@ -9,6 +9,7 @@ public class CommandMessages {
         // Generic Command Messages
         this.put("no-permission", "&cYou don't have permission for that!");
         this.put("only-player", "&cThis command can only be executed by a player.");
+        this.put("only-console", "&cThis command can only be executed through the console.");
         this.put("unknown-command", "&cUnknown command, use &b/%cmd% help &cfor more info.");
         this.put("unknown-command-error", "&cAn unknown error occurred; details have been printed to console. Please contact a server administrator.");
         this.put("invalid-subcommand", "&cInvalid subcommand.");
@@ -50,6 +51,7 @@ public class CommandMessages {
         this.put("argument-handler-player-selector-multiple", "Selector resulted in multiple entities being selected");
         this.put("argument-handler-player-selector-entity", "Selector resulted in a selected non-player entity");
         this.put("argument-handler-short", "Short [%input%] must be a whole number between -32,768 and 32,767 inclusively");
+        this.put("argument-handler-value", "Value [%input%] must be one of the following: %values%");
     }};
 
 }

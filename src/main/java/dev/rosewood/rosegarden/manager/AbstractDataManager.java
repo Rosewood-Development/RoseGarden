@@ -8,6 +8,7 @@ import dev.rosewood.rosegarden.database.MySQLConnector;
 import dev.rosewood.rosegarden.database.SQLiteConnector;
 import java.util.List;
 import org.bukkit.Bukkit;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractDataManager extends Manager {
 
@@ -78,13 +79,17 @@ public abstract class AbstractDataManager extends Manager {
     /**
      * @return The connector to the database
      */
+    @NotNull
     public final DatabaseConnector getDatabaseConnector() {
+        if (this.databaseConnector == null)
+            throw new IllegalStateException("A database connection could not be established.");
         return this.databaseConnector;
     }
 
     /**
      * @return the prefix to be used by all table names
      */
+    @NotNull
     public String getTablePrefix() {
         return this.rosePlugin.getDescription().getName().toLowerCase() + '_';
     }
@@ -92,6 +97,7 @@ public abstract class AbstractDataManager extends Manager {
     /**
      * @return all data migrations for the DataMigrationManager to handle
      */
+    @NotNull
     public abstract List<Class<? extends DataMigration>> getDataMigrations();
 
 }

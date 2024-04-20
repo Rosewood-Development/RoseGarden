@@ -14,7 +14,7 @@ public class FloatArgumentHandler extends ArgumentHandler<Float> {
     }
 
     @Override
-    public Float handle(CommandContext context, Argument argument, InputIterator inputIterator) {
+    public Float handle(CommandContext context, Argument argument, InputIterator inputIterator) throws HandledArgumentException {
         String input = inputIterator.next();
         try {
             return Float.parseFloat(input);

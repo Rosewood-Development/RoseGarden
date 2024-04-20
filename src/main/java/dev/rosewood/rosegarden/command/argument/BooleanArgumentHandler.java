@@ -14,7 +14,7 @@ public class BooleanArgumentHandler extends ArgumentHandler<Boolean> {
     }
 
     @Override
-    public Boolean handle(CommandContext context, Argument argument, InputIterator inputIterator) {
+    public Boolean handle(CommandContext context, Argument argument, InputIterator inputIterator) throws HandledArgumentException {
         String input = inputIterator.next();
         return switch (input.toLowerCase()) {
             case "true" -> true;

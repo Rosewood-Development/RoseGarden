@@ -14,7 +14,7 @@ public class GreedyStringArgumentHandler extends ArgumentHandler<String> {
     }
 
     @Override
-    public String handle(CommandContext context, Argument argument, InputIterator inputIterator) {
+    public String handle(CommandContext context, Argument argument, InputIterator inputIterator) throws HandledArgumentException {
         List<String> inputs = new ArrayList<>();
         while (inputIterator.hasNext())
             inputs.add(inputIterator.next());

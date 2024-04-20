@@ -14,7 +14,7 @@ public class LongArgumentHandler extends ArgumentHandler<Long> {
     }
 
     @Override
-    public Long handle(CommandContext context, Argument argument, InputIterator inputIterator) {
+    public Long handle(CommandContext context, Argument argument, InputIterator inputIterator) throws HandledArgumentException {
         String input = inputIterator.next();
         try {
             return Long.parseLong(input);

@@ -17,7 +17,7 @@ public class EnumArgumentHandler<T extends Enum<T>> extends ArgumentHandler<T> {
     }
 
     @Override
-    public T handle(CommandContext context, Argument argument, InputIterator inputIterator) {
+    public T handle(CommandContext context, Argument argument, InputIterator inputIterator) throws HandledArgumentException {
         String input = inputIterator.next();
         T[] enumConstants = this.getHandledType().getEnumConstants();
         Optional<T> value = Stream.of(enumConstants)
@@ -26,7 +26,7 @@ public class EnumArgumentHandler<T extends Enum<T>> extends ArgumentHandler<T> {
 
         if (value.isEmpty()) {
             StringPlaceholders placeholders = StringPlaceholders.of(
-                    "enum", this.handledType.getSimpleName(),
+                    "enum", this.getHandledType().getSimpleName(),
                     "input", input,
                     "types", Stream.of(enumConstants).map(x -> x.name().toLowerCase()).collect(Collectors.joining(", "))
             );

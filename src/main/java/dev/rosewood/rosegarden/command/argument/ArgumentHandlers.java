@@ -1,6 +1,12 @@
 package dev.rosewood.rosegarden.command.argument;
 
 import dev.rosewood.rosegarden.command.framework.ArgumentHandler;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
@@ -26,6 +32,10 @@ public final class ArgumentHandlers {
 
     }
 
+    public static ArgumentHandler<Player> filteredPlayer(Predicate<Player> filter) {
+        return new FilteredPlayerArgumentHandler(filter);
+    }
+
     /**
      * Creates an ArgumentHandler for an enum class.
      *
@@ -34,6 +44,15 @@ public final class ArgumentHandlers {
      */
     public static <T extends Enum<T>> ArgumentHandler<T> forEnum(Class<T> enumClass) {
         return new EnumArgumentHandler<>(enumClass);
+    }
+
+    @SafeVarargs
+    public static <T> ArgumentHandler<T> forValues(Class<T> clazz, T... values) {
+        return new ValuesArgumentHandler<>(clazz, List.of(values));
+    }
+
+    public static <T> ArgumentHandler<T> forValues(Class<T> clazz, Collection<T> values) {
+        return new ValuesArgumentHandler<>(clazz, List.copyOf(values));
     }
 
 }

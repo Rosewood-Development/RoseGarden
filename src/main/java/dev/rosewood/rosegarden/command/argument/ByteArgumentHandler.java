@@ -14,7 +14,7 @@ public class ByteArgumentHandler extends ArgumentHandler<Byte> {
     }
 
     @Override
-    public Byte handle(CommandContext context, Argument argument, InputIterator inputIterator) {
+    public Byte handle(CommandContext context, Argument argument, InputIterator inputIterator) throws HandledArgumentException {
         String input = inputIterator.next();
         try {
             return Byte.parseByte(input);

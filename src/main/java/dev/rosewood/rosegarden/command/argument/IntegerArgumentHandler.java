@@ -14,7 +14,7 @@ public class IntegerArgumentHandler extends ArgumentHandler<Integer> {
     }
 
     @Override
-    public Integer handle(CommandContext context, Argument argument, InputIterator inputIterator) {
+    public Integer handle(CommandContext context, Argument argument, InputIterator inputIterator) throws HandledArgumentException {
         String input = inputIterator.next();
         try {
             return Integer.parseInt(input);

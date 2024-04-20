@@ -9,7 +9,7 @@ import java.util.List;
 public class InputIterator implements Iterator<String>, Cloneable {
 
     private List<String> input;
-    private final List<String> stack;
+    private List<String> stack;
 
     public InputIterator(Collection<String> input) {
         this.input = new LinkedList<>(input);
@@ -53,11 +53,16 @@ public class InputIterator implements Iterator<String>, Cloneable {
         this.stack.clear();
     }
 
+    protected void restore(InputIterator other) {
+        this.input = new LinkedList<>(other.input);
+        this.stack = new ArrayList<>(other.stack);
+    }
+
     @Override
     public InputIterator clone() {
         try {
             InputIterator clone = (InputIterator) super.clone();
-            clone.input = new LinkedList<>(this.input);
+            clone.restore(this);
             return clone;
         } catch (CloneNotSupportedException e) {
             throw new AssertionError();
