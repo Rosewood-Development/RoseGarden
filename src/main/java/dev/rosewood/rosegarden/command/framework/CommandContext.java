@@ -57,9 +57,10 @@ public class CommandContext {
      * @param <T> The type of the value
      */
     public <T> void put(Argument argument, T value) {
-        if (!(argument instanceof Argument.CommandArgument<?> commandArgument))
+        if (!(argument instanceof Argument.CommandArgument<?>))
             throw new IllegalArgumentException("Context parameters can only be put for command arguments");
 
+        Argument.CommandArgument<?> commandArgument = (Argument.CommandArgument<?>) argument;
         this.parametersByArgument.put(commandArgument, value);
         this.parametersByType.put(commandArgument.handler().getHandledType(), value);
         this.parametersByName.put(commandArgument.name(), value);

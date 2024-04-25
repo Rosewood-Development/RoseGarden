@@ -3,6 +3,7 @@ package dev.rosewood.rosegarden.command.framework;
 import dev.rosewood.rosegarden.command.framework.annotation.RoseExecutable;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.bukkit.permissions.Permissible;
 
@@ -70,7 +71,7 @@ public interface RoseCommand {
     default List<Method> getExecuteMethods() {
         return Stream.of(this.getClass().getMethods())
                 .filter(m -> m.isAnnotationPresent(RoseExecutable.class))
-                .toList();
+                .collect(Collectors.toList());
     }
 
     /**

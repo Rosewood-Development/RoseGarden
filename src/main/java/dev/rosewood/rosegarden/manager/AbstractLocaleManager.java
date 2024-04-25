@@ -40,7 +40,8 @@ public abstract class AbstractLocaleManager extends Manager {
         StringPlaceholders placeholders = placeholdersBuilder.build();
         for (Locale locale : locales) {
             for (Map.Entry<String, Object> entry : locale.getLocaleValues().entrySet()) {
-                if (entry.getValue() instanceof String value) {
+                if (entry.getValue() instanceof String) {
+                    String value = (String) entry.getValue();
                     locale.getLocaleValues().put(entry.getKey(), placeholders.apply(value));
                 } else if (entry.getValue() instanceof List) {
                     List<String> list = (List<String>) entry.getValue();
@@ -326,8 +327,8 @@ public abstract class AbstractLocaleManager extends Manager {
      * @return A placeholder-replaced message
      */
     protected String parsePlaceholders(CommandSender sender, String message) {
-        if (sender instanceof Player player)
-            return PlaceholderAPIHook.applyPlaceholders(player, message);
+        if (sender instanceof Player)
+            return PlaceholderAPIHook.applyPlaceholders((Player) sender, message);
         return message;
     }
 

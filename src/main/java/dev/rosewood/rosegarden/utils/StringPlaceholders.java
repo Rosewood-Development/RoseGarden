@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
  */
 public final class StringPlaceholders {
 
-    private final static StringPlaceholders EMPTY = new StringPlaceholders(Map.of(), "%", "%");
+    private final static StringPlaceholders EMPTY = new StringPlaceholders(Collections.emptyMap(), "%", "%");
 
     private final String startDelimiter, endDelimiter;
     private final Map<String, String> placeholders;

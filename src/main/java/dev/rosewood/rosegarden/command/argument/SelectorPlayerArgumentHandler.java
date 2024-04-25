@@ -6,7 +6,10 @@ import dev.rosewood.rosegarden.command.framework.CommandContext;
 import dev.rosewood.rosegarden.command.framework.InputIterator;
 import dev.rosewood.rosegarden.utils.StringPlaceholders;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -36,10 +39,10 @@ public class SelectorPlayerArgumentHandler extends ArgumentHandler<Player> {
                 throw new HandledArgumentException("argument-handler-player-selector-multiple");
 
             Entity selected = entities.get(0);
-            if (!(selected instanceof Player player))
+            if (!(selected instanceof Player))
                 throw new HandledArgumentException("argument-handler-player-selector-entity");
 
-            return player;
+            return (Player) selected;
         }
 
         Player player = Bukkit.getPlayer(input);
@@ -50,9 +53,7 @@ public class SelectorPlayerArgumentHandler extends ArgumentHandler<Player> {
 
     @Override
     public List<String> suggest(CommandContext context, Argument argument, String[] args) {
-        List<String> suggestions = new ArrayList<>(List.of("@p", "@r"));
-        suggestions.addAll(Bukkit.getOnlinePlayers().stream().map(Player::getName).toList());
-        return suggestions;
+        return Stream.concat(Stream.of("@p", "@r"), Bukkit.getOnlinePlayers().stream().map(Player::getName)).collect(Collectors.toList());
     }
 
 }

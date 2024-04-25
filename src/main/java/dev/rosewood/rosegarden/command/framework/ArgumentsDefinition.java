@@ -6,7 +6,7 @@ import java.util.List;
 
 public class ArgumentsDefinition {
 
-    private static final ArgumentsDefinition EMPTY = new ArgumentsDefinition(List.of());
+    private static final ArgumentsDefinition EMPTY = new ArgumentsDefinition(new ArrayList<>());
 
     private final List<Argument> arguments;
 
@@ -60,6 +60,10 @@ public class ArgumentsDefinition {
             return new ArgumentsDefinition(this.arguments);
         }
 
+        public ArgumentsDefinition requiredSub(RoseCommand... subCommands) {
+            return this.requiredSub("subcommand", subCommands);
+        }
+
         public ArgumentsDefinition optionalSub(String name, RoseCommand... subCommands) {
             if (subCommands.length == 0)
                 throw new IllegalArgumentException("subCommands cannot be empty");
@@ -67,11 +71,19 @@ public class ArgumentsDefinition {
             return new ArgumentsDefinition(this.arguments);
         }
 
+        public ArgumentsDefinition optionalSub(RoseCommand... subCommands) {
+            return this.optionalSub("subcommand", subCommands);
+        }
+
         public ArgumentsDefinition optionalSub(String name, ArgumentCondition condition, RoseCommand... subCommands) {
             if (subCommands.length == 0)
                 throw new IllegalArgumentException("subCommands cannot be empty");
             this.arguments.add(new Argument.SubCommandArgument(this.arguments.size(), name, true, condition, Arrays.asList(subCommands)));
             return new ArgumentsDefinition(this.arguments);
+        }
+
+        public ArgumentsDefinition optionalSub(ArgumentCondition condition, RoseCommand... subCommands) {
+            return this.optionalSub("subcommand", condition, subCommands);
         }
 
         public ArgumentsDefinition build() {
