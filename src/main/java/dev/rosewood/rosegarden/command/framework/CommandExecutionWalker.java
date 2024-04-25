@@ -1,6 +1,7 @@
 package dev.rosewood.rosegarden.command.framework;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -33,7 +34,8 @@ public class CommandExecutionWalker {
             throw new IllegalStateException("Walker has already finished executing");
 
         Argument argument = this.currentDefinition.get(this.argumentIndex);
-        if (argument instanceof Argument.SubCommandArgument subCommandArgument) {
+        if (argument instanceof Argument.SubCommandArgument) {
+            Argument.SubCommandArgument subCommandArgument = (Argument.SubCommandArgument) argument;
             RoseCommand nextCommand = subCommandSelector.apply(subCommandArgument);
             if (nextCommand == null) {
                 this.exited = true;
@@ -43,7 +45,8 @@ public class CommandExecutionWalker {
             this.command = nextCommand;
             this.currentDefinition = this.command.getCommandArguments();
             this.argumentIndex = 0;
-        } else if (argument instanceof Argument.CommandArgument<?> commandArgument) {
+        } else if (argument instanceof Argument.CommandArgument<?>) {
+            Argument.CommandArgument<?> commandArgument = (Argument.CommandArgument<?>) argument;
             if (!walker.apply(this.command, commandArgument)) {
                 this.exited = true;
                 return;
@@ -61,7 +64,7 @@ public class CommandExecutionWalker {
      */
     public List<Argument> walkRemaining() {
         if (this.completed)
-            return List.of();
+            return Collections.emptyList();
 
         List<Argument> remaining = new ArrayList<>();
         while (this.hasNext()) {

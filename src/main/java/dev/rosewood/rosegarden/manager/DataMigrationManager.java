@@ -10,6 +10,7 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class DataMigrationManager extends Manager {
 
@@ -106,7 +107,7 @@ public class DataMigrationManager extends Manager {
                     .stream()
                     .filter(x -> x.getRevision() > finalCurrentMigration)
                     .sorted(Comparator.comparingInt(DataMigration::getRevision))
-                    .toList();
+                    .collect(Collectors.toList());
 
             // Nothing to migrate, abort
             if (requiredMigrations.isEmpty())

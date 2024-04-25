@@ -7,6 +7,7 @@ import dev.rosewood.rosegarden.command.framework.InputIterator;
 import dev.rosewood.rosegarden.utils.StringPlaceholders;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -33,7 +34,7 @@ public class FilteredPlayerArgumentHandler extends ArgumentHandler<Player> {
         return Bukkit.getOnlinePlayers().stream()
                 .filter(this.filter)
                 .map(Player::getName)
-                .toList();
+                .collect(Collectors.toList());
     }
 
 }

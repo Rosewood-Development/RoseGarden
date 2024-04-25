@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Predicate;
 
-public sealed interface Argument {
+public interface Argument {
 
     /**
      * @return The index of the argument in the command
@@ -37,17 +37,95 @@ public sealed interface Argument {
         }
     }
 
-    record CommandArgument<T>(int index,
-                              String name,
-                              boolean optional,
-                              ArgumentCondition condition,
-                              ArgumentHandler<T> handler) implements Argument { }
+    class CommandArgument<T> implements Argument {
 
-    record SubCommandArgument(int index,
-                              String name,
-                              boolean optional,
-                              ArgumentCondition condition,
-                              Collection<RoseCommand> subCommands) implements Argument {
+        private final int index;
+        private final String name;
+        private final boolean optional;
+        private final ArgumentCondition condition;
+        private final ArgumentHandler<T> handler;
+
+        public CommandArgument(int index,
+                               String name,
+                               boolean optional,
+                               ArgumentCondition condition,
+                               ArgumentHandler<T> handler) {
+            this.index = index;
+            this.name = name;
+            this.optional = optional;
+            this.condition = condition;
+            this.handler = handler;
+        }
+
+        @Override
+        public int index() {
+            return this.index;
+        }
+
+        @Override
+        public String name() {
+            return this.name;
+        }
+
+        @Override
+        public boolean optional() {
+            return this.optional;
+        }
+
+        @Override
+        public ArgumentCondition condition() {
+            return this.condition;
+        }
+
+        public ArgumentHandler<T> handler() {
+            return this.handler;
+        }
+
+    }
+
+    class SubCommandArgument implements Argument {
+
+        private final int index;
+        private final String name;
+        private final boolean optional;
+        private final ArgumentCondition condition;
+        private final Collection<RoseCommand> subCommands;
+
+        public SubCommandArgument(int index,
+                                  String name,
+                                  boolean optional,
+                                  ArgumentCondition condition,
+                                  Collection<RoseCommand> subCommands) {
+            this.index = index;
+            this.name = name;
+            this.optional = optional;
+            this.condition = condition;
+            this.subCommands = subCommands;
+        }
+        @Override
+        public int index() {
+            return this.index;
+        }
+
+        @Override
+        public String name() {
+            return this.name;
+        }
+
+        @Override
+        public boolean optional() {
+            return this.optional;
+        }
+
+        @Override
+        public ArgumentCondition condition() {
+            return this.condition;
+        }
+
+        public Collection<RoseCommand> subCommands() {
+            return this.subCommands;
+        }
+
     }
 
 }

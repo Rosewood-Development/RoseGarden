@@ -38,7 +38,7 @@ public class OfflinePlayerArgumentHandler extends ArgumentHandler<OfflinePlayer>
     public List<String> suggest(CommandContext context, Argument argument, String[] args) {
         return Bukkit.getOnlinePlayers().stream()
                 .map(Player::getName)
-                .toList();
+                .collect(Collectors.toList());
     }
 
 }

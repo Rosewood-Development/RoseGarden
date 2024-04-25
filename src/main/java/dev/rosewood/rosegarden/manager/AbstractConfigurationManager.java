@@ -7,6 +7,7 @@ import dev.rosewood.rosegarden.config.SingularRoseSetting;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -79,7 +80,7 @@ public abstract class AbstractConfigurationManager extends Manager {
                     this.cachedValues.put(roseSetting.getKey(), roseSetting);
             } catch (ReflectiveOperationException ex) {
                 ex.printStackTrace();
-                this.cachedValues = Map.of();
+                this.cachedValues = Collections.emptyMap();
             }
 
             this.injectAdditionalSettings();
@@ -106,7 +107,7 @@ public abstract class AbstractConfigurationManager extends Manager {
 
     @NotNull
     protected List<RoseSetting> getDatabaseSettings() {
-        return List.of(
+        return Arrays.asList(
                 new SingularRoseSetting(this.rosePlugin, "mysql-settings", null, "Settings for if you want to use MySQL for data management"),
                 new SingularRoseSetting(this.rosePlugin, "mysql-settings.enabled", false, "Enable MySQL", "If false, SQLite will be used instead"),
                 new SingularRoseSetting(this.rosePlugin, "mysql-settings.hostname", "", "MySQL Database Hostname"),

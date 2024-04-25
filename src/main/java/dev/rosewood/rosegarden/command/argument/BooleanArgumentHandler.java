@@ -5,6 +5,7 @@ import dev.rosewood.rosegarden.command.framework.ArgumentHandler;
 import dev.rosewood.rosegarden.command.framework.CommandContext;
 import dev.rosewood.rosegarden.command.framework.InputIterator;
 import dev.rosewood.rosegarden.utils.StringPlaceholders;
+import java.util.Arrays;
 import java.util.List;
 
 public class BooleanArgumentHandler extends ArgumentHandler<Boolean> {
@@ -16,16 +17,16 @@ public class BooleanArgumentHandler extends ArgumentHandler<Boolean> {
     @Override
     public Boolean handle(CommandContext context, Argument argument, InputIterator inputIterator) throws HandledArgumentException {
         String input = inputIterator.next();
-        return switch (input.toLowerCase()) {
-            case "true" -> true;
-            case "false" -> false;
-            default -> throw new HandledArgumentException("argument-handler-boolean", StringPlaceholders.of("input", input));
-        };
+        switch (input.toLowerCase()) {
+            case "true": return true;
+            case "false": return false;
+            default: throw new HandledArgumentException("argument-handler-boolean", StringPlaceholders.of("input", input));
+        }
     }
 
     @Override
     public List<String> suggest(CommandContext context, Argument argument, String[] args) {
-        return List.of("true", "false");
+        return Arrays.asList("true", "false");
     }
 
 }

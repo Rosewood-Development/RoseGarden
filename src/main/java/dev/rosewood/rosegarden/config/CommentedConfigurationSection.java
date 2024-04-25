@@ -73,7 +73,8 @@ public class CommentedConfigurationSection implements ConfigurationSection {
         Object value = this.get(path);
         if (value instanceof Boolean) {
             return (Boolean) value;
-        } else if (value instanceof String stringValue) {
+        } else if (value instanceof String) {
+            String stringValue = (String) value;
             if (stringValue.equalsIgnoreCase("default"))
                 return null;
         }

@@ -49,7 +49,7 @@ public class EnumArgumentHandler<T extends Enum<T>> extends ArgumentHandler<T> {
         return Stream.of(this.getHandledType().getEnumConstants())
                 .map(Enum::name)
                 .map(String::toLowerCase)
-                .toList();
+                .collect(Collectors.toList());
     }
 
 }

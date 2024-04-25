@@ -107,7 +107,7 @@ public abstract class BaseRoseCommand implements RoseCommand {
                 .sorted(Comparator.comparingInt(MethodScore::score).reversed())
                 .map(MethodScore::method)
                 .findFirst();
-        if (method.isEmpty()) {
+        if (!method.isPresent()) {
             String arguments = Arrays.stream(context.getUsedArgumentTypes()).map(Class::getName).collect(Collectors.joining(", "));
             this.rosePlugin.getLogger().warning("No matching @RoseExecutable method found for command " + this.getCommandInfo().name() + ". Expected arguments (or similar matching optional arguments): [" + arguments + "]");
             return;
@@ -185,7 +185,23 @@ public abstract class BaseRoseCommand implements RoseCommand {
         return parameters;
     }
 
-    private record MethodScore(int score, Method method) implements Comparable<MethodScore> {
+    private static class MethodScore implements Comparable<MethodScore> {
+
+        private final int score;
+        private final Method method;
+
+        private MethodScore(int score, Method method) {
+            this.score = score;
+            this.method = method;
+        }
+
+        public int score() {
+            return this.score;
+        }
+
+        public Method method() {
+            return this.method;
+        }
 
         @Override
         public int compareTo(BaseRoseCommand.MethodScore o) {

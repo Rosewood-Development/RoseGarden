@@ -37,9 +37,10 @@ public class HelpCommand extends BaseRoseCommand {
             throw new IllegalStateException("Help command parent must have exactly 1 argument.");
 
         Argument argument = argumentsDefinition.get(0);
-        if (!(argument instanceof Argument.SubCommandArgument subCommandArgument))
+        if (!(argument instanceof Argument.SubCommandArgument))
             throw new IllegalStateException("Help command parent must have a subcommand argument.");
 
+        Argument.SubCommandArgument subCommandArgument = (Argument.SubCommandArgument) argument;
         localeManager.sendCommandMessage(context.getSender(), "command-help-title");
         for (RoseCommand command : subCommandArgument.subCommands()) {
             String descriptionKey = command.getDescriptionKey();

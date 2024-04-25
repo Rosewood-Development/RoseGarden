@@ -8,9 +8,10 @@ import dev.rosewood.rosegarden.utils.StringPlaceholders;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.defaults.BukkitCommand;
@@ -90,7 +91,7 @@ public class RoseCommandWrapper extends BukkitCommand {
                 List<BaseRoseCommand> editableSubcommands = argument.subCommands().stream()
                         .filter(BaseRoseCommand.class::isInstance)
                         .map(BaseRoseCommand.class::cast)
-                        .toList();
+                        .collect(Collectors.toList());
 
                 if (editableSubcommands.isEmpty())
                     return null;
@@ -133,7 +134,7 @@ public class RoseCommandWrapper extends BukkitCommand {
                 List<BaseRoseCommand> editableSubcommands = argument.subCommands().stream()
                         .filter(BaseRoseCommand.class::isInstance)
                         .map(BaseRoseCommand.class::cast)
-                        .toList();
+                        .collect(Collectors.toList());
 
                 if (editableSubcommands.isEmpty())
                     return null;
@@ -184,7 +185,7 @@ public class RoseCommandWrapper extends BukkitCommand {
                 if (remainingArguments.stream().allMatch(Argument::optional))
                     break; // All remaining arguments are optional, this command execution is valid
 
-                long missingRequired = remainingArguments.stream().filter(Predicate.not(Argument::optional)).count();
+                long missingRequired = remainingArguments.stream().filter(x -> !x.optional()).count();
                 if (remainingArguments.stream().anyMatch(x -> x instanceof Argument.SubCommandArgument)) {
                     localeManager.sendCommandMessage(sender, "missing-arguments-extra", StringPlaceholders.of("amount", missingRequired));
                 } else {
@@ -265,7 +266,7 @@ public class RoseCommandWrapper extends BukkitCommand {
     public List<String> tabComplete(CommandSender sender, String commandLabel, String[] args) {
         boolean isPlayer = sender instanceof Player;
         if (this.command.isPlayerOnly() && !isPlayer || !this.command.canUse(sender))
-            return List.of();
+            return Collections.emptyList();
 
         CommandContext context = new CommandContext(sender, commandLabel, args);
         CommandContext readonlyContext = context.readonly();
@@ -302,7 +303,7 @@ public class RoseCommandWrapper extends BukkitCommand {
                     List<String> remainingInput = new ArrayList<>(inputIterator.getStack());
                     while (inputIterator.hasNext())
                         remainingInput.add(inputIterator.next());
-                    String[] remainingArgs = remainingInput.toArray(String[]::new);
+                    String[] remainingArgs = remainingInput.toArray(new String[0]);
                     argument.handler().suggest(readonlyContext, argument, remainingArgs).stream()
                             .filter(x -> StringUtil.startsWithIgnoreCase(x, String.join(" ", remainingInput)))
                             .forEach(suggestions::add);

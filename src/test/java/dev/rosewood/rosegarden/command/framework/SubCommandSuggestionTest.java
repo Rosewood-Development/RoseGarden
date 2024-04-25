@@ -3,12 +3,16 @@ package dev.rosewood.rosegarden.command.framework;
 import dev.rosewood.rosegarden.RosePlugin;
 import dev.rosewood.rosegarden.command.framework.command.sub.TestSubCommand;
 import dev.rosewood.rosegarden.command.framework.model.TestEnum;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.bukkit.command.CommandSender;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -34,7 +38,7 @@ public class SubCommandSuggestionTest {
 
         List<String> suggestions = commandWrapper.tabComplete(this.sender, command.getName(), this.splitInput(input));
 
-        assertEquals(Stream.of(TestEnum.values()).map(Enum::name).map(String::toLowerCase).toList(), suggestions);
+        assertEquals(Stream.of(TestEnum.values()).map(Enum::name).map(String::toLowerCase).collect(Collectors.toList()), suggestions);
     }
 
     @Test
@@ -46,7 +50,7 @@ public class SubCommandSuggestionTest {
 
         List<String> suggestions = commandWrapper.tabComplete(this.sender, command.getName(), this.splitInput(input));
 
-        assertEquals(List.of("value_1", "value_2"), suggestions);
+        assertEquals(Arrays.asList("value_1", "value_2"), suggestions);
     }
 
     @Test
@@ -58,7 +62,7 @@ public class SubCommandSuggestionTest {
 
         List<String> suggestions = commandWrapper.tabComplete(this.sender, command.getName(), this.splitInput(input));
 
-        assertEquals(List.of(), suggestions);
+        assertTrue(suggestions.isEmpty());
     }
 
     @Test
@@ -70,7 +74,7 @@ public class SubCommandSuggestionTest {
 
         List<String> suggestions = commandWrapper.tabComplete(this.sender, command.getName(), this.splitInput(input));
 
-        assertEquals(List.of("option1", "option2", "secret-option3"), suggestions);
+        assertEquals(Arrays.asList("option1", "option2", "secret-option3"), suggestions);
     }
 
     @Test
@@ -82,7 +86,7 @@ public class SubCommandSuggestionTest {
 
         List<String> suggestions = commandWrapper.tabComplete(this.sender, command.getName(), this.splitInput(input));
 
-        assertEquals(List.of("option1", "option2"), suggestions);
+        assertEquals(Arrays.asList("option1", "option2"), suggestions);
     }
 
     @Test
@@ -94,7 +98,7 @@ public class SubCommandSuggestionTest {
 
         List<String> suggestions = commandWrapper.tabComplete(this.sender, command.getName(), this.splitInput(input));
 
-        assertEquals(List.of(), suggestions);
+        assertTrue(suggestions.isEmpty());
     }
 
     @Test
@@ -106,7 +110,7 @@ public class SubCommandSuggestionTest {
 
         List<String> suggestions = commandWrapper.tabComplete(this.sender, command.getName(), this.splitInput(input));
 
-        assertEquals(List.of("true", "false"), suggestions);
+        assertEquals(Arrays.asList("true", "false"), suggestions);
     }
 
     @Test
@@ -118,7 +122,7 @@ public class SubCommandSuggestionTest {
 
         List<String> suggestions = commandWrapper.tabComplete(this.sender, command.getName(), this.splitInput(input));
 
-        assertEquals(List.of("true"), suggestions);
+        assertEquals(Collections.singletonList("true"), suggestions);
     }
 
     private String[] splitInput(String input) {

@@ -4,6 +4,7 @@ import dev.rosewood.rosegarden.command.framework.ArgumentHandler;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -48,11 +49,11 @@ public final class ArgumentHandlers {
 
     @SafeVarargs
     public static <T> ArgumentHandler<T> forValues(Class<T> clazz, T... values) {
-        return new ValuesArgumentHandler<>(clazz, List.of(values));
+        return new ValuesArgumentHandler<>(clazz, Arrays.asList(values));
     }
 
     public static <T> ArgumentHandler<T> forValues(Class<T> clazz, Collection<T> values) {
-        return new ValuesArgumentHandler<>(clazz, List.copyOf(values));
+        return new ValuesArgumentHandler<>(clazz, new ArrayList<>(values));
     }
 
 }
