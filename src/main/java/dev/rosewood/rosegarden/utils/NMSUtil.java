@@ -7,10 +7,10 @@ public final class NMSUtil {
     private static final int VERSION_NUMBER;
     private static final int MINOR_VERSION_NUMBER;
     static {
-        String bukkitVersion = Bukkit.getBukkitVersion();
+        String bukkitVersion = Bukkit.getBukkitVersion().split("-")[0];
         String[] parts = bukkitVersion.split("\\.");
-        VERSION_NUMBER = Integer.parseInt(parts[0]);
-        MINOR_VERSION_NUMBER = Integer.parseInt(parts[1]);
+        VERSION_NUMBER = Integer.parseInt(parts[1]);
+        MINOR_VERSION_NUMBER = Integer.parseInt(parts[2]);
     }
 
     private NMSUtil() {
