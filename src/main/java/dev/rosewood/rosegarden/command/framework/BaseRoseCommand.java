@@ -13,7 +13,7 @@ import org.bukkit.command.CommandException;
 /**
  * The base class for all RoseGarden commands.
  * <p>
- * Override {@link #createArgumentsDefinition()} and {@link #createCommandInfo()} to customize the command.
+ * Override {@link #createCommandInfo()} to customize the command.
  * <p>
  * To make executable methods in the command, annotate them with {@link RoseExecutable}. The first parameter will be
  * a {@link CommandContext} instance and the following parameters will be the command arguments as defined by the
@@ -24,6 +24,9 @@ import org.bukkit.command.CommandException;
  *         // ...
  *     }
  * <pre></blockquote>
+ * <p>
+ * Additionally, make sure to provide the arguments for the command in the {@link ArgumentsDefinition} provided through
+ * {@link #createCommandInfo()}.
  */
 public abstract class BaseRoseCommand implements RoseCommand {
 
@@ -31,7 +34,6 @@ public abstract class BaseRoseCommand implements RoseCommand {
     private String activeName;
     private List<String> activeAliases;
     private CommandInfo commandInfo;
-    private ArgumentsDefinition argumentsDefinition;
 
     public BaseRoseCommand(RosePlugin rosePlugin) {
         this.rosePlugin = rosePlugin;
@@ -41,13 +43,6 @@ public abstract class BaseRoseCommand implements RoseCommand {
      * @return a newly constructed {@link CommandInfo} for this command
      */
     protected abstract CommandInfo createCommandInfo();
-
-    /**
-     * @return a newly constructed {@link ArgumentsDefinition} for this command
-     */
-    protected ArgumentsDefinition createArgumentsDefinition() {
-        return ArgumentsDefinition.empty();
-    }
 
     protected final void setNameAndAliases(String name, List<String> aliases) {
         this.activeName = name;
@@ -91,13 +86,11 @@ public abstract class BaseRoseCommand implements RoseCommand {
 
     @Override
     public final ArgumentsDefinition getCommandArguments() {
-        if (this.argumentsDefinition == null)
-            this.argumentsDefinition = this.createArgumentsDefinition();
-        return this.argumentsDefinition;
+        return this.commandInfo.arguments();
     }
 
     @Override
-    public void execute(CommandContext context) {
+    public void invoke(CommandContext context) {
         List<Method> methods = this.getExecuteMethods();
         if (!this.verifyMethods(methods))
             return;
@@ -117,6 +110,7 @@ public abstract class BaseRoseCommand implements RoseCommand {
             Method executeMethod = method.get();
             Object[] parameters = this.buildMethodParameters(context, executeMethod);
 
+            executeMethod.setAccessible(true); // Nested class execute methods cannot be accessed without this
             executeMethod.invoke(this, parameters);
         } catch (ReflectiveOperationException e) {
             throw new CommandException("An error occurred while executing the command", e);

@@ -217,9 +217,9 @@ public abstract class AbstractLocaleManager extends Manager {
      */
     public String getCommandLocaleMessage(String messageKey, StringPlaceholders stringPlaceholders) {
         String message;
-        try {
+        if (this.loadedLocale.getLocaleValues().containsKey(messageKey)) {
             message = this.getLocaleMessage(messageKey, stringPlaceholders);
-        } catch (IllegalStateException e) {
+        } else {
             message = CommandMessages.DEFAULT_MESSAGES.get(messageKey);
             if (message == null)
                 message = this.getErrorMessage(messageKey);

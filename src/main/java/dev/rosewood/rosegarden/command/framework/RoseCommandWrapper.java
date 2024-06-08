@@ -39,6 +39,9 @@ public class RoseCommandWrapper extends BukkitCommand {
         this.command = command;
     }
 
+    /**
+     * Registers the command to the Bukkit command map and creates a config file for it if it doesn't exist
+     */
     public void register() {
         // Register commands
         File commandsDirectory = new File(this.dataFolder, "commands");
@@ -79,6 +82,17 @@ public class RoseCommandWrapper extends BukkitCommand {
 
         // Load subcommand config values
         this.loadSubCommands(commandConfig, this.command);
+
+        // Set this command's active values
+        this.setName(this.command.getName());
+        this.setAliases(this.command.getAliases());
+        this.setPermission(this.command.getPermission());
+
+        String descriptionKey = this.command.getDescriptionKey();
+        if (descriptionKey != null) {
+            AbstractLocaleManager localeManager = this.rosePlugin.getManager(AbstractLocaleManager.class);
+            this.setDescription(localeManager.getCommandLocaleMessage(this.command.getDescriptionKey()));
+        }
 
         // Finally, register the command with the server
         CommandMapUtils.registerCommand(this.namespace, this);
@@ -157,6 +171,9 @@ public class RoseCommandWrapper extends BukkitCommand {
         }
     }
 
+    /**
+     * Removes the command from the Bukkit command map
+     */
     public void unregister() {
         CommandMapUtils.unregisterCommand(this);
     }
@@ -175,23 +192,19 @@ public class RoseCommandWrapper extends BukkitCommand {
         }
 
         CommandContext context = new CommandContext(sender, commandLabel, args);
-        CommandContext readonlyContext = context.readonly();
         CommandExecutionWalker walker = new CommandExecutionWalker(this.command);
         InputIterator inputIterator = new InputIterator(Arrays.asList(args));
 
+        boolean missingArgs = false;
         while (walker.hasNext()) {
             if (!inputIterator.hasNext()) {
                 List<Argument> remainingArguments = walker.walkRemaining();
                 if (remainingArguments.stream().allMatch(Argument::optional))
                     break; // All remaining arguments are optional, this command execution is valid
 
-                long missingRequired = remainingArguments.stream().filter(x -> !x.optional()).count();
-                if (remainingArguments.stream().anyMatch(x -> x instanceof Argument.SubCommandArgument)) {
-                    localeManager.sendCommandMessage(sender, "missing-arguments-extra", StringPlaceholders.of("amount", missingRequired));
-                } else {
-                    localeManager.sendCommandMessage(sender, "missing-arguments", StringPlaceholders.of("amount", missingRequired));
-                }
-                return true;
+                remainingArguments.forEach(argument -> context.put(argument, null));
+                missingArgs = true;
+                break;
             }
 
             walker.step((command, argument) -> {
@@ -204,12 +217,7 @@ public class RoseCommandWrapper extends BukkitCommand {
                 InputIterator beforeState = inputIterator.clone();
                 try {
                     ArgumentHandler<?> handler = argument.handler();
-                    Object parsedArgument = handler.handle(readonlyContext, argument, inputIterator);
-                    if (parsedArgument == null) {
-                        localeManager.sendCommandMessage(sender, "invalid-argument-null", StringPlaceholders.of("name", argument.name()));
-                        return false;
-                    }
-
+                    Object parsedArgument = handler.handle(context, argument, inputIterator);
                     context.put(argument, parsedArgument);
                     return true;
                 } catch (ArgumentHandler.HandledArgumentException e) {
@@ -221,10 +229,12 @@ public class RoseCommandWrapper extends BukkitCommand {
 
                     String message = localeManager.getCommandLocaleMessage(e.getMessage(), e.getPlaceholders());
                     localeManager.sendCommandMessage(sender, "invalid-argument", StringPlaceholders.of("message", message));
+                    context.put(argument, null);
                     return false;
                 } catch (Exception e) {
                     e.printStackTrace();
                     localeManager.sendCommandMessage(sender, "unknown-command-error");
+                    context.put(argument, null);
                     return false;
                 }
             }, argument -> {
@@ -238,25 +248,34 @@ public class RoseCommandWrapper extends BukkitCommand {
                             .filter(subCommand -> Stream.concat(Stream.of(subCommand.getName()), subCommand.getAliases().stream()).anyMatch(s -> s.equalsIgnoreCase(input)))
                             .findFirst()
                             .orElse(null);
+
                     if (match == null)
                         localeManager.sendCommandMessage(sender, "invalid-subcommand");
+
+                    context.put(match != null ? argument.withCustomName(input.toLowerCase()) : argument, null);
                     return match;
                 }
+
                 localeManager.sendCommandMessage(sender, "invalid-subcommand");
+                context.put(argument, null);
                 return null;
             });
         }
 
-        if (walker.isCompleted()) {
+        if (walker.isCompleted() && !missingArgs) {
             RoseCommand commandToExecute = walker.getCurrentCommand();
             if (!commandToExecute.canUse(sender)) {
                 localeManager.sendCommandMessage(sender, "no-permission");
                 return true;
             }
 
-            commandToExecute.execute(context);
+            commandToExecute.invoke(context);
         } else {
-            // TODO: Usage message
+            List<Argument> allArguments = context.getArgumentsPath();
+            allArguments.addAll(walker.walkRemaining());
+            allArguments.addAll(walker.getUnconsumed());
+            String argumentsString = ArgumentsDefinition.getParametersString(context, allArguments);
+            localeManager.sendCommandMessage(sender, "command-usage", StringPlaceholders.of("cmd", this.getName(), "args", argumentsString));
         }
 
         return true;
@@ -269,7 +288,6 @@ public class RoseCommandWrapper extends BukkitCommand {
             return Collections.emptyList();
 
         CommandContext context = new CommandContext(sender, commandLabel, args);
-        CommandContext readonlyContext = context.readonly();
         CommandExecutionWalker walker = new CommandExecutionWalker(this.command);
         InputIterator inputIterator = new InputIterator(Arrays.asList(args));
 
@@ -281,7 +299,7 @@ public class RoseCommandWrapper extends BukkitCommand {
                     return true;
 
                 if (!inputIterator.hasNext()) {
-                    suggestions.addAll(argument.handler().suggest(readonlyContext, argument, new String[0]));
+                    suggestions.addAll(argument.handler().suggest(context, argument, new String[0]));
                     return argument.optional();
                 }
 
@@ -293,7 +311,7 @@ public class RoseCommandWrapper extends BukkitCommand {
                     if (input.isEmpty()) // Force into the catch block, empty input should never be valid
                         throw new ArgumentHandler.HandledArgumentException("");
 
-                    Object parsedArgument = handler.handle(readonlyContext, argument, inputIterator);
+                    Object parsedArgument = handler.handle(context, argument, inputIterator);
                     if (parsedArgument == null || !inputIterator.hasNext())
                         return false;
 
@@ -304,7 +322,7 @@ public class RoseCommandWrapper extends BukkitCommand {
                     while (inputIterator.hasNext())
                         remainingInput.add(inputIterator.next());
                     String[] remainingArgs = remainingInput.toArray(new String[0]);
-                    argument.handler().suggest(readonlyContext, argument, remainingArgs).stream()
+                    argument.handler().suggest(context, argument, remainingArgs).stream()
                             .filter(x -> StringUtil.startsWithIgnoreCase(x, String.join(" ", remainingInput)))
                             .forEach(suggestions::add);
 
@@ -372,6 +390,10 @@ public class RoseCommandWrapper extends BukkitCommand {
     @Override
     public String getPermission() {
         return this.command.getPermission();
+    }
+
+    public BaseRoseCommand getWrappedCommand() {
+        return this.command;
     }
 
 }

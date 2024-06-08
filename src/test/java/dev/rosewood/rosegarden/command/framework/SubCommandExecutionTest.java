@@ -131,7 +131,7 @@ public class SubCommandExecutionTest {
     }
 
     private void verifyMissing() {
-        verify(this.sender).sendMessage(eq("missing-arguments-extra"));
+        verify(this.sender).sendMessage(eq("command-usage"));
     }
 
     private void verifyInvalid() {

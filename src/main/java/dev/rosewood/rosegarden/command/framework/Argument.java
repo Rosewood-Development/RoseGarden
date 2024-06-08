@@ -1,8 +1,6 @@
 package dev.rosewood.rosegarden.command.framework;
 
 import java.util.Collection;
-import java.util.List;
-import java.util.function.Predicate;
 
 public interface Argument {
 
@@ -35,6 +33,10 @@ public interface Argument {
         } else {
             return "<" + this.name() + ">";
         }
+    }
+
+    default Argument withCustomName(String name) {
+        return new NamedProxyArgument(this, name);
     }
 
     class CommandArgument<T> implements Argument {
@@ -124,6 +126,42 @@ public interface Argument {
 
         public Collection<RoseCommand> subCommands() {
             return this.subCommands;
+        }
+
+    }
+
+    class NamedProxyArgument implements Argument {
+
+        private final Argument proxy;
+        private final String name;
+
+        public NamedProxyArgument(Argument proxy, String name) {
+            this.proxy = proxy;
+            this.name = name;
+        }
+
+        @Override
+        public int index() {
+            return this.proxy.index();
+        }
+
+        @Override
+        public String name() {
+            return this.name;
+        }
+
+        @Override
+        public boolean optional() {
+            return this.proxy.optional();
+        }
+
+        @Override
+        public ArgumentCondition condition() {
+            return this.proxy.condition();
+        }
+
+        public Argument proxy() {
+            return this.proxy;
         }
 
     }

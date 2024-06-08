@@ -13,7 +13,7 @@ import dev.rosewood.rosegarden.utils.StringPlaceholders;
 
 public class HelpCommand extends BaseRoseCommand {
 
-    private final BaseRoseCommand parent;
+    protected final BaseRoseCommand parent;
     private final CommandInfo commandInfo;
 
     public HelpCommand(RosePlugin rosePlugin, BaseRoseCommand parent, CommandInfo commandInfo) {
@@ -23,13 +23,19 @@ public class HelpCommand extends BaseRoseCommand {
         this.commandInfo = commandInfo;
     }
 
+    public HelpCommand(RosePlugin rosePlugin, BaseRoseCommand parent) {
+        this(rosePlugin, parent, CommandInfo.builder("help")
+                .descriptionKey("command-help-description")
+                .build());
+    }
+
     @Override
     protected CommandInfo createCommandInfo() {
         return this.commandInfo;
     }
 
     @RoseExecutable
-    public void execute(CommandContext context) {
+    public void invoke(CommandContext context) {
         AbstractLocaleManager localeManager = this.rosePlugin.getManager(AbstractLocaleManager.class);
 
         ArgumentsDefinition argumentsDefinition = this.parent.getCommandArguments();

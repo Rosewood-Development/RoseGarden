@@ -18,13 +18,10 @@ public class MissingExecutableReflectionCommand extends BaseRoseCommand {
 
     @Override
     protected CommandInfo createCommandInfo() {
-        return CommandInfo.builder("test").build();
-    }
-
-    @Override
-    protected ArgumentsDefinition createArgumentsDefinition() {
-        return ArgumentsDefinition.builder()
-                .required("arg1", ArgumentHandlers.forEnum(TestEnum.class))
+        return CommandInfo.builder("test")
+                .arguments(ArgumentsDefinition.builder()
+                        .required("arg1", ArgumentHandlers.forEnum(TestEnum.class))
+                        .build())
                 .build();
     }
 

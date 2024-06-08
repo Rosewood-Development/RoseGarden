@@ -20,20 +20,17 @@ public class MixedArgsCommand extends BaseRoseCommand {
 
     @RoseExecutable
     public void execute(CommandContext context, String value, String value2) {
-        context.getSender().sendMessage(Objects.requireNonNullElse(value, "null"));
+        context.getSender().sendMessage(value == null ? "null" : value);
         context.getSender().sendMessage(value2);
     }
 
     @Override
     protected CommandInfo createCommandInfo() {
-        return CommandInfo.builder("test").build();
-    }
-
-    @Override
-    protected ArgumentsDefinition createArgumentsDefinition() {
-        return ArgumentsDefinition.builder()
-                .optional("arg1", ArgumentHandlers.forValues(String.class, "alice", "bob"), ArgumentCondition.hasPermission(TEST_PERMISSION))
-                .required("arg2", ArgumentHandlers.forValues(String.class, "on", "off"))
+        return CommandInfo.builder("test")
+                .arguments(ArgumentsDefinition.builder()
+                        .optional("arg1", ArgumentHandlers.forValues(String.class, "alice", "bob"), ArgumentCondition.hasPermission(TEST_PERMISSION))
+                        .required("arg2", ArgumentHandlers.forValues(String.class, "on", "off"))
+                        .build())
                 .build();
     }
 

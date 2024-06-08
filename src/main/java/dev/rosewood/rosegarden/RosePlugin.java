@@ -1,5 +1,7 @@
 package dev.rosewood.rosegarden;
 
+import dev.rosewood.rosegarden.command.framework.RoseCommandWrapper;
+import dev.rosewood.rosegarden.command.rwd.RwdCommand;
 import dev.rosewood.rosegarden.manager.AbstractCommandManager;
 import dev.rosewood.rosegarden.manager.AbstractConfigurationManager;
 import dev.rosewood.rosegarden.manager.AbstractDataManager;
@@ -246,8 +248,10 @@ public abstract class RosePlugin extends JavaPlugin {
     }
 
     private void injectService() {
-        if (this.getLoadedRosePluginsData().isEmpty())
+        if (this.getLoadedRosePluginsData().isEmpty()) {
             this.firstToRegister = true;
+            new RoseCommandWrapper("rosegarden", this.getRoseGardenDataFolder(), this, new RwdCommand(this)).register();
+        }
 
         // Register our service
         Bukkit.getServicesManager().register(RosePlugin.class, this, this, ServicePriority.Normal);

@@ -4,6 +4,7 @@ import dev.rosewood.rosegarden.RosePlugin;
 import dev.rosewood.rosegarden.command.framework.BaseRoseCommand;
 import dev.rosewood.rosegarden.command.framework.CommandContext;
 import dev.rosewood.rosegarden.command.framework.CommandInfo;
+import dev.rosewood.rosegarden.command.framework.annotation.RoseExecutable;
 
 public class NoArgsCommand extends BaseRoseCommand {
 
@@ -13,7 +14,7 @@ public class NoArgsCommand extends BaseRoseCommand {
         super(rosePlugin);
     }
 
-    @Override
+    @RoseExecutable
     public void execute(CommandContext context) {
         context.getSender().sendMessage(SUCCESS_OUTPUT);
     }

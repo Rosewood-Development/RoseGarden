@@ -2,6 +2,7 @@ package dev.rosewood.rosegarden.manager;
 
 import dev.rosewood.rosegarden.RosePlugin;
 import dev.rosewood.rosegarden.config.CommentedFileConfiguration;
+import dev.rosewood.rosegarden.utils.NMSUtil;
 import dev.rosewood.rosegarden.utils.RoseGardenUtils;
 import dev.rosewood.rosegarden.utils.StringPlaceholders;
 import java.io.BufferedReader;
@@ -9,6 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.concurrent.CompletableFuture;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -61,18 +63,24 @@ public class PluginUpdateManager extends Manager implements Listener {
             return;
 
         // Check for updates
-        Bukkit.getScheduler().runTaskAsynchronously(this.rosePlugin, () -> {
-            try {
-                String latestVersion = this.getLatestVersion();
+        if (NMSUtil.isFolia()) { // Scheduler not allowed in Folia, just don't use it for now until we get a scheduler API in RoseGarden
+            CompletableFuture.runAsync(() -> this.checkForUpdate(currentVersion));
+        } else {
+            Bukkit.getScheduler().runTaskAsynchronously(this.rosePlugin, () -> this.checkForUpdate(currentVersion));
+        }
+    }
 
-                if (RoseGardenUtils.isUpdateAvailable(latestVersion, currentVersion)) {
-                    this.updateVersion = latestVersion;
-                    RoseGardenUtils.getLogger().info("An update for " + this.rosePlugin.getName() + " (v" + this.updateVersion + ") is available! You are running v" + currentVersion + ".");
-                }
-            } catch (Exception e) {
-                RoseGardenUtils.getLogger().warning("An error occurred checking for an update. There is either no established internet connection or the Spigot API is down.");
+    private void checkForUpdate(String currentVersion) {
+        try {
+            String latestVersion = this.getLatestVersion();
+
+            if (RoseGardenUtils.isUpdateAvailable(latestVersion, currentVersion)) {
+                this.updateVersion = latestVersion;
+                RoseGardenUtils.getLogger().info("An update for " + this.rosePlugin.getName() + " (v" + this.updateVersion + ") is available! You are running v" + currentVersion + ".");
             }
-        });
+        } catch (Exception e) {
+            RoseGardenUtils.getLogger().warning("An error occurred checking for an update. There is either no established internet connection or the Spigot API is down.");
+        }
     }
 
     @Override

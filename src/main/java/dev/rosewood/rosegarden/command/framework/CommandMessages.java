@@ -14,9 +14,7 @@ public class CommandMessages {
         this.put("unknown-command-error", "&cAn unknown error occurred; details have been printed to console. Please contact a server administrator.");
         this.put("invalid-subcommand", "&cInvalid subcommand.");
         this.put("invalid-argument", "&cInvalid argument: %message%.");
-        this.put("invalid-argument-null", "&cInvalid argument: %name% was null.");
-        this.put("missing-arguments", "&cMissing arguments, &b%amount% &crequired.");
-        this.put("missing-arguments-extra", "&cMissing arguments, &b%amount%+ &crequired.");
+        this.put("command-usage", "&cUsage: &b/%cmd% %args%");
 
         // Base Command Message
         this.put("base-command-color", "&e");

@@ -3,6 +3,7 @@ package dev.rosewood.rosegarden.command.framework;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -17,6 +18,7 @@ public class CommandContext {
     private final Map<Argument.CommandArgument<?>, Object> parametersByArgument;
     private final ListMultimap<Class<?>, Object> parametersByType;
     private final Map<String, Object> parametersByName;
+    private final List<Argument> argumentsPath;
 
     public CommandContext(CommandSender sender, String commandLabel, String[] rawArguments) {
         this.sender = sender;
@@ -26,6 +28,7 @@ public class CommandContext {
         this.parametersByArgument = new LinkedHashMap<>();
         this.parametersByType = MultimapBuilder.hashKeys().arrayListValues().build();
         this.parametersByName = new LinkedHashMap<>();
+        this.argumentsPath = new ArrayList<>();
     }
 
     /**
@@ -56,14 +59,18 @@ public class CommandContext {
      * @param value The value
      * @param <T> The type of the value
      */
-    public <T> void put(Argument argument, T value) {
-        if (!(argument instanceof Argument.CommandArgument<?>))
-            throw new IllegalArgumentException("Context parameters can only be put for command arguments");
+    protected <T> void put(Argument argument, T value) {
+        this.argumentsPath.add(argument);
 
-        Argument.CommandArgument<?> commandArgument = (Argument.CommandArgument<?>) argument;
-        this.parametersByArgument.put(commandArgument, value);
-        this.parametersByType.put(commandArgument.handler().getHandledType(), value);
-        this.parametersByName.put(commandArgument.name(), value);
+        if (argument instanceof Argument.NamedProxyArgument)
+            argument = ((Argument.NamedProxyArgument) argument).proxy();
+
+        if (argument instanceof Argument.CommandArgument<?>) {
+            Argument.CommandArgument<?> commandArgument = (Argument.CommandArgument<?>) argument;
+            this.parametersByArgument.put(commandArgument, value);
+            this.parametersByType.put(commandArgument.handler().getHandledType(), value);
+            this.parametersByName.put(commandArgument.name(), value);
+        }
     }
 
     /**
@@ -129,34 +136,8 @@ public class CommandContext {
                 .toArray(Class[]::new);
     }
 
-    /**
-     * @return A wrapped readonly version of this CommandContext. The original object is still mutable.
-     */
-    protected CommandContext readonly() {
-        return new ReadonlyCommandContext(this.sender, this.commandLabel, this.rawArguments);
-    }
-
-    private class ReadonlyCommandContext extends CommandContext {
-
-        public ReadonlyCommandContext(CommandSender sender, String commandLabel, String[] rawArguments) {
-            super(sender, commandLabel, rawArguments);
-        }
-
-        @Override
-        public <T> void put(Argument argument, T value) {
-            throw new UnsupportedOperationException("Cannot put a context parameter from an argument handler. Return the value instead.");
-        }
-
-        @Override
-        public <T> T get(String name) {
-            return CommandContext.this.get(name);
-        }
-
-        @Override
-        public <T> T get(int index, Class<T> clazz) {
-            return CommandContext.this.get(index, clazz);
-        }
-
+    protected List<Argument> getArgumentsPath() {
+        return new ArrayList<>(this.argumentsPath);
     }
 
 }

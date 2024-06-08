@@ -17,7 +17,7 @@ public class DefaultedReflectionCommand extends BaseRoseCommand {
     }
 
     @RoseExecutable
-    public void customExecute(CommandContext context) {
+    public void execute(CommandContext context) {
         TestEnum value = context.get("arg1");
 
         context.getSender().sendMessage(value + "");
@@ -25,13 +25,10 @@ public class DefaultedReflectionCommand extends BaseRoseCommand {
 
     @Override
     protected CommandInfo createCommandInfo() {
-        return CommandInfo.builder("test").build();
-    }
-
-    @Override
-    protected ArgumentsDefinition createArgumentsDefinition() {
-        return ArgumentsDefinition.builder()
-                .required("arg1", ArgumentHandlers.forEnum(TestEnum.class))
+        return CommandInfo.builder("test")
+                .arguments(ArgumentsDefinition.builder()
+                        .required("arg1", ArgumentHandlers.forEnum(TestEnum.class))
+                        .build())
                 .build();
     }
 

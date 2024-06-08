@@ -13,6 +13,7 @@ public class CommandExecutionWalker {
     private int argumentIndex;
     private boolean exited;
     private boolean completed;
+    private List<Argument> unconsumed;
 
     public CommandExecutionWalker(RoseCommand command) {
         this.command = command;
@@ -20,6 +21,7 @@ public class CommandExecutionWalker {
         this.argumentIndex = 0;
         this.exited = false;
         this.completed = this.currentDefinition.size() == 0;
+        this.unconsumed = new ArrayList<>();
     }
 
     /**
@@ -49,10 +51,14 @@ public class CommandExecutionWalker {
             Argument.CommandArgument<?> commandArgument = (Argument.CommandArgument<?>) argument;
             if (!walker.apply(this.command, commandArgument)) {
                 this.exited = true;
+                while (++this.argumentIndex < this.currentDefinition.size())
+                    this.unconsumed.add(this.currentDefinition.get(this.argumentIndex));
                 return;
             }
 
             this.argumentIndex++;
+        } else {
+            throw new IllegalStateException("Invalid argument type: " + argument.getClass().getName());
         }
 
         if (this.argumentIndex >= this.currentDefinition.size())
@@ -78,6 +84,10 @@ public class CommandExecutionWalker {
         }
         this.completed = true;
         return remaining;
+    }
+
+    public List<Argument> getUnconsumed() {
+        return this.unconsumed;
     }
 
     /**

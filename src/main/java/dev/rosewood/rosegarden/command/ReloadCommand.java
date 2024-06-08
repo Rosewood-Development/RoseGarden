@@ -17,13 +17,20 @@ public class ReloadCommand extends BaseRoseCommand {
         this.commandInfo = commandInfo;
     }
 
+    public ReloadCommand(RosePlugin rosePlugin) {
+        this(rosePlugin, CommandInfo.builder("reload")
+                .descriptionKey("command-reload-description")
+                .permission(rosePlugin.getName().toLowerCase() + ".reload")
+                .build());
+    }
+
     @Override
     protected CommandInfo createCommandInfo() {
         return this.commandInfo;
     }
 
     @RoseExecutable
-    public void execute(CommandContext context) {
+    public void invoke(CommandContext context) {
         this.rosePlugin.reload();
         this.rosePlugin.getManager(AbstractLocaleManager.class).sendCommandMessage(context.getSender(), "command-reload-reloaded");
     }

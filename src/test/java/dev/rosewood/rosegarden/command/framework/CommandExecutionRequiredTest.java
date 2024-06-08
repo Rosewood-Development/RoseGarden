@@ -192,7 +192,7 @@ public class CommandExecutionRequiredTest {
     }
 
     private void verifyMissing() {
-        verify(this.sender).sendMessage(eq("missing-arguments"));
+        verify(this.sender).sendMessage(eq("command-usage"));
     }
 
     private void verifyInvalid() {

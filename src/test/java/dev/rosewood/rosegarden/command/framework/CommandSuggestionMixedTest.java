@@ -2,12 +2,9 @@ package dev.rosewood.rosegarden.command.framework;
 
 import dev.rosewood.rosegarden.RosePlugin;
 import dev.rosewood.rosegarden.command.framework.command.mixed.MixedArgsCommand;
-import dev.rosewood.rosegarden.command.framework.command.suggest.SuggestionCommand;
-import dev.rosewood.rosegarden.command.framework.handler.TestArgumentHandler;
-import dev.rosewood.rosegarden.command.framework.model.TestEnum;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Stream;
 import org.bukkit.command.CommandSender;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,7 +36,7 @@ public class CommandSuggestionMixedTest {
 
         List<String> suggestions = commandWrapper.tabComplete(this.sender, command.getName(), this.splitInput(input));
 
-        assertEquals(Set.of("on", "off", "alice", "bob"), Set.copyOf(suggestions));
+        assertEquals(new HashSet<>(Arrays.asList("on", "off", "alice", "bob")), new HashSet<>(suggestions));
     }
 
     @Test
@@ -51,7 +48,7 @@ public class CommandSuggestionMixedTest {
 
         List<String> suggestions = commandWrapper.tabComplete(this.sender, command.getName(), this.splitInput(input));
 
-        assertEquals(Set.of("on", "off"), Set.copyOf(suggestions));
+        assertEquals(new HashSet<>(Arrays.asList("on", "off")), new HashSet<>(suggestions));
     }
 
     private String[] splitInput(String input) {

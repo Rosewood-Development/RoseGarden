@@ -6,11 +6,15 @@ public final class NMSUtil {
 
     private static final int VERSION_NUMBER;
     private static final int MINOR_VERSION_NUMBER;
+    private static final boolean IS_PAPER;
+    private static final boolean IS_FOLIA;
     static {
         String bukkitVersion = Bukkit.getBukkitVersion();
-        String[] parts = bukkitVersion.split("\\.");
-        VERSION_NUMBER = Integer.parseInt(parts[0]);
-        MINOR_VERSION_NUMBER = Integer.parseInt(parts[1]);
+        String[] parts = bukkitVersion.split("-")[0].split("\\.");
+        VERSION_NUMBER = Integer.parseInt(parts[1]);
+        MINOR_VERSION_NUMBER = parts.length >= 3 ? Integer.parseInt(parts[2]) : 0;
+        IS_PAPER = checkClass("com.destroystokyo.paper.PaperConfig");
+        IS_FOLIA = checkClass("io.papermc.paper.threadedregions.RegionizedServer");
     }
 
     private NMSUtil() {
@@ -35,8 +39,19 @@ public final class NMSUtil {
      * @return true if the server is running Paper or a fork of Paper, false otherwise
      */
     public static boolean isPaper() {
+        return IS_PAPER;
+    }
+
+    /**
+     * @return true if the server is running Folia, false otherwise
+     */
+    public static boolean isFolia() {
+        return IS_FOLIA;
+    }
+
+    private static boolean checkClass(String clazz) {
         try {
-            Class.forName("com.destroystokyo.paper.PaperConfig");
+            Class.forName(clazz);
             return true;
         } catch (ClassNotFoundException e) {
             return false;

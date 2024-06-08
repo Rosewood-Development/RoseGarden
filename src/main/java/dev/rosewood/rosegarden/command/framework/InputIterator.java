@@ -2,6 +2,7 @@ package dev.rosewood.rosegarden.command.framework;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -46,7 +47,7 @@ public class InputIterator implements Iterator<String>, Cloneable {
     }
 
     protected List<String> getStack() {
-        return List.copyOf(this.stack);
+        return Collections.unmodifiableList(this.stack);
     }
 
     protected void clearStack() {

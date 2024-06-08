@@ -6,6 +6,7 @@ import dev.rosewood.rosegarden.command.framework.ArgumentsDefinition;
 import dev.rosewood.rosegarden.command.framework.BaseRoseCommand;
 import dev.rosewood.rosegarden.command.framework.CommandContext;
 import dev.rosewood.rosegarden.command.framework.CommandInfo;
+import dev.rosewood.rosegarden.command.framework.annotation.RoseExecutable;
 import dev.rosewood.rosegarden.command.framework.model.TestEnum;
 
 public class TestSubCommand extends BaseRoseCommand {
@@ -14,7 +15,7 @@ public class TestSubCommand extends BaseRoseCommand {
         super(rosePlugin);
     }
 
-    @Override
+    @RoseExecutable
     public void execute(CommandContext context) {
         TestEnum input = context.get("arg1");
 
@@ -23,18 +24,15 @@ public class TestSubCommand extends BaseRoseCommand {
 
     @Override
     protected CommandInfo createCommandInfo() {
-        return CommandInfo.builder("test").build();
-    }
-
-    @Override
-    protected ArgumentsDefinition createArgumentsDefinition() {
-        return ArgumentsDefinition.builder()
-                .required("arg1", ArgumentHandlers.forEnum(TestEnum.class))
-                .optionalSub("arg2",
-                        new Option1(),
-                        new Option2(),
-                        new Option3()
-                );
+        return CommandInfo.builder("test")
+                .arguments(ArgumentsDefinition.builder()
+                        .required("arg1", ArgumentHandlers.forEnum(TestEnum.class))
+                        .optionalSub("arg2",
+                                new Option1(),
+                                new Option2(),
+                                new Option3()
+                        ))
+                .build();
     }
 
     private class Option1 extends BaseRoseCommand {
@@ -43,7 +41,7 @@ public class TestSubCommand extends BaseRoseCommand {
             super(TestSubCommand.this.rosePlugin);
         }
 
-        @Override
+        @RoseExecutable
         public void execute(CommandContext context) {
             TestSubCommand.this.execute(context);
 
@@ -56,13 +54,10 @@ public class TestSubCommand extends BaseRoseCommand {
 
         @Override
         protected CommandInfo createCommandInfo() {
-            return CommandInfo.builder("option1").build();
-        }
-
-        @Override
-        protected ArgumentsDefinition createArgumentsDefinition() {
-            return ArgumentsDefinition.builder()
-                    .optional("arg3", ArgumentHandlers.STRING)
+            return CommandInfo.builder("option1")
+                    .arguments(ArgumentsDefinition.builder()
+                            .optional("arg3", ArgumentHandlers.STRING)
+                            .build())
                     .build();
         }
 
@@ -74,7 +69,7 @@ public class TestSubCommand extends BaseRoseCommand {
             super(TestSubCommand.this.rosePlugin);
         }
 
-        @Override
+        @RoseExecutable
         public void execute(CommandContext context) {
             TestSubCommand.this.execute(context);
 
@@ -86,13 +81,10 @@ public class TestSubCommand extends BaseRoseCommand {
 
         @Override
         protected CommandInfo createCommandInfo() {
-            return CommandInfo.builder("option2").build();
-        }
-
-        @Override
-        protected ArgumentsDefinition createArgumentsDefinition() {
-            return ArgumentsDefinition.builder()
-                    .required("arg3", ArgumentHandlers.STRING)
+            return CommandInfo.builder("option2")
+                    .arguments(ArgumentsDefinition.builder()
+                            .required("arg3", ArgumentHandlers.STRING)
+                            .build())
                     .build();
         }
 
@@ -104,7 +96,7 @@ public class TestSubCommand extends BaseRoseCommand {
             super(TestSubCommand.this.rosePlugin);
         }
 
-        @Override
+        @RoseExecutable
         public void execute(CommandContext context) {
             TestSubCommand.this.execute(context);
 
@@ -113,13 +105,10 @@ public class TestSubCommand extends BaseRoseCommand {
 
         @Override
         protected CommandInfo createCommandInfo() {
-            return CommandInfo.builder("secret-option3").build();
-        }
-
-        @Override
-        protected ArgumentsDefinition createArgumentsDefinition() {
-            return ArgumentsDefinition.builder()
-                    .required("arg3", ArgumentHandlers.BOOLEAN)
+            return CommandInfo.builder("secret-option3")
+                    .arguments(ArgumentsDefinition.builder()
+                            .required("arg3", ArgumentHandlers.BOOLEAN)
+                            .build())
                     .build();
         }
 

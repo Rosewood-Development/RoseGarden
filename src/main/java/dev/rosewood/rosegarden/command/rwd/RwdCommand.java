@@ -1,9 +1,10 @@
-package dev.rosewood.rosegarden.command;
+package dev.rosewood.rosegarden.command.rwd;
 
 import dev.rosewood.rosegarden.RosePlugin;
 import dev.rosewood.rosegarden.command.framework.BaseRoseCommand;
 import dev.rosewood.rosegarden.command.framework.CommandContext;
 import dev.rosewood.rosegarden.command.framework.CommandInfo;
+import dev.rosewood.rosegarden.command.framework.annotation.RoseExecutable;
 import dev.rosewood.rosegarden.objects.RosePluginData;
 import dev.rosewood.rosegarden.utils.HexUtils;
 import dev.rosewood.rosegarden.utils.RoseGardenUtils;
@@ -31,13 +32,13 @@ public class RwdCommand extends BaseRoseCommand {
                 .build();
     }
 
-    @Override
-    public void execute(CommandContext context) {
+    @RoseExecutable
+    public void displayCommands(CommandContext context) {
         List<RosePluginData> pluginData = this.rosePlugin.getLoadedRosePluginsData();
 
         ComponentBuilder builder = new ComponentBuilder();
         builder.append(TextComponent.fromLegacyText(HexUtils.colorify(
-                RoseGardenUtils.PREFIX + "&ePlugins installed by " + RoseGardenUtils.GRADIENT + "Rosewood Development&e. Hover over to view info: ")));
+                RoseGardenUtils.PREFIX + "&ePlugins installed using " + RoseGardenUtils.GRADIENT + "RoseGarden by Rosewood Development&e. Hover over to view info: ")));
 
         boolean first = true;
         for (RosePluginData data : pluginData) {

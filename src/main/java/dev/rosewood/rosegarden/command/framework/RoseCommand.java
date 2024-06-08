@@ -10,12 +10,12 @@ import org.bukkit.permissions.Permissible;
 public interface RoseCommand {
 
     /**
-     * The execute method to be called after the {@link CommandContext} has been fully populated with arguments
+     * The invoke method to be called after the {@link CommandContext} has been fully populated with arguments
      * based on the {@link ArgumentsDefinition} returned from {@link #getCommandArguments()}.
      *
      * @param context the CommandContext populated with arguments
      */
-    void execute(CommandContext context);
+    void invoke(CommandContext context);
 
     /**
      * @return the name of the command
@@ -51,18 +51,7 @@ public interface RoseCommand {
      * @return a displayable output of this command's parameters
      */
     default String getParametersString(CommandContext context) {
-        StringBuilder stringBuilder = new StringBuilder();
-        ArgumentsDefinition argumentsDefinition = this.getCommandArguments();
-        for (int i = 0; i < argumentsDefinition.size(); i++) {
-            Argument argument = argumentsDefinition.get(i);
-            if (!argument.condition().test(context))
-                continue;
-
-            if (i > 0)
-                stringBuilder.append(' ');
-            stringBuilder.append(argument.parameter());
-        }
-        return stringBuilder.toString();
+        return this.getCommandArguments().getParametersString(context);
     }
 
     /**

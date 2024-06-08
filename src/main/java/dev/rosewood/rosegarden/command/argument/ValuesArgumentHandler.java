@@ -4,6 +4,7 @@ import dev.rosewood.rosegarden.command.framework.Argument;
 import dev.rosewood.rosegarden.command.framework.ArgumentHandler;
 import dev.rosewood.rosegarden.command.framework.CommandContext;
 import dev.rosewood.rosegarden.command.framework.InputIterator;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -35,7 +36,7 @@ public class ValuesArgumentHandler<T> extends ArgumentHandler<T> {
 
     @Override
     public List<String> suggest(CommandContext context, Argument argument, String[] args) {
-        return List.copyOf(this.values.keySet());
+        return new ArrayList<>(this.values.keySet());
     }
 
 }

@@ -22,6 +22,24 @@ public class ArgumentsDefinition {
         return this.arguments.size();
     }
 
+    public String getParametersString(CommandContext context) {
+        return getParametersString(context, this.arguments);
+    }
+
+    public static String getParametersString(CommandContext context, List<Argument> arguments) {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (int i = 0; i < arguments.size(); i++) {
+            Argument argument = arguments.get(i);
+            if (!argument.condition().test(context))
+                continue;
+
+            if (i > 0)
+                stringBuilder.append(' ');
+            stringBuilder.append(argument.parameter());
+        }
+        return stringBuilder.toString();
+    }
+
     public static ArgumentsDefinition empty() {
         return EMPTY;
     }
