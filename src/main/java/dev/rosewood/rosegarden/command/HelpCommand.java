@@ -35,7 +35,7 @@ public class HelpCommand extends BaseRoseCommand {
     }
 
     @RoseExecutable
-    public void invoke(CommandContext context) {
+    public void execute(CommandContext context) {
         AbstractLocaleManager localeManager = this.rosePlugin.getManager(AbstractLocaleManager.class);
 
         ArgumentsDefinition argumentsDefinition = this.parent.getCommandArguments();

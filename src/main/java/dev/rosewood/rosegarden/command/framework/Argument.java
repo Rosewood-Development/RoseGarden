@@ -104,6 +104,7 @@ public interface Argument {
             this.condition = condition;
             this.subCommands = subCommands;
         }
+
         @Override
         public int index() {
             return this.index;

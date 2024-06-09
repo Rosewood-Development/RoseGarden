@@ -12,7 +12,7 @@ import dev.rosewood.rosegarden.utils.StringPlaceholders;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -61,11 +61,9 @@ public abstract class AbstractLocaleManager extends Manager {
             this.rosePlugin.getLogger().warning("No default 'locale/en_US.yml' locale found!");
             this.defaultLocale = new Locale() {
                 public String getLocaleName() { return "none"; }
-                public Map<String, Object> getLocaleValues() { return Collections.emptyMap(); }
+                public Map<String, Object> getLocaleValues() { return new LinkedHashMap<>(); }
             };
         }
-
-        //        .orElseThrow(() -> new IllegalStateException("No default 'locale/en_US.yml' locale found!"));
 
         if (!this.localeDirectory.exists())
             this.localeDirectory.mkdirs();

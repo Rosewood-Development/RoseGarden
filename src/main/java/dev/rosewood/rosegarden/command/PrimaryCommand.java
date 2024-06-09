@@ -15,7 +15,7 @@ public abstract class PrimaryCommand extends BaseRoseCommand {
     }
 
     @RoseExecutable
-    public void invoke(CommandContext context) {
+    public void execute(CommandContext context) {
         AbstractLocaleManager localeManager = this.rosePlugin.getManager(AbstractLocaleManager.class);
 
         String baseColor = localeManager.getLocaleMessage("base-command-color");

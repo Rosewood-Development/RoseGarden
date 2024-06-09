@@ -55,7 +55,8 @@ public class RoseCommandWrapper extends BukkitCommand {
         AtomicBoolean modified = new AtomicBoolean(false);
         if (!exists) {
             commandConfig.addComments("This file lets you change the name and aliases for the " + commandName + " command.",
-                    "If you edit the name/aliases at the top of this file, you will need to restart the server to see all the changes applied properly.");
+                    "If you edit the name/aliases at the top of this file, you will need to restart the server to see all the changes applied properly.",
+                    "Enabling the priority setting will make this command take priority over commands from other plugins on the server.");
             modified.set(true);
         }
 
@@ -68,6 +69,12 @@ public class RoseCommandWrapper extends BukkitCommand {
         // Write default alias values if they don't exist
         if (!commandConfig.contains("aliases")) {
             commandConfig.set("aliases", new ArrayList<>(this.command.getCommandInfo().aliases()));
+            modified.set(true);
+        }
+
+        // Write option to take priority over other commands on the server
+        if (!commandConfig.contains("priority")) {
+            commandConfig.set("priority", this.command.hasPriority());
             modified.set(true);
         }
 
@@ -95,7 +102,7 @@ public class RoseCommandWrapper extends BukkitCommand {
         }
 
         // Finally, register the command with the server
-        CommandMapUtils.registerCommand(this.namespace, this);
+        CommandMapUtils.registerCommand(this.namespace, this, commandConfig.getBoolean("priority", false));
     }
 
     private void writeSubcommands(ConfigurationSection section, RoseCommand command, AtomicBoolean modified) {
@@ -195,6 +202,7 @@ public class RoseCommandWrapper extends BukkitCommand {
         CommandExecutionWalker walker = new CommandExecutionWalker(this.command);
         InputIterator inputIterator = new InputIterator(Arrays.asList(args));
 
+        AtomicBoolean shownErrorMessage = new AtomicBoolean();
         boolean missingArgs = false;
         while (walker.hasNext()) {
             if (!inputIterator.hasNext()) {
@@ -229,11 +237,13 @@ public class RoseCommandWrapper extends BukkitCommand {
 
                     String message = localeManager.getCommandLocaleMessage(e.getMessage(), e.getPlaceholders());
                     localeManager.sendCommandMessage(sender, "invalid-argument", StringPlaceholders.of("message", message));
+                    shownErrorMessage.set(true);
                     context.put(argument, null);
                     return false;
                 } catch (Exception e) {
                     e.printStackTrace();
                     localeManager.sendCommandMessage(sender, "unknown-command-error");
+                    shownErrorMessage.set(true);
                     context.put(argument, null);
                     return false;
                 }
@@ -242,23 +252,19 @@ public class RoseCommandWrapper extends BukkitCommand {
                 if (!argument.condition().test(context))
                     return null;
 
-                if (inputIterator.hasNext()) {
-                    String input = inputIterator.next();
-                    RoseCommand match = argument.subCommands().stream()
-                            .filter(subCommand -> Stream.concat(Stream.of(subCommand.getName()), subCommand.getAliases().stream()).anyMatch(s -> s.equalsIgnoreCase(input)))
-                            .findFirst()
-                            .orElse(null);
+                String input = inputIterator.next();
+                RoseCommand match = argument.subCommands().stream()
+                        .filter(subCommand -> Stream.concat(Stream.of(subCommand.getName()), subCommand.getAliases().stream()).anyMatch(s -> s.equalsIgnoreCase(input)))
+                        .findFirst()
+                        .orElse(null);
 
-                    if (match == null)
-                        localeManager.sendCommandMessage(sender, "invalid-subcommand");
-
-                    context.put(match != null ? argument.withCustomName(input.toLowerCase()) : argument, null);
-                    return match;
+                if (match == null) {
+                    localeManager.sendCommandMessage(sender, "invalid-subcommand");
+                    shownErrorMessage.set(true);
                 }
 
-                localeManager.sendCommandMessage(sender, "invalid-subcommand");
-                context.put(argument, null);
-                return null;
+                context.put(match != null ? argument.withCustomName(input.toLowerCase()) : argument, null);
+                return match;
             });
         }
 
@@ -270,7 +276,7 @@ public class RoseCommandWrapper extends BukkitCommand {
             }
 
             commandToExecute.invoke(context);
-        } else {
+        } else if (!shownErrorMessage.get()) {
             List<Argument> allArguments = context.getArgumentsPath();
             allArguments.addAll(walker.walkRemaining());
             allArguments.addAll(walker.getUnconsumed());

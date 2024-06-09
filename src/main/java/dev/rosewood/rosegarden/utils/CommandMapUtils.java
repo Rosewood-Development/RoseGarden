@@ -25,10 +25,34 @@ public final class CommandMapUtils {
         }
     }
 
+    /**
+     * Registers a command to the Bukkit command map
+     *
+     * @param prefix The command namespace prefix
+     * @param command The command
+     */
     public static void registerCommand(String prefix, Command command) {
         getCommandMap().register(prefix, command);
     }
 
+    /**
+     * Registers a command to the Bukkit command map
+     *
+     * @param prefix The command namespace prefix
+     * @param command The command
+     * @param force If true, will unregister any command at the main namespace that has the same name before being inserted
+     */
+    public static void registerCommand(String prefix, Command command, boolean force) {
+        if (force)
+            getKnownCommands().remove(command.getName());
+        getCommandMap().register(prefix, command);
+    }
+
+    /**
+     * Unregisters a command from the Bukkit command map
+     *
+     * @param command The command
+     */
     public static void unregisterCommand(Command command) {
         Map<String, Command> knownCommands = getKnownCommands();
         for (Map.Entry<String, Command> entry : new HashMap<>(getKnownCommands()).entrySet())

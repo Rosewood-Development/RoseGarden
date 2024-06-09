@@ -33,12 +33,12 @@ public class RwdCommand extends BaseRoseCommand {
     }
 
     @RoseExecutable
-    public void displayCommands(CommandContext context) {
+    public void execute(CommandContext context) {
         List<RosePluginData> pluginData = this.rosePlugin.getLoadedRosePluginsData();
 
         ComponentBuilder builder = new ComponentBuilder();
         builder.append(TextComponent.fromLegacyText(HexUtils.colorify(
-                RoseGardenUtils.PREFIX + "&ePlugins installed using " + RoseGardenUtils.GRADIENT + "RoseGarden by Rosewood Development&e. Hover over to view info: ")));
+                RoseGardenUtils.PREFIX + "&ePlugins installed using " + RoseGardenUtils.GRADIENT + "RoseGarden &eby " + RoseGardenUtils.GRADIENT + "Rosewood Development&e. Hover over to view info: ")));
 
         boolean first = true;
         for (RosePluginData data : pluginData) {

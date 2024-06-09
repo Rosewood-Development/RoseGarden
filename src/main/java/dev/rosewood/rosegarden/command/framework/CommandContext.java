@@ -16,6 +16,7 @@ public class CommandContext {
     private final String commandLabel;
     private final String[] rawArguments;
     private final Map<Argument.CommandArgument<?>, Object> parametersByArgument;
+    private final List<Argument.CommandArgument<?>> usedParameters;
     private final ListMultimap<Class<?>, Object> parametersByType;
     private final Map<String, Object> parametersByName;
     private final List<Argument> argumentsPath;
@@ -26,6 +27,7 @@ public class CommandContext {
         this.rawArguments = rawArguments;
 
         this.parametersByArgument = new LinkedHashMap<>();
+        this.usedParameters = new ArrayList<>();
         this.parametersByType = MultimapBuilder.hashKeys().arrayListValues().build();
         this.parametersByName = new LinkedHashMap<>();
         this.argumentsPath = new ArrayList<>();
@@ -67,6 +69,8 @@ public class CommandContext {
 
         if (argument instanceof Argument.CommandArgument<?>) {
             Argument.CommandArgument<?> commandArgument = (Argument.CommandArgument<?>) argument;
+            if (!argument.optional() || value != null)
+                this.usedParameters.add(commandArgument);
             this.parametersByArgument.put(commandArgument, value);
             this.parametersByType.put(commandArgument.handler().getHandledType(), value);
             this.parametersByName.put(commandArgument.name(), value);
@@ -130,7 +134,7 @@ public class CommandContext {
      * @return An array of used argument types
      */
     protected Class<?>[] getUsedArgumentTypes() {
-        return this.parametersByArgument.keySet().stream()
+        return this.usedParameters.stream()
                 .map(Argument.CommandArgument::handler)
                 .map(ArgumentHandler::getHandledType)
                 .toArray(Class[]::new);

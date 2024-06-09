@@ -97,6 +97,11 @@ public class CommandInfo {
             return this;
         }
 
+        public Builder playerOnly() {
+            this.playerOnly = true;
+            return this;
+        }
+
         public Builder descriptionKey(String descriptionKey) {
             this.descriptionKey = descriptionKey;
             return this;

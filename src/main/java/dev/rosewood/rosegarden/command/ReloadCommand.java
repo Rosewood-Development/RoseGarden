@@ -30,7 +30,7 @@ public class ReloadCommand extends BaseRoseCommand {
     }
 
     @RoseExecutable
-    public void invoke(CommandContext context) {
+    public void execute(CommandContext context) {
         this.rosePlugin.reload();
         this.rosePlugin.getManager(AbstractLocaleManager.class).sendCommandMessage(context.getSender(), "command-reload-reloaded");
     }

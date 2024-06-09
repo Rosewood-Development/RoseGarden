@@ -3,6 +3,7 @@ package dev.rosewood.rosegarden.command.framework;
 import dev.rosewood.rosegarden.RosePlugin;
 import dev.rosewood.rosegarden.command.framework.command.reflection.DefaultedReflectionCommand;
 import dev.rosewood.rosegarden.command.framework.command.reflection.MissingExecutableReflectionCommand;
+import dev.rosewood.rosegarden.command.framework.command.reflection.MixedReflectionCommand;
 import dev.rosewood.rosegarden.command.framework.command.reflection.ReflectionCommand;
 import dev.rosewood.rosegarden.manager.AbstractLocaleManager;
 import java.util.logging.Logger;
@@ -61,6 +62,31 @@ public class CommandExecutionReflectionTest {
     @Test
     public void testExecution_twoArgs_valid() {
         BaseRoseCommand command = new ReflectionCommand(this.rosePlugin);
+        RoseCommandWrapper commandWrapper = new RoseCommandWrapper(this.rosePlugin, command);
+
+        String input = "VALUE_1 banana";
+
+        commandWrapper.execute(this.sender, command.getName(), this.splitInput(input));
+
+        this.verifySuccess("VALUE_1");
+        this.verifySuccess("banana");
+    }
+
+    @Test
+    public void testExecution_oneArgs_mixed_valid() {
+        BaseRoseCommand command = new MixedReflectionCommand(this.rosePlugin);
+        RoseCommandWrapper commandWrapper = new RoseCommandWrapper(this.rosePlugin, command);
+
+        String input = "banana";
+
+        commandWrapper.execute(this.sender, command.getName(), this.splitInput(input));
+
+        this.verifySuccess("banana");
+    }
+
+    @Test
+    public void testExecution_twoArgs_mixed_valid() {
+        BaseRoseCommand command = new MixedReflectionCommand(this.rosePlugin);
         RoseCommandWrapper commandWrapper = new RoseCommandWrapper(this.rosePlugin, command);
 
         String input = "VALUE_1 banana";
