@@ -28,16 +28,19 @@ public class ArgumentsDefinition {
 
     public static String getParametersString(CommandContext context, List<Argument> arguments) {
         StringBuilder stringBuilder = new StringBuilder();
-        for (int i = 0; i < arguments.size(); i++) {
-            Argument argument = arguments.get(i);
+        for (Argument argument : arguments) {
             if (!argument.condition().test(context))
                 continue;
 
-            if (i > 0)
-                stringBuilder.append(' ');
-            stringBuilder.append(argument.parameter());
+            String[] rawArguments = context.getRawArguments(argument);
+            if (rawArguments.length > 0) {
+                for (String arg : rawArguments)
+                    stringBuilder.append(arg).append(' ');
+            } else {
+                stringBuilder.append(argument.parameter()).append(' ');
+            }
         }
-        return stringBuilder.toString();
+        return stringBuilder.toString().trim();
     }
 
     public static ArgumentsDefinition empty() {
@@ -57,24 +60,24 @@ public class ArgumentsDefinition {
         }
 
         public <T> Builder required(String name, ArgumentHandler<T> handler) {
-            this.arguments.add(new Argument.CommandArgument<>(this.arguments.size(), name, false, c -> true, handler));
+            this.arguments.add(new Argument.CommandArgument<>(name, false, c -> true, handler));
             return this;
         }
 
         public <T> Builder optional(String name, ArgumentHandler<T> handler) {
-            this.arguments.add(new Argument.CommandArgument<>(this.arguments.size(), name, true, c -> true, handler));
+            this.arguments.add(new Argument.CommandArgument<>(name, true, c -> true, handler));
             return this;
         }
 
         public <T> Builder optional(String name, ArgumentHandler<T> handler, ArgumentCondition condition) {
-            this.arguments.add(new Argument.CommandArgument<>(this.arguments.size(), name, true, condition, handler));
+            this.arguments.add(new Argument.CommandArgument<>(name, true, condition, handler));
             return this;
         }
 
         public ArgumentsDefinition requiredSub(String name, RoseCommand... subCommands) {
             if (subCommands.length == 0)
                 throw new IllegalArgumentException("subCommands cannot be empty");
-            this.arguments.add(new Argument.SubCommandArgument(this.arguments.size(), name, false, c -> true, Arrays.asList(subCommands)));
+            this.arguments.add(new Argument.SubCommandArgument(name, false, c -> true, Arrays.asList(subCommands)));
             return new ArgumentsDefinition(this.arguments);
         }
 
@@ -85,7 +88,7 @@ public class ArgumentsDefinition {
         public ArgumentsDefinition optionalSub(String name, RoseCommand... subCommands) {
             if (subCommands.length == 0)
                 throw new IllegalArgumentException("subCommands cannot be empty");
-            this.arguments.add(new Argument.SubCommandArgument(this.arguments.size(), name, true, c -> true, Arrays.asList(subCommands)));
+            this.arguments.add(new Argument.SubCommandArgument(name, true, c -> true, Arrays.asList(subCommands)));
             return new ArgumentsDefinition(this.arguments);
         }
 
@@ -96,7 +99,7 @@ public class ArgumentsDefinition {
         public ArgumentsDefinition optionalSub(String name, ArgumentCondition condition, RoseCommand... subCommands) {
             if (subCommands.length == 0)
                 throw new IllegalArgumentException("subCommands cannot be empty");
-            this.arguments.add(new Argument.SubCommandArgument(this.arguments.size(), name, true, condition, Arrays.asList(subCommands)));
+            this.arguments.add(new Argument.SubCommandArgument(name, true, condition, Arrays.asList(subCommands)));
             return new ArgumentsDefinition(this.arguments);
         }
 

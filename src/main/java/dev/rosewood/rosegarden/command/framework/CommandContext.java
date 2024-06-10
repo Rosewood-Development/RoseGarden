@@ -5,6 +5,7 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +21,7 @@ public class CommandContext {
     private final ListMultimap<Class<?>, Object> parametersByType;
     private final Map<String, Object> parametersByName;
     private final List<Argument> argumentsPath;
+    private final Map<Argument, String[]> rawArgumentsPath;
 
     public CommandContext(CommandSender sender, String commandLabel, String[] rawArguments) {
         this.sender = sender;
@@ -31,6 +33,7 @@ public class CommandContext {
         this.parametersByType = MultimapBuilder.hashKeys().arrayListValues().build();
         this.parametersByName = new LinkedHashMap<>();
         this.argumentsPath = new ArrayList<>();
+        this.rawArgumentsPath = new LinkedHashMap<>();
     }
 
     /**
@@ -55,17 +58,25 @@ public class CommandContext {
     }
 
     /**
+     * Gets the raw unparsed input of an argument
+     *
+     * @param argument The argument to get the raw input for
+     * @return The raw unparsed input, or null if the argument was not present
+     */
+    public String[] getRawArguments(Argument argument) {
+        return this.rawArgumentsPath.getOrDefault(argument, new String[0]);
+    }
+
+    /**
      * Puts a command parameter to the context
      *
      * @param argument The argument for the parameter
      * @param value The value
      * @param <T> The type of the value
      */
-    protected <T> void put(Argument argument, T value) {
+    protected <T> void put(Argument argument, T value, List<String> input) {
         this.argumentsPath.add(argument);
-
-        if (argument instanceof Argument.NamedProxyArgument)
-            argument = ((Argument.NamedProxyArgument) argument).proxy();
+        this.rawArgumentsPath.put(argument, input.toArray(new String[0]));
 
         if (argument instanceof Argument.CommandArgument<?>) {
             Argument.CommandArgument<?> commandArgument = (Argument.CommandArgument<?>) argument;
@@ -75,6 +86,15 @@ public class CommandContext {
             this.parametersByType.put(commandArgument.handler().getHandledType(), value);
             this.parametersByName.put(commandArgument.name(), value);
         }
+    }
+
+    /**
+     * Puts a command parameter to the context with no value or input
+     *
+     * @param argument The argument for the parameter
+     */
+    protected void put(Argument argument) {
+        this.put(argument, null, Collections.emptyList());
     }
 
     /**

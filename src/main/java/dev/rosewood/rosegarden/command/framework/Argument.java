@@ -5,11 +5,6 @@ import java.util.Collection;
 public interface Argument {
 
     /**
-     * @return The index of the argument in the command
-     */
-    int index();
-
-    /**
      * @return The name of the argument
      */
     String name();
@@ -35,33 +30,21 @@ public interface Argument {
         }
     }
 
-    default Argument withCustomName(String name) {
-        return new NamedProxyArgument(this, name);
-    }
-
     class CommandArgument<T> implements Argument {
 
-        private final int index;
         private final String name;
         private final boolean optional;
         private final ArgumentCondition condition;
         private final ArgumentHandler<T> handler;
 
-        public CommandArgument(int index,
-                               String name,
+        public CommandArgument(String name,
                                boolean optional,
                                ArgumentCondition condition,
                                ArgumentHandler<T> handler) {
-            this.index = index;
             this.name = name;
             this.optional = optional;
             this.condition = condition;
             this.handler = handler;
-        }
-
-        @Override
-        public int index() {
-            return this.index;
         }
 
         @Override
@@ -87,27 +70,19 @@ public interface Argument {
 
     class SubCommandArgument implements Argument {
 
-        private final int index;
         private final String name;
         private final boolean optional;
         private final ArgumentCondition condition;
         private final Collection<RoseCommand> subCommands;
 
-        public SubCommandArgument(int index,
-                                  String name,
+        public SubCommandArgument(String name,
                                   boolean optional,
                                   ArgumentCondition condition,
                                   Collection<RoseCommand> subCommands) {
-            this.index = index;
             this.name = name;
             this.optional = optional;
             this.condition = condition;
             this.subCommands = subCommands;
-        }
-
-        @Override
-        public int index() {
-            return this.index;
         }
 
         @Override
@@ -127,42 +102,6 @@ public interface Argument {
 
         public Collection<RoseCommand> subCommands() {
             return this.subCommands;
-        }
-
-    }
-
-    class NamedProxyArgument implements Argument {
-
-        private final Argument proxy;
-        private final String name;
-
-        public NamedProxyArgument(Argument proxy, String name) {
-            this.proxy = proxy;
-            this.name = name;
-        }
-
-        @Override
-        public int index() {
-            return this.proxy.index();
-        }
-
-        @Override
-        public String name() {
-            return this.name;
-        }
-
-        @Override
-        public boolean optional() {
-            return this.proxy.optional();
-        }
-
-        @Override
-        public ArgumentCondition condition() {
-            return this.proxy.condition();
-        }
-
-        public Argument proxy() {
-            return this.proxy;
         }
 
     }

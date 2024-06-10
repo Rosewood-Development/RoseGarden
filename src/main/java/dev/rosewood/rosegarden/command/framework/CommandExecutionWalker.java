@@ -98,7 +98,7 @@ public class CommandExecutionWalker {
     }
 
     /**
-     * @return true if the next argument is optional, false otherwise
+     * @return true if there are more arguments in the walker to step through after the current step, false otherwise
      */
     public boolean hasNextStep() {
         return this.currentDefinition.size() > this.argumentIndex + 1;
