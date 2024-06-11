@@ -38,12 +38,39 @@ public class InputIterator implements Iterator<String>, Cloneable {
     }
 
     /**
+     * Pops the next available argument <code>amount</code> times.
+     *
+     * @param amount the number of arguments to pop
+     * @return the next <code>amount</code> arguments, missing arguments will be filled with empty strings
+     */
+    public String[] next(int amount) {
+        String[] result = new String[amount];
+        for (int i = 0; i < amount; i++)
+            result[i] = this.next();
+        return result;
+    }
+
+    /**
      * @return peeks the next available argument, or an empty string if none are available
      */
     public String peek() {
         if (!this.hasNext())
             return "";
         return this.input.get(0);
+    }
+
+    /**
+     * Peeks the next available argument <code>amount</code> times.
+     *
+     * @param amount the number of arguments to peek
+     * @return the next <code>amount</code> arguments, missing arguments will be filled with empty strings
+     */
+    public String[] peek(int amount) {
+        String[] result = new String[amount];
+        InputIterator it = this.clone();
+        for (int i = 0; i < amount; i++)
+            result[i] = it.next();
+        return result;
     }
 
     protected List<String> getStack() {

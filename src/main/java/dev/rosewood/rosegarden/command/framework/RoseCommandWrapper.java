@@ -271,17 +271,24 @@ public class RoseCommandWrapper extends BukkitCommand {
                     localeManager.sendCommandMessage(sender, "invalid-subcommand");
                     shownErrorMessage.set(true);
                     context.put(argument);
-                } else {
-                    if (match.isPlayerOnly() && !(sender instanceof Player)) {
-                        localeManager.sendCommandMessage(sender, "only-player");
-                        shownErrorMessage.set(true);
-                        context.put(argument);
-                        return null;
-                    }
-
-                    context.put(argument, null, Collections.singletonList(input));
+                    return null;
                 }
 
+                if (match.isPlayerOnly() && !(sender instanceof Player)) {
+                    localeManager.sendCommandMessage(sender, "only-player");
+                    shownErrorMessage.set(true);
+                    context.put(argument);
+                    return null;
+                }
+
+                if (!match.canUse(sender)) {
+                    localeManager.sendCommandMessage(sender, "no-permission");
+                    shownErrorMessage.set(true);
+                    context.put(argument);
+                    return null;
+                }
+
+                context.put(argument, null, Collections.singletonList(input));
                 return match;
             });
         }
@@ -336,8 +343,13 @@ public class RoseCommandWrapper extends BukkitCommand {
                         throw new ArgumentHandler.HandledArgumentException("");
 
                     Object parsedArgument = handler.handle(context, argument, inputIterator);
-                    if (parsedArgument == null || !inputIterator.hasNext())
-                        return false;
+                    if (!inputIterator.hasNext()) { // No more player input, always show suggestions
+                        String[] remainingArgs = inputIterator.getStack().toArray(new String[0]);
+                        argument.handler().suggest(context, argument, remainingArgs).stream()
+                                .filter(x -> StringUtil.startsWithIgnoreCase(x, String.join(" ", remainingArgs)))
+                                .forEach(suggestions::add);
+                        return argument.optional();
+                    }
 
                     context.put(argument, parsedArgument, inputIterator.getStack());
                     return true;
@@ -345,6 +357,7 @@ public class RoseCommandWrapper extends BukkitCommand {
                     List<String> remainingInput = new ArrayList<>(inputIterator.getStack());
                     while (inputIterator.hasNext())
                         remainingInput.add(inputIterator.next());
+
                     String[] remainingArgs = remainingInput.toArray(new String[0]);
                     argument.handler().suggest(context, argument, remainingArgs).stream()
                             .filter(x -> StringUtil.startsWithIgnoreCase(x, String.join(" ", remainingInput)))

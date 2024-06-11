@@ -62,7 +62,7 @@ public class SubCommandSuggestionTest {
 
         List<String> suggestions = commandWrapper.tabComplete(this.sender, command.getName(), this.splitInput(input));
 
-        assertTrue(suggestions.isEmpty());
+        assertEquals(Collections.singletonList("value_1"), suggestions);
     }
 
     @Test

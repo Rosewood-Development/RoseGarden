@@ -5,6 +5,7 @@ import dev.rosewood.rosegarden.command.framework.command.suggest.SuggestionComma
 import dev.rosewood.rosegarden.command.framework.handler.TestArgumentHandler;
 import dev.rosewood.rosegarden.command.framework.model.TestEnum;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -12,7 +13,6 @@ import org.bukkit.command.CommandSender;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -86,7 +86,7 @@ public class CommandSuggestionTest {
 
         List<String> suggestions = commandWrapper.tabComplete(this.sender, command.getName(), this.splitInput(input));
 
-        assertTrue(suggestions.isEmpty());
+        assertEquals(Collections.singletonList("apple"), suggestions);
     }
 
     @Test
@@ -98,7 +98,7 @@ public class CommandSuggestionTest {
 
         List<String> suggestions = commandWrapper.tabComplete(this.sender, command.getName(), this.splitInput(input));
 
-        assertTrue(suggestions.isEmpty());
+        assertEquals(Collections.singletonList("value_1"), suggestions);
     }
 
     private String[] splitInput(String input) {

@@ -32,7 +32,7 @@ public final class CommandMapUtils {
      * @param command The command
      */
     public static void registerCommand(String prefix, Command command) {
-        getCommandMap().register(prefix, command);
+        registerCommand(prefix, command, false);
     }
 
     /**
@@ -41,11 +41,19 @@ public final class CommandMapUtils {
      * @param prefix The command namespace prefix
      * @param command The command
      * @param force If true, will unregister any command at the main namespace that has the same name before being inserted
+     * @return true if any command was unregistered from the command map, false otherwise
      */
-    public static void registerCommand(String prefix, Command command, boolean force) {
-        if (force)
-            getKnownCommands().remove(command.getName());
+    public static boolean registerCommand(String prefix, Command command, boolean force) {
+        boolean removed = false;
+        if (force) {
+            Map<String, Command> knownCommands = getKnownCommands();
+            removed |= knownCommands.remove(command.getName()) != null;
+            for (String alias : command.getAliases())
+                removed |= knownCommands.remove(alias) != null;
+        }
+
         getCommandMap().register(prefix, command);
+        return removed;
     }
 
     /**
@@ -55,7 +63,7 @@ public final class CommandMapUtils {
      */
     public static void unregisterCommand(Command command) {
         Map<String, Command> knownCommands = getKnownCommands();
-        for (Map.Entry<String, Command> entry : new HashMap<>(getKnownCommands()).entrySet())
+        for (Map.Entry<String, Command> entry : new HashMap<>(knownCommands).entrySet())
             if (entry.getValue().equals(command))
                 knownCommands.remove(entry.getKey());
 
