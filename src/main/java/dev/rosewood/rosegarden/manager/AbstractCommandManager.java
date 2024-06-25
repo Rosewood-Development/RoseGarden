@@ -29,14 +29,12 @@ public abstract class AbstractCommandManager extends Manager {
                 .forEach(this.commandWrappers::add);
 
         this.commandWrappers.forEach(RoseCommandWrapper::register);
-        Bukkit.getOnlinePlayers().forEach(Player::updateCommands);
     }
 
     @Override
     public void disable() {
         this.commandWrappers.forEach(RoseCommandWrapper::unregister);
         this.commandWrappers.clear();
-        Bukkit.getOnlinePlayers().forEach(Player::updateCommands);
     }
 
     @NotNull

@@ -21,7 +21,7 @@ public abstract class PrimaryCommand extends BaseRoseCommand {
         String baseColor = localeManager.getLocaleMessage("base-command-color");
         localeManager.sendCustomMessage(context.getSender(), baseColor + "Running " + RoseGardenUtils.GRADIENT + this.rosePlugin.getDescription().getName() + baseColor + " v" + this.rosePlugin.getDescription().getVersion());
         localeManager.sendCustomMessage(context.getSender(), baseColor + "Plugin created by: <g:#41E0F0:#FF8DCE>" + this.rosePlugin.getDescription().getAuthors().get(0));
-        localeManager.sendSimpleMessage(context.getSender(), "base-command-help", StringPlaceholders.of("cmd", this.getName()));
+        localeManager.sendSimpleMessage(context.getSender(), "base-command-help", StringPlaceholders.of("cmd", context.getCommandLabel()));
     }
 
 }

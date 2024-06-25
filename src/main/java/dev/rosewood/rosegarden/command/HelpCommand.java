@@ -15,18 +15,28 @@ public class HelpCommand extends BaseRoseCommand {
 
     protected final BaseRoseCommand parent;
     private final CommandInfo commandInfo;
+    private final boolean showCommandArgs;
 
-    public HelpCommand(RosePlugin rosePlugin, BaseRoseCommand parent, CommandInfo commandInfo) {
+    public HelpCommand(RosePlugin rosePlugin, BaseRoseCommand parent, CommandInfo commandInfo, boolean showCommandArgs) {
         super(rosePlugin);
 
         this.parent = parent;
         this.commandInfo = commandInfo;
+        this.showCommandArgs = showCommandArgs;
+    }
+
+    public HelpCommand(RosePlugin rosePlugin, BaseRoseCommand parent, CommandInfo commandInfo) {
+        this(rosePlugin, parent, commandInfo, true);
+    }
+
+    public HelpCommand(RosePlugin rosePlugin, BaseRoseCommand parent, boolean showCommandArgs) {
+        this(rosePlugin, parent, CommandInfo.builder("help")
+                .descriptionKey("command-help-description")
+                .build(), showCommandArgs);
     }
 
     public HelpCommand(RosePlugin rosePlugin, BaseRoseCommand parent) {
-        this(rosePlugin, parent, CommandInfo.builder("help")
-                .descriptionKey("command-help-description")
-                .build());
+        this(rosePlugin, parent, true);
     }
 
     @Override
@@ -60,7 +70,7 @@ public class HelpCommand extends BaseRoseCommand {
                     "desc", localeManager.getLocaleMessage(descriptionKey)
             );
 
-            localeManager.sendSimpleCommandMessage(context.getSender(), "command-help-list-description" + (command.getCommandArguments().size() == 0 ? "-no-args" : ""), stringPlaceholders);
+            localeManager.sendSimpleCommandMessage(context.getSender(), "command-help-list-description" + (command.getCommandArguments().size() == 0 || !this.showCommandArgs ? "-no-args" : ""), stringPlaceholders);
         }
 
         this.sendCustomHelpMessage(context);

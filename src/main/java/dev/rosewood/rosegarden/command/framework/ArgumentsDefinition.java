@@ -2,11 +2,12 @@ package dev.rosewood.rosegarden.command.framework;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class ArgumentsDefinition {
 
-    private static final ArgumentsDefinition EMPTY = new ArgumentsDefinition(new ArrayList<>());
+    private static final ArgumentsDefinition EMPTY = new ArgumentsDefinition(Collections.emptyList());
 
     private final List<Argument> arguments;
 
