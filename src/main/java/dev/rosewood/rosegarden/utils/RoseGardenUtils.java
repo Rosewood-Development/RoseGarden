@@ -8,6 +8,7 @@ import dev.rosewood.rosegarden.config.RoseSettingValue;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -18,18 +19,6 @@ public final class RoseGardenUtils {
 
     public static final String GRADIENT = "<g:#8A2387:#E94057:#F27121>";
     public static final String PREFIX = "&7[" + GRADIENT + "RoseGarden&7] ";
-
-    public static final Map<Class<?>, Class<?>> PRIMITIVE_TO_WRAPPER = new HashMap<Class<?>, Class<?>>() {{
-        this.put(boolean.class, Boolean.class);
-        this.put(byte.class, Byte.class);
-        this.put(char.class, Character.class);
-        this.put(double.class, Double.class);
-        this.put(float.class, Float.class);
-        this.put(int.class, Integer.class);
-        this.put(long.class, Long.class);
-        this.put(short.class, Short.class);
-        this.put(void.class, Void.class);
-    }};
 
     private static Logger logger;
 
@@ -155,16 +144,6 @@ public final class RoseGardenUtils {
     }
 
     /**
-     * Gets a primitive class as its wrapper counterpart
-     *
-     * @param clazz The class to get the wrapped class of
-     * @return The wrapped class, or the same class if not primitive
-     */
-    public static Class<?> getPrimitiveAsWrapper(Class<?> clazz) {
-        return clazz.isPrimitive() ? PRIMITIVE_TO_WRAPPER.get(clazz) : clazz;
-    }
-
-    /**
      * Sends a RoseGarden message to a recipient
      */
     public static void sendMessage(CommandSender recipient, String message) {
@@ -176,6 +155,17 @@ public final class RoseGardenUtils {
      */
     public static void sendMessage(CommandSender recipient, String message, StringPlaceholders placeholders) {
         sendMessage(recipient, placeholders.apply(message));
+    }
+
+    /**
+     * Converts a long value and TimeUnit to a value in ticks
+     *
+     * @param value The value
+     * @param timeUnit The TimeUnit
+     * @return the value in ticks, rounded to the nearest tick
+     */
+    public static long timeUnitToTicks(long value, TimeUnit timeUnit) {
+        return Math.round(timeUnit.toMillis(value) / 50.0);
     }
 
 }

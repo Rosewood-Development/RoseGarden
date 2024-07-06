@@ -59,4 +59,13 @@ public final class ClassUtils {
         return classes;
     }
 
+    public static boolean checkClass(String clazz) {
+        try {
+            Class.forName(clazz);
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
+
 }

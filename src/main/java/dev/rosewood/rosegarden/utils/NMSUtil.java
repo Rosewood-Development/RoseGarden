@@ -13,8 +13,8 @@ public final class NMSUtil {
         String[] parts = bukkitVersion.split("-")[0].split("\\.");
         VERSION_NUMBER = Integer.parseInt(parts[1]);
         MINOR_VERSION_NUMBER = parts.length >= 3 ? Integer.parseInt(parts[2]) : 0;
-        IS_PAPER = checkClass("com.destroystokyo.paper.PaperConfig");
-        IS_FOLIA = checkClass("io.papermc.paper.threadedregions.RegionizedServer");
+        IS_PAPER = ClassUtils.checkClass("com.destroystokyo.paper.PaperConfig");
+        IS_FOLIA = ClassUtils.checkClass("io.papermc.paper.threadedregions.RegionizedServer");
     }
 
     private NMSUtil() {
@@ -47,15 +47,6 @@ public final class NMSUtil {
      */
     public static boolean isFolia() {
         return IS_FOLIA;
-    }
-
-    private static boolean checkClass(String clazz) {
-        try {
-            Class.forName(clazz);
-            return true;
-        } catch (ClassNotFoundException e) {
-            return false;
-        }
     }
 
 }

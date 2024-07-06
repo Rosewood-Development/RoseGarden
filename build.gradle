@@ -10,7 +10,7 @@ plugins {
 targetCompatibility = '1.8'
 sourceCompatibility = '1.8'
 group = 'dev.rosewood'
-version = '1.3.2'
+version = '1.3.3-SNAPSHOT'
 
 java {
     disableAutoTargetJvm() // Allows depending on Paper's newer APIs even though they use Java 17
@@ -32,7 +32,7 @@ repositories {
 
 dependencies {
     // Referenced dependencies
-    compileOnly 'io.papermc.paper:paper-api:1.20.6-R0.1-SNAPSHOT'
+    compileOnly 'io.papermc.paper:paper-api:1.21-R0.1-SNAPSHOT'
     compileOnly 'me.clip:placeholderapi:2.11.3'
     compileOnly 'org.jetbrains:annotations:24.0.1'
 

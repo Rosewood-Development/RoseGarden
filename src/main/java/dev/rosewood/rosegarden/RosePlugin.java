@@ -10,6 +10,7 @@ import dev.rosewood.rosegarden.manager.DataMigrationManager;
 import dev.rosewood.rosegarden.manager.Manager;
 import dev.rosewood.rosegarden.manager.PluginUpdateManager;
 import dev.rosewood.rosegarden.objects.RosePluginData;
+import dev.rosewood.rosegarden.scheduler.RoseScheduler;
 import dev.rosewood.rosegarden.utils.RoseGardenUtils;
 import java.io.File;
 import java.lang.reflect.Method;
@@ -224,6 +225,13 @@ public abstract class RosePlugin extends JavaPlugin {
         } catch (Exception ex) {
             throw new ManagerNotFoundException(managerClass, ex);
         }
+    }
+
+    /**
+     * @return the scheduler for this plugin
+     */
+    public RoseScheduler getScheduler() {
+        return RoseScheduler.getInstance(this);
     }
 
     /**
