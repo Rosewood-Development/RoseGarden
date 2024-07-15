@@ -226,14 +226,16 @@ public abstract class RosePlugin extends JavaPlugin {
 
         return (T) this.managers.computeIfAbsent(lookupClass, key -> {
             try {
-                T manager = managerClass.getConstructor(RosePlugin.class).newInstance(this);
-                this.managerInitializationStack.push(managerClass);
+                T manager = (T) lookupClass.getConstructor(RosePlugin.class).newInstance(this);
+                this.managerInitializationStack.push(lookupClass);
                 manager.reload();
                 return manager;
             } catch (ReflectiveOperationException e) {
-                throw new ManagerInitializationException(managerClass, e);
+                this.managerInitializationStack.remove(lookupClass);
+                throw new ManagerInitializationException(lookupClass, e);
             } catch (Exception ex) {
-                throw new ManagerLoadException(managerClass, ex);
+                this.managerInitializationStack.remove(lookupClass);
+                throw new ManagerLoadException(lookupClass, ex);
             }
         });
     }
