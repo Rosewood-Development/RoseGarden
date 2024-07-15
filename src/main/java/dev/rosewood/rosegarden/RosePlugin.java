@@ -15,11 +15,12 @@ import dev.rosewood.rosegarden.utils.RoseGardenUtils;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashMap;
+import java.util.Deque;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
@@ -58,6 +59,7 @@ public abstract class RosePlugin extends JavaPlugin {
      * The plugin managers
      */
     private final Map<Class<? extends Manager>, Manager> managers;
+    private final Deque<Class<? extends Manager>> managerInitializationStack;
 
     private boolean firstToRegister = false;
 
@@ -83,7 +85,8 @@ public abstract class RosePlugin extends JavaPlugin {
         this.localeManagerClass = localeManagerClass;
         this.commandManagerClass = commandManagerClass;
 
-        this.managers = new LinkedHashMap<>();
+        this.managers = new ConcurrentHashMap<>();
+        this.managerInitializationStack = new ArrayDeque<>();
     }
 
     @Override
@@ -124,7 +127,6 @@ public abstract class RosePlugin extends JavaPlugin {
 
         // Shut down the managers
         this.disableManagers();
-        this.managers.clear();
     }
 
     /**
@@ -157,7 +159,6 @@ public abstract class RosePlugin extends JavaPlugin {
      */
     public void reload() {
         this.disableManagers();
-        this.managers.values().forEach(Manager::reload);
 
         List<Class<? extends Manager>> managerLoadPriority = new ArrayList<>();
 
@@ -184,47 +185,56 @@ public abstract class RosePlugin extends JavaPlugin {
     }
 
     /**
-     * Runs {@link Manager#disable} on all managers in the reverse order that they were loaded
+     * Runs {@link Manager#disable} on all managers in the reverse order that they were loaded and then unloads all
+     * managers.
      */
     private void disableManagers() {
-        List<Manager> managers = new ArrayList<>(this.managers.values());
-        Collections.reverse(managers);
-        managers.forEach(Manager::disable);
+        Class<? extends Manager> managerClass;
+        while ((managerClass = this.managerInitializationStack.pollFirst()) != null) {
+            Manager manager = this.managers.get(managerClass);
+            manager.disable();
+        }
+        this.managers.clear();
     }
 
     /**
-     * Gets a manager instance
+     * Gets a manager instance and loads it if this is the first call to get it.
      *
      * @param managerClass The class of the manager to get
      * @param <T> extends Manager
      * @return A new or existing instance of the given manager class
-     * @throws ManagerNotFoundException if the manager could not be found or failed to load
+     * @throws ManagerLoadException if the manager fails to load
+     * @throws ManagerInitializationException if the manager fails to initialize
      */
     @SuppressWarnings("unchecked")
     @NotNull
     public <T extends Manager> T getManager(Class<T> managerClass) {
-        if (this.managers.containsKey(managerClass))
-            return (T) this.managers.get(managerClass);
-
         // Get the actual class if the abstract one is requested
+        Class<T> lookupClass;
         if (this.hasConfigurationManager() && managerClass == AbstractConfigurationManager.class) {
-            return this.getManager((Class<T>) this.configurationManagerClass);
+            lookupClass = (Class<T>) this.configurationManagerClass;
         } else if (this.hasDataManager() && managerClass == AbstractDataManager.class) {
-            return this.getManager((Class<T>) this.dataManagerClass);
+            lookupClass = (Class<T>) this.dataManagerClass;
         } else if (this.hasLocaleManager() && managerClass == AbstractLocaleManager.class) {
-            return this.getManager((Class<T>) this.localeManagerClass);
+            lookupClass = (Class<T>) this.localeManagerClass;
         } else if (this.hasCommandManager() && managerClass == AbstractCommandManager.class) {
-            return this.getManager((Class<T>) this.commandManagerClass);
+            lookupClass = (Class<T>) this.commandManagerClass;
+        } else {
+            lookupClass = managerClass;
         }
 
-        try {
-            T manager = managerClass.getConstructor(RosePlugin.class).newInstance(this);
-            this.managers.put(managerClass, manager);
-            manager.reload();
-            return manager;
-        } catch (Exception ex) {
-            throw new ManagerNotFoundException(managerClass, ex);
-        }
+        return (T) this.managers.computeIfAbsent(lookupClass, key -> {
+            try {
+                T manager = managerClass.getConstructor(RosePlugin.class).newInstance(this);
+                this.managerInitializationStack.push(managerClass);
+                manager.reload();
+                return manager;
+            } catch (ReflectiveOperationException e) {
+                throw new ManagerInitializationException(managerClass, e);
+            } catch (Exception ex) {
+                throw new ManagerLoadException(managerClass, ex);
+            }
+        });
     }
 
     /**
@@ -328,11 +338,22 @@ public abstract class RosePlugin extends JavaPlugin {
     }
 
     /**
-     * An exception thrown when a Manager fails to load
+     * An exception thrown when a Manager doesn't exist
      */
-    private static class ManagerNotFoundException extends RuntimeException {
+    private static class ManagerLoadException extends RuntimeException {
 
-        public ManagerNotFoundException(Class<? extends Manager> managerClass, Throwable cause) {
+        public ManagerLoadException(Class<? extends Manager> managerClass, Throwable cause) {
+            super("Manager does not exist " + managerClass.getSimpleName(), cause);
+        }
+
+    }
+
+    /**
+     * An exception thrown when a Manager can't be initialized
+     */
+    private static class ManagerInitializationException extends RuntimeException {
+
+        public ManagerInitializationException(Class<? extends Manager> managerClass, Throwable cause) {
             super("Failed to load " + managerClass.getSimpleName(), cause);
         }
 
