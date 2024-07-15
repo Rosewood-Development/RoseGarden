@@ -192,7 +192,8 @@ public abstract class RosePlugin extends JavaPlugin {
         Class<? extends Manager> managerClass;
         while ((managerClass = this.managerInitializationStack.pollFirst()) != null) {
             Manager manager = this.managers.get(managerClass);
-            manager.disable();
+            if (manager != null)
+                manager.disable();
         }
         this.managers.clear();
     }
@@ -210,15 +211,15 @@ public abstract class RosePlugin extends JavaPlugin {
     @NotNull
     public <T extends Manager> T getManager(Class<T> managerClass) {
         // Get the actual class if the abstract one is requested
-        Class<T> lookupClass;
+        Class<? extends Manager> lookupClass;
         if (this.hasConfigurationManager() && managerClass == AbstractConfigurationManager.class) {
-            lookupClass = (Class<T>) this.configurationManagerClass;
+            lookupClass = this.configurationManagerClass;
         } else if (this.hasDataManager() && managerClass == AbstractDataManager.class) {
-            lookupClass = (Class<T>) this.dataManagerClass;
+            lookupClass = this.dataManagerClass;
         } else if (this.hasLocaleManager() && managerClass == AbstractLocaleManager.class) {
-            lookupClass = (Class<T>) this.localeManagerClass;
+            lookupClass = this.localeManagerClass;
         } else if (this.hasCommandManager() && managerClass == AbstractCommandManager.class) {
-            lookupClass = (Class<T>) this.commandManagerClass;
+            lookupClass = this.commandManagerClass;
         } else {
             lookupClass = managerClass;
         }
@@ -343,7 +344,7 @@ public abstract class RosePlugin extends JavaPlugin {
     private static class ManagerLoadException extends RuntimeException {
 
         public ManagerLoadException(Class<? extends Manager> managerClass, Throwable cause) {
-            super("Manager does not exist " + managerClass.getSimpleName(), cause);
+            super("Failed to load " + managerClass.getSimpleName(), cause);
         }
 
     }
@@ -354,7 +355,7 @@ public abstract class RosePlugin extends JavaPlugin {
     private static class ManagerInitializationException extends RuntimeException {
 
         public ManagerInitializationException(Class<? extends Manager> managerClass, Throwable cause) {
-            super("Failed to load " + managerClass.getSimpleName(), cause);
+            super("Failed to initialize " + managerClass.getSimpleName(), cause);
         }
 
     }
