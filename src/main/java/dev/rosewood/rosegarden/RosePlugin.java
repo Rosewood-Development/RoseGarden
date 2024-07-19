@@ -15,12 +15,13 @@ import dev.rosewood.rosegarden.utils.RoseGardenUtils;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
@@ -86,7 +87,7 @@ public abstract class RosePlugin extends JavaPlugin {
         this.commandManagerClass = commandManagerClass;
 
         this.managers = new ConcurrentHashMap<>();
-        this.managerInitializationStack = new ArrayDeque<>();
+        this.managerInitializationStack = new ConcurrentLinkedDeque<>();
     }
 
     @Override
@@ -224,20 +225,27 @@ public abstract class RosePlugin extends JavaPlugin {
             lookupClass = managerClass;
         }
 
-        return (T) this.managers.computeIfAbsent(lookupClass, key -> {
+        AtomicBoolean initialized = new AtomicBoolean();
+        T manager = (T) this.managers.computeIfAbsent(lookupClass, key -> {
             try {
-                T manager = (T) lookupClass.getConstructor(RosePlugin.class).newInstance(this);
-                this.managerInitializationStack.push(lookupClass);
-                manager.reload();
-                return manager;
-            } catch (ReflectiveOperationException e) {
-                this.managerInitializationStack.remove(lookupClass);
+                return lookupClass.getConstructor(RosePlugin.class).newInstance(this);
+            } catch (Exception e) {
                 throw new ManagerInitializationException(lookupClass, e);
-            } catch (Exception ex) {
-                this.managerInitializationStack.remove(lookupClass);
-                throw new ManagerLoadException(lookupClass, ex);
+            } finally {
+                initialized.set(true);
             }
         });
+
+        if (initialized.get()) {
+            this.managerInitializationStack.push(lookupClass);
+            try {
+                manager.reload();
+            } catch (Exception e) {
+                throw new ManagerLoadException(lookupClass, e);
+            }
+        }
+
+        return manager;
     }
 
     /**

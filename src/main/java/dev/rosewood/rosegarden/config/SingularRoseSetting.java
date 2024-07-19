@@ -2,6 +2,7 @@ package dev.rosewood.rosegarden.config;
 
 import dev.rosewood.rosegarden.RosePlugin;
 import dev.rosewood.rosegarden.manager.AbstractConfigurationManager;
+import java.io.File;
 
 public class SingularRoseSetting implements RoseSetting {
 
@@ -45,7 +46,9 @@ public class SingularRoseSetting implements RoseSetting {
 
     @Override
     public CommentedFileConfiguration getBaseConfig() {
-        return this.rosePlugin.getManager(AbstractConfigurationManager.class).getConfig();
+        File configFile = new File(this.rosePlugin.getDataFolder(), "config.yml");
+        return CommentedFileConfiguration.loadConfiguration(configFile);
+        //return this.rosePlugin.getManager(AbstractConfigurationManager.class).getConfig();
     }
 
 }
