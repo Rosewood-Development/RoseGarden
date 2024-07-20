@@ -11,15 +11,15 @@ public final class RoseSettingSerializers {
     private RoseSettingSerializers() { }
 
     //region Primitive Serializers
-    public static final RoseSettingSerializer<Boolean> BOOLEAN = (config, setting) -> config.getBoolean(setting.getKey());
-    public static final RoseSettingSerializer<Integer> INTEGER = (config, setting) -> config.getInt(setting.getKey());
-    public static final RoseSettingSerializer<Long> LONG = (config, setting) -> config.getLong(setting.getKey());
-    public static final RoseSettingSerializer<Short> SHORT = (config, setting) -> (short) config.getInt(setting.getKey());
-    public static final RoseSettingSerializer<Byte> BYTE = (config, setting) -> (byte) config.getInt(setting.getKey());
-    public static final RoseSettingSerializer<Double> DOUBLE = (config, setting) -> config.getDouble(setting.getKey());
-    public static final RoseSettingSerializer<Float> FLOAT = (config, setting) -> (float) config.getDouble(setting.getKey());
+    public static final RoseSettingSerializer<Boolean> BOOLEAN = CommentedConfigurationSection::getBoolean;
+    public static final RoseSettingSerializer<Integer> INTEGER = CommentedConfigurationSection::getInt;
+    public static final RoseSettingSerializer<Long> LONG = CommentedConfigurationSection::getLong;
+    public static final RoseSettingSerializer<Short> SHORT = (config, setting) -> (short) config.getInt(setting);
+    public static final RoseSettingSerializer<Byte> BYTE = (config, setting) -> (byte) config.getInt(setting);
+    public static final RoseSettingSerializer<Double> DOUBLE = CommentedConfigurationSection::getDouble;
+    public static final RoseSettingSerializer<Float> FLOAT = (config, setting) -> (float) config.getDouble(setting);
     public static final RoseSettingSerializer<Character> CHAR = (config, setting) -> {
-        String value = config.getString(setting.getKey());
+        String value = config.getString(setting);
         if (value == null || value.isEmpty())
             return ' ';
         return value.charAt(0);
@@ -29,8 +29,8 @@ public final class RoseSettingSerializers {
     //region Other Serializers
     public static final RoseSettingSerializer<CommentedConfigurationSection> SECTION = new RoseSettingSerializer<CommentedConfigurationSection>() {
         @Override
-        public CommentedConfigurationSection read(CommentedConfigurationSection config, RoseSetting<CommentedConfigurationSection> setting) {
-            return config.getConfigurationSection(setting.getKey());
+        public CommentedConfigurationSection read(CommentedConfigurationSection config, String setting) {
+            return config.getConfigurationSection(setting);
         }
 
         @Override
@@ -38,61 +38,43 @@ public final class RoseSettingSerializers {
             config.addPathedComments(key, comments);
         }
     };
-    public static final RoseSettingSerializer<String> STRING = (config, setting) -> config.getString(setting.getKey());
-    public static final RoseSettingSerializer<Material> MATERIAL = createStringBased(Material::name, Material::matchMaterial);
+    public static final RoseSettingSerializer<String> STRING = CommentedConfigurationSection::getString;
+    public static final RoseSettingSerializer<Material> MATERIAL = createMapped(STRING, Material::name, Material::matchMaterial);
     //endregion
 
     //region Primitive List Serializers
-    public static final RoseSettingSerializer<List<Boolean>> BOOLEAN_LIST = (config, setting) -> config.getBooleanList(setting.getKey());
-    public static final RoseSettingSerializer<List<Long>> LONG_LIST = (config, setting) -> config.getLongList(setting.getKey());
-    public static final RoseSettingSerializer<List<Short>> SHORT_LIST = (config, setting) -> config.getShortList(setting.getKey());
-    public static final RoseSettingSerializer<List<Byte>> BYTE_LIST = (config, setting) -> config.getByteList(setting.getKey());
-    public static final RoseSettingSerializer<List<Double>> DOUBLE_LIST = (config, setting) -> config.getDoubleList(setting.getKey());
-    public static final RoseSettingSerializer<List<Float>> FLOAT_LIST = (config, setting) -> config.getFloatList(setting.getKey());
-    public static final RoseSettingSerializer<List<Character>> CHAR_LIST = (config, setting) -> config.getCharacterList(setting.getKey());
+    public static final RoseSettingSerializer<List<Boolean>> BOOLEAN_LIST = CommentedConfigurationSection::getBooleanList;
+    public static final RoseSettingSerializer<List<Long>> LONG_LIST = CommentedConfigurationSection::getLongList;
+    public static final RoseSettingSerializer<List<Short>> SHORT_LIST = CommentedConfigurationSection::getShortList;
+    public static final RoseSettingSerializer<List<Byte>> BYTE_LIST = CommentedConfigurationSection::getByteList;
+    public static final RoseSettingSerializer<List<Double>> DOUBLE_LIST = CommentedConfigurationSection::getDoubleList;
+    public static final RoseSettingSerializer<List<Float>> FLOAT_LIST = CommentedConfigurationSection::getFloatList;
+    public static final RoseSettingSerializer<List<Character>> CHAR_LIST = CommentedConfigurationSection::getCharacterList;
     //endregion
 
     //region Other List Serializers
-    public static final RoseSettingSerializer<List<String>> STRING_LIST = (config, setting) -> config.getStringList(setting.getKey());
-    public static final RoseSettingSerializer<List<Material>> MATERIAL_LIST = createStringBasedList(Material::name, Material::matchMaterial);
+    public static final RoseSettingSerializer<List<String>> STRING_LIST = CommentedConfigurationSection::getStringList;
+    public static final RoseSettingSerializer<List<Material>> MATERIAL_LIST = createMapped(STRING_LIST,
+            x -> x.stream().map(Material::name).collect(Collectors.toList()),
+            x -> x.stream().map(Material::matchMaterial).filter(Objects::nonNull).collect(Collectors.toList()));
     //endregion
 
     //region Helpers
-    private static <T> RoseSettingSerializer<T> createStringBased(Function<T, String> toString, Function<String, T> fromString) {
+    public static <T, M> RoseSettingSerializer<T> createMapped(RoseSettingSerializer<M> baseSerializer, Function<T, M> toMapped, Function<M, T> fromMapped) {
         return new RoseSettingSerializer<T>() {
             @Override
-            public T read(CommentedConfigurationSection config, RoseSetting<T> setting) {
-                String value = config.getString(setting.getKey());
+            public T read(CommentedConfigurationSection config, String setting) {
+                M value = baseSerializer.read(config, setting);
                 if (value == null)
                     return null;
-                return fromString.apply(value);
+                return fromMapped.apply(value);
             }
 
             @Override
             public void write(CommentedConfigurationSection config, String key, T value, String... comments) {
-                String toWrite = toString.apply(value);
+                M toWrite = toMapped.apply(value);
                 if (toWrite != null)
                     config.set(key, toWrite, comments);
-            }
-        };
-    }
-
-    private static <T> RoseSettingSerializer<List<T>> createStringBasedList(Function<T, String> toString, Function<String, T> fromString) {
-        return new RoseSettingSerializer<List<T>>() {
-            @Override
-            public List<T> read(CommentedConfigurationSection config, RoseSetting<List<T>> setting) {
-                return config.getStringList(setting.getKey()).stream()
-                        .map(fromString)
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toList());
-            }
-
-            @Override
-            public void write(CommentedConfigurationSection config, String key, List<T> values, String... comments) {
-                List<String> toWrite = values.stream().map(toString)
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toList());
-                config.set(key, toWrite, comments);
             }
         };
     }
