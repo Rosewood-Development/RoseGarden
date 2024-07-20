@@ -5,15 +5,17 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class BasicRoseConfig implements RoseConfig {
+/* package */ class BasicRoseConfig implements RoseConfig {
 
     private final File configurationFile;
     private final List<RoseSetting<?>> settings;
+    private final boolean writeDefaultValueComments;
     private CommentedFileConfiguration fileConfiguration;
 
-    private BasicRoseConfig(File file, List<RoseSetting<?>> settings, String[] header) {
+    private BasicRoseConfig(File file, List<RoseSetting<?>> settings, String[] header, boolean writeDefaultValueComments) {
         this.configurationFile = file;
         this.settings = settings;
+        this.writeDefaultValueComments = writeDefaultValueComments;
 
         if (this.settings.isEmpty() && header.length == 0)
             return;
@@ -31,7 +33,7 @@ public class BasicRoseConfig implements RoseConfig {
                 if (config.contains(setting.getKey()))
                     continue;
 
-                setting.writeDefault(config);
+                setting.writeDefault(config, this.writeDefaultValueComments);
                 changed = true;
             }
         }
@@ -71,11 +73,14 @@ public class BasicRoseConfig implements RoseConfig {
 
         private final File file;
         private String[] header;
-        private final List<RoseSetting<?>> settings;
+        private List<RoseSetting<?>> settings;
+        private boolean writeDefaultValueComments;
 
         public Builder(File file) {
             this.file = file;
-            this.settings = new ArrayList<>();
+            this.header = new String[0];
+            this.settings = Collections.emptyList();
+            this.writeDefaultValueComments = false;
         }
 
         @Override
@@ -86,13 +91,19 @@ public class BasicRoseConfig implements RoseConfig {
 
         @Override
         public RoseConfig.Builder settings(List<RoseSetting<?>> settings) {
-            this.settings.addAll(settings);
+            this.settings = new ArrayList<>(settings);
+            return this;
+        }
+
+        @Override
+        public RoseConfig.Builder writeDefaultValueComments() {
+            this.writeDefaultValueComments = true;
             return this;
         }
 
         @Override
         public RoseConfig build() {
-            return new BasicRoseConfig(this.file, this.settings, this.header);
+            return new BasicRoseConfig(this.file, this.settings, this.header, this.writeDefaultValueComments);
         }
 
     }

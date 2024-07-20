@@ -1,5 +1,10 @@
 package dev.rosewood.rosegarden.config;
 
+import dev.rosewood.rosegarden.utils.RoseGardenUtils;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 import java.util.function.Supplier;
 
 public interface RoseSetting<T> {
@@ -24,8 +29,27 @@ public interface RoseSetting<T> {
      */
     String[] getComments();
 
-    default void writeDefault(CommentedConfigurationSection config) {
-        this.getSerializer().write(config, this, this.getDefaultValue());
+    default void writeDefault(CommentedConfigurationSection config, boolean writeDefaultValueComment) {
+        if (!writeDefaultValueComment) {
+            this.getSerializer().write(config, this, this.getDefaultValue());
+            return;
+        }
+
+        T defaultValue = this.getDefaultValue();
+        List<String> comments = new ArrayList<>(Arrays.asList(this.getComments()));
+        if (defaultValue != null && !(defaultValue instanceof Collection)) {
+            String defaultValueString = defaultValue.toString();
+            String defaultComment = "Default: ";
+            if (RoseGardenUtils.containsConfigSpecialCharacters(defaultValueString)) {
+                defaultComment += "'" + defaultValueString + "'";
+            } else {
+                defaultComment += defaultValueString;
+            }
+            comments.add(defaultComment);
+        }
+
+        String[] commentsArray = comments.toArray(new String[0]);
+        this.getSerializer().write(config, this.getKey(), this.getDefaultValue(), commentsArray);
     }
 
     static <T> RoseSetting<T> of(String key, RoseSettingSerializer<T> serializer, T defaultValue, String... comments) {

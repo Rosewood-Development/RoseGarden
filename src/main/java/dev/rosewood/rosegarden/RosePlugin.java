@@ -2,7 +2,6 @@ package dev.rosewood.rosegarden;
 
 import dev.rosewood.rosegarden.command.framework.RoseCommandWrapper;
 import dev.rosewood.rosegarden.command.rwd.RwdCommand;
-import dev.rosewood.rosegarden.config.BasicRoseConfig;
 import dev.rosewood.rosegarden.config.RoseConfig;
 import dev.rosewood.rosegarden.config.RoseSetting;
 import dev.rosewood.rosegarden.manager.AbstractCommandManager;
@@ -24,7 +23,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Supplier;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
@@ -32,7 +30,6 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.ServicesManager;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class RosePlugin extends JavaPlugin {
@@ -300,6 +297,7 @@ public abstract class RosePlugin extends JavaPlugin {
             this.roseConfig = RoseConfig.builder(file)
                     .header(this.getRoseConfigHeader())
                     .settings(settings)
+                    .writeDefaultValueComments()
                     .build();
         }
         return this.roseConfig;

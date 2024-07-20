@@ -41,6 +41,8 @@ public interface RoseConfig {
 
         Builder settings(List<RoseSetting<?>> settings);
 
+        Builder writeDefaultValueComments();
+
         RoseConfig build();
 
     }
