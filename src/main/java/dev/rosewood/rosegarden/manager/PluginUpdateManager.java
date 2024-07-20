@@ -63,11 +63,7 @@ public class PluginUpdateManager extends Manager implements Listener {
             return;
 
         // Check for updates
-        if (NMSUtil.isFolia()) { // Scheduler not allowed in Folia, just don't use it for now until we get a scheduler API in RoseGarden
-            CompletableFuture.runAsync(() -> this.checkForUpdate(currentVersion));
-        } else {
-            Bukkit.getScheduler().runTaskAsynchronously(this.rosePlugin, () -> this.checkForUpdate(currentVersion));
-        }
+        this.rosePlugin.getScheduler().runTaskAsync(() -> this.checkForUpdate(currentVersion));
     }
 
     private void checkForUpdate(String currentVersion) {
@@ -121,7 +117,7 @@ public class PluginUpdateManager extends Manager implements Listener {
 
         String website = this.rosePlugin.getDescription().getWebsite();
         String updateMessage = "&eAn update for " + RoseGardenUtils.GRADIENT +
-                this.rosePlugin.getName() + " &e(&bv%new%&e) is available! You are running &bv%current%&e." +
+                this.rosePlugin.getName() + " &e(&b%new%&e) is available! You are running &b%current%&e." +
                 (website != null ? " " + website : "");
 
         StringPlaceholders placeholders = StringPlaceholders.of("new", this.updateVersion, "current", this.rosePlugin.getDescription().getVersion());

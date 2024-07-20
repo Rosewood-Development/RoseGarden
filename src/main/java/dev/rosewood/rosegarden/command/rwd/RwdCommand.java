@@ -53,7 +53,7 @@ public class RwdCommand extends BaseRoseCommand {
             content.add(new Text(TextComponent.fromLegacyText(HexUtils.colorify("&eVersion: &b" + data.version()))));
             content.add(new Text(TextComponent.fromLegacyText(HexUtils.colorify("\n&eRoseGarden Version: &b" + data.roseGardenVersion()))));
             if (updateVersion != null)
-                content.add(new Text(TextComponent.fromLegacyText(HexUtils.colorify("\n&eAn update (&bv" + updateVersion + "&e) is available! Click to open the Spigot page."))));
+                content.add(new Text(TextComponent.fromLegacyText(HexUtils.colorify("\n&eAn update (&b" + updateVersion + "&e) is available! Click to open the Spigot page."))));
 
             TextComponent pluginName = new TextComponent(TextComponent.fromLegacyText(HexUtils.colorify(RoseGardenUtils.GRADIENT + data.name())));
             pluginName.setHoverEvent(new HoverEvent(Action.SHOW_TEXT, content.toArray(new Text[0])));

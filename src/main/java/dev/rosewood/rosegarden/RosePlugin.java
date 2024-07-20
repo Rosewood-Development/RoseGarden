@@ -2,11 +2,12 @@ package dev.rosewood.rosegarden;
 
 import dev.rosewood.rosegarden.command.framework.RoseCommandWrapper;
 import dev.rosewood.rosegarden.command.rwd.RwdCommand;
+import dev.rosewood.rosegarden.config.BasicRoseConfig;
+import dev.rosewood.rosegarden.config.RoseConfig;
+import dev.rosewood.rosegarden.config.RoseSetting;
 import dev.rosewood.rosegarden.manager.AbstractCommandManager;
-import dev.rosewood.rosegarden.manager.AbstractConfigurationManager;
 import dev.rosewood.rosegarden.manager.AbstractDataManager;
 import dev.rosewood.rosegarden.manager.AbstractLocaleManager;
-import dev.rosewood.rosegarden.manager.DataMigrationManager;
 import dev.rosewood.rosegarden.manager.Manager;
 import dev.rosewood.rosegarden.manager.PluginUpdateManager;
 import dev.rosewood.rosegarden.objects.RosePluginData;
@@ -16,12 +17,14 @@ import java.io.File;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
@@ -29,6 +32,7 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.ServicesManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class RosePlugin extends JavaPlugin {
@@ -51,7 +55,6 @@ public abstract class RosePlugin extends JavaPlugin {
     /**
      * The classes that extend the abstract managers
      */
-    private final Class<? extends AbstractConfigurationManager> configurationManagerClass;
     private final Class<? extends AbstractDataManager> dataManagerClass;
     private final Class<? extends AbstractLocaleManager> localeManagerClass;
     private final Class<? extends AbstractCommandManager> commandManagerClass;
@@ -62,16 +65,18 @@ public abstract class RosePlugin extends JavaPlugin {
     private final Map<Class<? extends Manager>, Manager> managers;
     private final Deque<Class<? extends Manager>> managerInitializationStack;
 
+    /**
+     * The main config.yml
+     */
+    private RoseConfig roseConfig;
+
     private boolean firstToRegister = false;
 
     public RosePlugin(int spigotId,
                       int bStatsId,
-                      Class<? extends AbstractConfigurationManager> configurationManagerClass,
                       Class<? extends AbstractDataManager> dataManagerClass,
                       Class<? extends AbstractLocaleManager> localeManagerClass,
                       Class<? extends AbstractCommandManager> commandManagerClass) {
-        if (configurationManagerClass != null && Modifier.isAbstract(configurationManagerClass.getModifiers()))
-            throw new IllegalArgumentException("configurationManagerClass cannot be abstract");
         if (dataManagerClass != null && Modifier.isAbstract(dataManagerClass.getModifiers()))
             throw new IllegalArgumentException("dataManagerClass cannot be abstract");
         if (localeManagerClass != null && Modifier.isAbstract(localeManagerClass.getModifiers()))
@@ -81,7 +86,6 @@ public abstract class RosePlugin extends JavaPlugin {
 
         this.spigotId = spigotId;
         this.bStatsId = bStatsId;
-        this.configurationManagerClass = configurationManagerClass;
         this.dataManagerClass = dataManagerClass;
         this.localeManagerClass = localeManagerClass;
         this.commandManagerClass = commandManagerClass;
@@ -113,6 +117,9 @@ public abstract class RosePlugin extends JavaPlugin {
 
         // Inject the plugin class into the spigot services manager
         this.injectService();
+
+        // Load the main config file
+        this.getRoseConfig();
         
         // Load managers
         this.reload();
@@ -141,10 +148,36 @@ public abstract class RosePlugin extends JavaPlugin {
     protected abstract void disable();
 
     /**
-     * @return the order in which Managers should be loaded
+     * @return the order in which Managers should be loaded, excluding
      */
     @NotNull
     protected abstract List<Class<? extends Manager>> getManagerLoadPriority();
+
+    /**
+     * Checks if the database is local only.
+     * Returning true will prevent the database settings from appearing in the config.yml.
+     *
+     * @return true if the database is local only or doesn't exist, false otherwise
+     */
+    public boolean isLocalDatabaseOnly() {
+        return false;
+    }
+
+    /**
+     * @return the settings that should be written to the config.yml
+     */
+    @NotNull
+    protected List<RoseSetting<?>> getRoseConfigSettings() {
+        return Collections.emptyList();
+    }
+
+    /**
+     * @return the header to place at the top of the config.yml
+     */
+    @NotNull
+    protected String[] getRoseConfigHeader() {
+        return new String[0];
+    }
 
     /**
      * Registers any custom bStats Metrics charts for the plugin
@@ -163,13 +196,8 @@ public abstract class RosePlugin extends JavaPlugin {
 
         List<Class<? extends Manager>> managerLoadPriority = new ArrayList<>();
 
-        if (this.hasConfigurationManager())
-            managerLoadPriority.add(this.configurationManagerClass);
-
-        if (this.hasDataManager()) {
+        if (this.hasDataManager())
             managerLoadPriority.add(this.dataManagerClass);
-            managerLoadPriority.add(DataMigrationManager.class);
-        }
 
         if (this.hasLocaleManager())
             managerLoadPriority.add(this.localeManagerClass);
@@ -213,9 +241,7 @@ public abstract class RosePlugin extends JavaPlugin {
     public <T extends Manager> T getManager(Class<T> managerClass) {
         // Get the actual class if the abstract one is requested
         Class<? extends Manager> lookupClass;
-        if (this.hasConfigurationManager() && managerClass == AbstractConfigurationManager.class) {
-            lookupClass = this.configurationManagerClass;
-        } else if (this.hasDataManager() && managerClass == AbstractDataManager.class) {
+        if (this.hasDataManager() && managerClass == AbstractDataManager.class) {
             lookupClass = this.dataManagerClass;
         } else if (this.hasLocaleManager() && managerClass == AbstractLocaleManager.class) {
             lookupClass = this.localeManagerClass;
@@ -251,8 +277,32 @@ public abstract class RosePlugin extends JavaPlugin {
     /**
      * @return the scheduler for this plugin
      */
-    public RoseScheduler getScheduler() {
+    public final RoseScheduler getScheduler() {
         return RoseScheduler.getInstance(this);
+    }
+
+    /**
+     * @return the main config for this plugin
+     */
+    public final RoseConfig getRoseConfig() {
+        if (this.roseConfig == null) {
+            List<RoseSetting<?>> settings = new ArrayList<>();
+
+            if (this.hasLocaleManager())
+                settings.addAll(AbstractLocaleManager.SettingKey.getKeys());
+
+            settings.addAll(this.getRoseConfigSettings());
+
+            if (this.hasDataManager() && !this.isLocalDatabaseOnly())
+                settings.addAll(AbstractDataManager.SettingKey.getKeys());
+
+            File file = new File(this.getDataFolder(), "config.yml");
+            this.roseConfig = RoseConfig.builder(file)
+                    .header(this.getRoseConfigHeader())
+                    .settings(settings)
+                    .build();
+        }
+        return this.roseConfig;
     }
 
     /**
@@ -330,10 +380,6 @@ public abstract class RosePlugin extends JavaPlugin {
     @NotNull
     public final String getUpdateVersion() {
         return this.getManager(PluginUpdateManager.class).getUpdateVersion();
-    }
-
-    public final boolean hasConfigurationManager() {
-        return this.configurationManagerClass != null;
     }
 
     public final boolean hasDataManager() {

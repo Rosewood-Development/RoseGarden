@@ -1,13 +1,7 @@
 package dev.rosewood.rosegarden.utils;
 
 import dev.rosewood.rosegarden.RosePlugin;
-import dev.rosewood.rosegarden.config.CommentedConfigurationSection;
-import dev.rosewood.rosegarden.config.CommentedFileConfiguration;
-import dev.rosewood.rosegarden.config.RoseSettingSection;
-import dev.rosewood.rosegarden.config.RoseSettingValue;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -55,50 +49,6 @@ public final class RoseGardenUtils {
             }
         }
         return false;
-    }
-
-    public static void recursivelyWriteRoseSettingValues(CommentedFileConfiguration fileConfiguration, RoseSettingValue settingValue) {
-        recursivelyWriteRoseSettingValues(fileConfiguration, fileConfiguration, settingValue);
-    }
-
-    private static void recursivelyWriteRoseSettingValues(CommentedFileConfiguration baseConfiguration, CommentedConfigurationSection currentSection, RoseSettingValue settingValue) {
-        String key = settingValue.getKey();
-        Object defaultValue = settingValue.getDefaultValue();
-        String[] comments = settingValue.getComments();
-
-        String keyPath = currentSection.getCurrentPath() == null ? key : currentSection.getCurrentPath() + "." + key;
-
-        if (defaultValue instanceof RoseSettingSection) {
-            RoseSettingSection settingSection = (RoseSettingSection) defaultValue;
-            baseConfiguration.addPathedComments(keyPath, comments);
-            currentSection = currentSection.createSection(key);
-
-            for (RoseSettingValue value : settingSection.getValues())
-                recursivelyWriteRoseSettingValues(baseConfiguration, currentSection, value);
-        } else {
-            baseConfiguration.set(keyPath, defaultValue, comments);
-        }
-    }
-
-    /**
-     * Gets an Object as a numerical value
-     *
-     * @param value The Object to cast
-     * @return The Object as a numerical value
-     * @throws ClassCastException when the value is not a numerical value
-     */
-    public static double getNumber(Object value) {
-        if (value instanceof Integer) {
-            return (int) value;
-        } else if (value instanceof Short) {
-            return (short) value;
-        } else if (value instanceof Byte) {
-            return (byte) value;
-        } else if (value instanceof Float) {
-            return (float) value;
-        }
-
-        return (double) value;
     }
 
     /**

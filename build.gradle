@@ -10,7 +10,7 @@ plugins {
 targetCompatibility = '1.8'
 sourceCompatibility = '1.8'
 group = 'dev.rosewood'
-version = '1.3.3-SNAPSHOT'
+version = '1.4.0-SNAPSHOT'
 
 java {
     disableAutoTargetJvm() // Allows depending on Paper's newer APIs even though they use Java 17
@@ -39,8 +39,8 @@ dependencies {
     // Shaded dependencies
     api 'org.bstats:bstats-bukkit:3.0.2'
     api 'com.zaxxer:HikariCP:4.0.3'
-    api 'org.slf4j:slf4j-api:2.0.7'
-    api 'org.slf4j:slf4j-nop:2.0.7'
+    api 'org.slf4j:slf4j-api:2.0.13'
+    api 'org.slf4j:slf4j-nop:2.0.13'
 
     // Test dependencies
     testImplementation 'org.junit.jupiter:junit-jupiter:5.8.1'
@@ -66,8 +66,6 @@ compileJava {
 shadowJar {
     archiveClassifier.set(null)
 
-    relocate('com.zaxxer.hikari', 'dev.rosewood.rosegarden.lib.hikaricp')
-    relocate('org.slf4j', 'dev.rosewood.rosegarden.lib.slf4j')
     relocate('org.bstats', 'dev.rosewood.rosegarden.lib.bstats')
 }
 
