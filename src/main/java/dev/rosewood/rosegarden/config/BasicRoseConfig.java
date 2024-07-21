@@ -7,29 +7,63 @@ import java.util.List;
 
 /* package */ class BasicRoseConfig implements RoseConfig {
 
-    private final File configurationFile;
+    private final File file;
     private final List<RoseSetting<?>> settings;
+    private final String[] header;
     private final boolean writeDefaultValueComments;
     private CommentedFileConfiguration fileConfiguration;
 
     private BasicRoseConfig(File file, List<RoseSetting<?>> settings, String[] header, boolean writeDefaultValueComments) {
-        this.configurationFile = file;
+        this.file = file;
         this.settings = settings;
+        this.header = header;
         this.writeDefaultValueComments = writeDefaultValueComments;
+        this.reload();
+    }
 
-        if (this.settings.isEmpty() && header.length == 0)
+    @Override
+    public <T> T get(RoseSetting<T> setting) {
+        try {
+            return setting.getSerializer().read(this.getBaseConfig(), setting);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return setting.getDefaultValue();
+        }
+    }
+
+    @Override
+    public <T> void set(RoseSetting<T> setting, T value) {
+        setting.getSerializer().write(this.getBaseConfig(), setting, value);
+    }
+
+    @Override
+    public File getFile() {
+        return this.file;
+    }
+
+    @Override
+    public CommentedFileConfiguration getBaseConfig() {
+        if (this.fileConfiguration == null)
+            this.fileConfiguration = CommentedFileConfiguration.loadConfiguration(this.file);
+        return this.fileConfiguration;
+    }
+
+    @Override
+    public void reload() {
+        this.fileConfiguration = null;
+        if (this.settings.isEmpty() && this.header.length == 0)
             return;
 
-        boolean appendHeader = !file.exists();
+        boolean appendHeader = !this.file.exists();
         boolean changed = appendHeader;
 
-        if (!file.exists()) {
+        if (!this.file.exists()) {
             CommentedFileConfiguration config = this.getBaseConfig();
 
             if (appendHeader)
-                config.addComments(header);
+                config.addComments(this.header);
 
-            for (RoseSetting<?> setting : settings) {
+            for (RoseSetting<?> setting : this.settings) {
                 if (config.contains(setting.getKey()))
                     continue;
 
@@ -40,28 +74,6 @@ import java.util.List;
 
         if (changed)
             this.save();
-    }
-
-    @Override
-    public <T> T get(RoseSetting<T> setting) {
-        return setting.getSerializer().read(this.getBaseConfig(), setting);
-    }
-
-    @Override
-    public <T> void set(RoseSetting<T> setting, T value) {
-        setting.getSerializer().write(this.getBaseConfig(), setting, value);
-    }
-
-    @Override
-    public File getFile() {
-        return this.configurationFile;
-    }
-
-    @Override
-    public CommentedFileConfiguration getBaseConfig() {
-        if (this.fileConfiguration == null)
-            this.fileConfiguration = CommentedFileConfiguration.loadConfiguration(this.configurationFile);
-        return this.fileConfiguration;
     }
 
     @Override

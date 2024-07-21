@@ -2,18 +2,18 @@ package dev.rosewood.rosegarden.config;
 
 import java.util.function.Supplier;
 
-/* package */ class RoseSettingImpl<T> implements RoseSetting<T> {
+/* package */ class BasicRoseSetting<T> implements RoseSetting<T> {
 
     private final String key;
     private final RoseSettingSerializer<T> serializer;
     private final Supplier<T> defaultValueSupplier;
     private final String[] comments;
 
-    public RoseSettingImpl(String key, RoseSettingSerializer<T> serializer, T defaultValue, String... comments) {
+    public BasicRoseSetting(String key, RoseSettingSerializer<T> serializer, T defaultValue, String... comments) {
         this(key, serializer, () -> defaultValue, comments);
     }
 
-    public RoseSettingImpl(String key, RoseSettingSerializer<T> serializer, Supplier<T> defaultValueSupplier, String... comments) {
+    public BasicRoseSetting(String key, RoseSettingSerializer<T> serializer, Supplier<T> defaultValueSupplier, String... comments) {
         this.key = key;
         this.defaultValueSupplier = defaultValueSupplier;
         this.comments = comments != null ? comments : new String[0];

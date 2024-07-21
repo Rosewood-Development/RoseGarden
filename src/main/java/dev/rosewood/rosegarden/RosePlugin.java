@@ -191,6 +191,9 @@ public abstract class RosePlugin extends JavaPlugin {
     public void reload() {
         this.disableManagers();
 
+        if (this.roseConfig != null)
+            this.roseConfig.reload();
+
         List<Class<? extends Manager>> managerLoadPriority = new ArrayList<>();
 
         if (this.hasDataManager())

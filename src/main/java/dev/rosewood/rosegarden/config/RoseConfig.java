@@ -27,6 +27,8 @@ public interface RoseConfig {
 
     CommentedFileConfiguration getBaseConfig();
 
+    void reload();
+
     default void save() {
         this.getBaseConfig().save(this.getFile());
     }
