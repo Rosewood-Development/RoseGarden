@@ -21,4 +21,9 @@ import java.util.function.Supplier;
         return this.backing.getRoseConfig().get(this);
     }
 
+    @Override
+    public boolean isBacked() {
+        return true;
+    }
+
 }

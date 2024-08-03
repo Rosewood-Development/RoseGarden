@@ -1,7 +1,6 @@
 package dev.rosewood.rosegarden.utils;
 
 import java.lang.reflect.Method;
-import java.util.Objects;
 import java.util.function.Consumer;
 import org.bukkit.Location;
 import org.bukkit.World;

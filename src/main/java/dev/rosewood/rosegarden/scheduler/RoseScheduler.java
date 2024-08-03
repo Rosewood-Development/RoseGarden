@@ -15,7 +15,6 @@ public class RoseScheduler implements SchedulerWrapper {
 
     private static RoseScheduler instance;
 
-    private final RosePlugin rosePlugin;
     private final AtomicInteger runningTasks;
     private final SchedulerWrapper scheduler;
 
@@ -24,7 +23,6 @@ public class RoseScheduler implements SchedulerWrapper {
             throw new IllegalStateException("An instance of RoseScheduler already exists");
 
         instance = this;
-        this.rosePlugin = rosePlugin;
         this.runningTasks = new AtomicInteger();
 
         if (NMSUtil.isFolia()) {

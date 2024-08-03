@@ -67,6 +67,7 @@ public abstract class RosePlugin extends JavaPlugin {
      */
     private RoseConfig roseConfig;
 
+    private boolean firstInitialization = true;
     private boolean firstToRegister = false;
 
     public RosePlugin(int spigotId,
@@ -194,37 +195,52 @@ public abstract class RosePlugin extends JavaPlugin {
         if (this.roseConfig != null)
             this.roseConfig.reload();
 
-        List<Class<? extends Manager>> managerLoadPriority = new ArrayList<>();
+        if (this.firstInitialization) {
+            List<Class<? extends Manager>> managerLoadPriority = new ArrayList<>();
 
-        if (this.hasDataManager())
-            managerLoadPriority.add(this.dataManagerClass);
+            if (this.hasDataManager())
+                managerLoadPriority.add(this.dataManagerClass);
 
-        if (this.hasLocaleManager())
-            managerLoadPriority.add(this.localeManagerClass);
+            if (this.hasLocaleManager())
+                managerLoadPriority.add(this.localeManagerClass);
 
-        if (this.hasCommandManager())
-            managerLoadPriority.add(this.commandManagerClass);
+            if (this.hasCommandManager())
+                managerLoadPriority.add(this.commandManagerClass);
 
-        managerLoadPriority.addAll(this.getManagerLoadPriority());
+            managerLoadPriority.addAll(this.getManagerLoadPriority());
 
-        if (this.spigotId != -1)
-            managerLoadPriority.add(PluginUpdateManager.class);
+            if (this.spigotId != -1)
+                managerLoadPriority.add(PluginUpdateManager.class);
 
-        managerLoadPriority.forEach(this::getManager);
+            managerLoadPriority.forEach(this::getManager);
+        } else {
+            List<Class<? extends Manager>> initStack = new ArrayList<>(this.managerInitializationStack);
+            Collections.reverse(initStack);
+            for (Class<? extends Manager> managerClass : initStack) {
+                Manager manager = this.managers.get(managerClass);
+                try {
+                    manager.reload();
+                } catch (Exception e) {
+                    throw new ManagerLoadException(managerClass, e);
+                }
+            }
+        }
+
+        this.firstInitialization = false;
     }
 
     /**
-     * Runs {@link Manager#disable} on all managers in the reverse order that they were loaded and then unloads all
-     * managers.
+     * Runs {@link Manager#disable} on all managers in the reverse order that they were loaded.
      */
     private void disableManagers() {
-        Class<? extends Manager> managerClass;
-        while ((managerClass = this.managerInitializationStack.pollFirst()) != null) {
+        for (Class<? extends Manager> managerClass : this.managerInitializationStack) {
             Manager manager = this.managers.get(managerClass);
-            if (manager != null)
+            try {
                 manager.disable();
+            } catch (Exception e) {
+                throw new ManagerUnloadException(managerClass, e);
+            }
         }
-        this.managers.clear();
     }
 
     /**
@@ -240,16 +256,7 @@ public abstract class RosePlugin extends JavaPlugin {
     @NotNull
     public <T extends Manager> T getManager(Class<T> managerClass) {
         // Get the actual class if the abstract one is requested
-        Class<? extends Manager> lookupClass;
-        if (this.hasDataManager() && managerClass == AbstractDataManager.class) {
-            lookupClass = this.dataManagerClass;
-        } else if (this.hasLocaleManager() && managerClass == AbstractLocaleManager.class) {
-            lookupClass = this.localeManagerClass;
-        } else if (this.hasCommandManager() && managerClass == AbstractCommandManager.class) {
-            lookupClass = this.commandManagerClass;
-        } else {
-            lookupClass = managerClass;
-        }
+        Class<? extends Manager> lookupClass = this.remapAbstractManagerClasses(managerClass);
 
         AtomicBoolean initialized = new AtomicBoolean();
         T manager = (T) this.managers.computeIfAbsent(lookupClass, key -> {
@@ -263,15 +270,30 @@ public abstract class RosePlugin extends JavaPlugin {
         });
 
         if (initialized.get()) {
-            this.managerInitializationStack.push(lookupClass);
             try {
                 manager.reload();
             } catch (Exception e) {
                 throw new ManagerLoadException(lookupClass, e);
+            } finally {
+                this.managerInitializationStack.push(lookupClass);
             }
         }
 
         return manager;
+    }
+
+    protected <T extends Manager> Class<? extends Manager> remapAbstractManagerClasses(Class<T> managerClass) {
+        Class<? extends Manager> lookupClass;
+        if (this.hasDataManager() && managerClass == AbstractDataManager.class) {
+            lookupClass = this.dataManagerClass;
+        } else if (this.hasLocaleManager() && managerClass == AbstractLocaleManager.class) {
+            lookupClass = this.localeManagerClass;
+        } else if (this.hasCommandManager() && managerClass == AbstractCommandManager.class) {
+            lookupClass = this.commandManagerClass;
+        } else {
+            lookupClass = managerClass;
+        }
+        return lookupClass;
     }
 
     /**
@@ -396,12 +418,23 @@ public abstract class RosePlugin extends JavaPlugin {
     }
 
     /**
-     * An exception thrown when a Manager doesn't exist
+     * An exception thrown when a Manager fails during {@link Manager#reload()}
      */
     private static class ManagerLoadException extends RuntimeException {
 
         public ManagerLoadException(Class<? extends Manager> managerClass, Throwable cause) {
             super("Failed to load " + managerClass.getSimpleName(), cause);
+        }
+
+    }
+
+    /**
+     * An exception thrown when a Manager fails during {@link Manager#disable()}
+     */
+    private static class ManagerUnloadException extends RuntimeException {
+
+        public ManagerUnloadException(Class<? extends Manager> managerClass, Throwable cause) {
+            super("Failed to unload " + managerClass.getSimpleName(), cause);
         }
 
     }

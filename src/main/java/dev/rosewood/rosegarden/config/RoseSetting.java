@@ -38,6 +38,13 @@ public interface RoseSetting<T> {
         throw new UnsupportedOperationException("get() is not supported for this setting, missing backing config");
     }
 
+    /**
+     * @return true if this setting is backed by a config and {@link #get()} can be called.
+     */
+    default boolean isBacked() {
+        return false;
+    }
+
     default void writeDefault(CommentedConfigurationSection config, boolean writeDefaultValueComment) {
         if (!writeDefaultValueComment) {
             this.getSerializer().write(config, this, this.getDefaultValue());
