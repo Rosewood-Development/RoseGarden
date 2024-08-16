@@ -1,0 +1,3 @@
+dependencies {
+    compileOnly "io.papermc.paper:paper-api:$spigotVersion-R0.1-SNAPSHOT"
+}

@@ -1,99 +1,52 @@
-import org.apache.tools.ant.filters.ReplaceTokens
-
 plugins {
-    id 'java-library'
-    id 'com.github.johnrengelman.shadow' version '8.1.1'
-    id 'maven-publish'
-    id 'jacoco'
+    id 'com.github.johnrengelman.shadow' version '8.1.1' apply false
 }
 
-targetCompatibility = '1.8'
-sourceCompatibility = '1.8'
-group = 'dev.rosewood'
-version = '1.4.0'
+subprojects {
+    apply plugin: 'java-library'
+    apply plugin: 'com.github.johnrengelman.shadow'
+    apply plugin: 'maven-publish'
+    apply plugin: 'jacoco'
+    group = 'dev.rosewood'
+    targetCompatibility = '1.8'
+    sourceCompatibility = '1.8'
 
-java {
-    disableAutoTargetJvm() // Allows depending on Paper's newer APIs even though they use Java 17
-}
-
-test {
-    useJUnitPlatform()
-}
-
-repositories {
-    mavenCentral()
-
-    maven { url = 'https://repo.papermc.io/repository/maven-public/' }
-    maven { url = 'https://s01.oss.sonatype.org/content/repositories/snapshots/' }
-    maven { url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
-    maven { url = 'https://repo.extendedclip.com/content/repositories/placeholderapi/' }
-    maven { url = 'https://repo.rosewooddev.io/repository/public/' }
-}
-
-dependencies {
-    // Referenced dependencies
-    compileOnly 'io.papermc.paper:paper-api:1.21-R0.1-SNAPSHOT'
-    compileOnly 'me.clip:placeholderapi:2.11.3'
-    compileOnly 'org.jetbrains:annotations:24.0.1'
-
-    // Shaded dependencies
-    api 'org.bstats:bstats-bukkit:3.0.2'
-    api 'com.zaxxer:HikariCP:4.0.3'
-    api 'org.slf4j:slf4j-api:2.0.13'
-    api 'org.slf4j:slf4j-nop:2.0.13'
-
-    // Test dependencies
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.8.1'
-    testImplementation 'org.mockito:mockito-core:5.8.0'
-    testCompileOnly 'io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT'
-    testImplementation 'com.github.seeseemelk:MockBukkit-v1.20:3.80.0'
-}
-
-tasks.register('processSource', Sync) {
-    from sourceSets.main.java
-    inputs.property 'version', version
-    filter(ReplaceTokens, tokens: [version: version])
-    into "${layout.buildDirectory.get()}/src"
-}
-
-compileJava {
-    options.compilerArgs += ['-parameters']
-    options.fork = true
-    options.encoding = 'UTF-8'
-    source = processSource.outputs
-}
-
-shadowJar {
-    archiveClassifier.set(null)
-
-    relocate('org.bstats', 'dev.rosewood.rosegarden.lib.bstats')
-}
-
-publishing {
-    publications {
-        shadow(MavenPublication) { publication ->
-            project.shadow.component(publication)
-            artifactId = 'rosegarden'
-            pom {
-                name = 'rosegarden'
-            }
-        }
+    java {
+        disableAutoTargetJvm() // Allows depending on Paper's newer APIs even though they use newer java version
     }
+
+    test {
+        useJUnitPlatform()
+    }
+
     repositories {
-        if (project.hasProperty('mavenUser') && project.hasProperty('mavenPassword')) {
-            maven {
-                credentials {
-                    username project.mavenUser
-                    password project.mavenPassword
-                }
+        mavenCentral()
 
-                def releasesRepoUrl = 'https://repo.rosewooddev.io/repository/public-releases/'
-                def snapshotsRepoUrl = 'https://repo.rosewooddev.io/repository/public-snapshots/'
-                url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+        maven { url = 'https://repo.papermc.io/repository/maven-public/' }
+        maven { url = 'https://s01.oss.sonatype.org/content/repositories/snapshots/' }
+        maven { url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
+        maven { url = 'https://repo.extendedclip.com/content/repositories/placeholderapi/' }
+        maven { url = 'https://repo.rosewooddev.io/repository/public/' }
+    }
+
+    dependencies {
+        compileOnly 'org.jetbrains:annotations:24.0.1'
+    }
+
+    publishing {
+        repositories {
+            if (project.hasProperty('mavenUser') && project.hasProperty('mavenPassword')) {
+                maven {
+                    credentials {
+                        username project.mavenUser
+                        password project.mavenPassword
+                    }
+
+                    def releasesRepoUrl = 'https://repo.rosewooddev.io/repository/public-releases/'
+                    def snapshotsRepoUrl = 'https://repo.rosewooddev.io/repository/public-snapshots/'
+                    url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+                }
             }
         }
     }
 }
-
-build.dependsOn shadowJar
-publishShadowPublicationToMavenRepository.dependsOn jar

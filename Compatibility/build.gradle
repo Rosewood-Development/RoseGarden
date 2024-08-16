@@ -1,0 +1,26 @@
+dependencies {
+    implementation project(':Compatibility:Wrapper')
+    implementation project(':Compatibility:Current')
+    implementation project(':Compatibility:Legacy')
+}
+
+subprojects {
+    dependencies {
+        compileOnly project(':Core')
+    }
+}
+
+shadowJar {
+    archiveClassifier.set(null)
+}
+
+publishing {
+    publications {
+        shadow(MavenPublication) { publication ->
+            artifactId = 'rosegarden-compatibility'
+            project.shadow.component(publication)
+        }
+    }
+}
+
+build.dependsOn shadowJar
