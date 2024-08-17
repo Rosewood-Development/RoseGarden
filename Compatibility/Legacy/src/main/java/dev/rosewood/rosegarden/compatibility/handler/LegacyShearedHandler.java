@@ -13,4 +13,10 @@ public class LegacyShearedHandler implements ShearedHandler {
         return false;
     }
 
+    @Override
+    public void setSheared(LivingEntity shearable, boolean sheared) {
+        if (shearable instanceof Sheep) ((Sheep) shearable).setSheared(sheared);
+        else if (shearable instanceof Snowman) ((Snowman) shearable).setDerp(sheared);
+    }
+
 }

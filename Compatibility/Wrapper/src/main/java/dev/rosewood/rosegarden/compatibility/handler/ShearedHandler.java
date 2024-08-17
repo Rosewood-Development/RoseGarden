@@ -6,4 +6,6 @@ public interface ShearedHandler {
 
     boolean isSheared(LivingEntity shearable);
 
+    void setSheared(LivingEntity shearable, boolean sheared);
+
 }

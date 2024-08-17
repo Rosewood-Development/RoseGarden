@@ -10,4 +10,14 @@ public class CurrentCreatureSpawnerHandler implements CreatureSpawnerHandler {
         return creatureSpawner.getSpawnedType();
     }
 
+    @Override
+    public void setSpawnedType(CreatureSpawner creatureSpawner, EntityType entityType) {
+        creatureSpawner.setSpawnedType(entityType);
+    }
+
+    @Override
+    public void setDelay(CreatureSpawner creatureSpawner, int delay) {
+        creatureSpawner.setDelay(delay);
+    }
+
 }

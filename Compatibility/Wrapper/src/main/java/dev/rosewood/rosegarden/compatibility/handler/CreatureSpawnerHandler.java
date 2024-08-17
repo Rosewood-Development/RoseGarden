@@ -7,4 +7,8 @@ public interface CreatureSpawnerHandler {
 
     EntityType getSpawnedType(CreatureSpawner creatureSpawner);
 
+    void setSpawnedType(CreatureSpawner creatureSpawner, EntityType entityType);
+
+    void setDelay(CreatureSpawner creatureSpawner, int delay);
+
 }

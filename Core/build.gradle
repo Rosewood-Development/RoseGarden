@@ -12,10 +12,11 @@ dependencies {
     api 'org.slf4j:slf4j-nop:2.0.13'
 
     // Test dependencies
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.8.1'
-    testImplementation 'org.mockito:mockito-core:5.8.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation 'org.mockito:mockito-core:5.11.0'
     testCompileOnly 'io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT'
-    testImplementation 'com.github.seeseemelk:MockBukkit-v1.20:3.80.0'
+    testImplementation 'com.github.seeseemelk:MockBukkit-v1.21:3.106.0'
 }
 
 tasks.register('processSource', Sync) {
@@ -45,3 +46,4 @@ publishing {
 }
 
 build.dependsOn shadowJar
+publishShadowPublicationToMavenRepository.dependsOn jar
