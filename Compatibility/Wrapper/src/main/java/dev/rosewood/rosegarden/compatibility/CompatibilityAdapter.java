@@ -2,6 +2,7 @@ package dev.rosewood.rosegarden.compatibility;
 
 import dev.rosewood.rosegarden.compatibility.handler.CreatureSpawnerHandler;
 import dev.rosewood.rosegarden.compatibility.handler.InventoryViewHandler;
+import dev.rosewood.rosegarden.compatibility.handler.OldEnumHandler;
 import dev.rosewood.rosegarden.compatibility.handler.ShearedHandler;
 
 public final class CompatibilityAdapter {
@@ -10,12 +11,14 @@ public final class CompatibilityAdapter {
     private static final InventoryViewHandler INVENTORY_VIEW_HANDLER;
     private static final ShearedHandler SHEARED_HANDLER;
     private static final CreatureSpawnerHandler CREATURE_SPAWNER_HANDLER;
+    private static final OldEnumHandler OLD_ENUM_HANDLER;
 
     static {
         try {
             INVENTORY_VIEW_HANDLER = lookupHandler(InventoryViewHandler.class, Class.forName("org.bukkit.inventory.InventoryView").isInterface());
             SHEARED_HANDLER = lookupHandler(ShearedHandler.class, classExists("org.bukkit.entity.Shearable"));
             CREATURE_SPAWNER_HANDLER = lookupHandler(CreatureSpawnerHandler.class, classExists("org.bukkit.spawner.Spawner"));
+            OLD_ENUM_HANDLER = lookupHandler(OldEnumHandler.class, Class.forName("org.bukkit.entity.Villager$Profession").isInterface());
         } catch (ReflectiveOperationException e) {
             throw new CompatibilityLookupException("Failed to initialize compatibility handler", e);
         }
@@ -31,6 +34,10 @@ public final class CompatibilityAdapter {
 
     public static CreatureSpawnerHandler getCreatureSpawnerHandler() {
         return CREATURE_SPAWNER_HANDLER;
+    }
+
+    public static OldEnumHandler getOldEnumHandler() {
+        return OLD_ENUM_HANDLER;
     }
 
     /**
