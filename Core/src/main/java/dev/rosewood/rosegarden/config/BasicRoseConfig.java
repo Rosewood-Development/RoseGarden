@@ -57,19 +57,16 @@ import java.util.List;
         boolean appendHeader = !this.file.exists();
         boolean changed = appendHeader;
 
-        if (!this.file.exists()) {
-            CommentedFileConfiguration config = this.getBaseConfig();
+        CommentedFileConfiguration config = this.getBaseConfig();
+        if (appendHeader)
+            config.addComments(this.header);
 
-            if (appendHeader)
-                config.addComments(this.header);
+        for (RoseSetting<?> setting : this.settings) {
+            if (config.contains(setting.getKey()))
+                continue;
 
-            for (RoseSetting<?> setting : this.settings) {
-                if (config.contains(setting.getKey()))
-                    continue;
-
-                setting.writeDefault(config, this.writeDefaultValueComments);
-                changed = true;
-            }
+            setting.writeDefault(config, this.writeDefaultValueComments);
+            changed = true;
         }
 
         if (changed)
