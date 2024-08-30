@@ -1,5 +1,6 @@
 package dev.rosewood.rosegarden.config;
 
+import java.util.Objects;
 import java.util.function.Supplier;
 
 /* package */ class BasicRoseSetting<T> implements RoseSetting<T> {
@@ -38,6 +39,19 @@ import java.util.function.Supplier;
     @Override
     public String[] getComments() {
         return this.comments;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof BasicRoseSetting)) return false;
+        BasicRoseSetting<?> that = (BasicRoseSetting<?>) o;
+        return Objects.equals(this.key, that.key);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(this.key);
     }
 
 }

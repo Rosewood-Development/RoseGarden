@@ -3,12 +3,15 @@ package dev.rosewood.rosegarden.config;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /* package */ class BasicRoseConfig implements RoseConfig {
 
     private final File file;
     private final List<RoseSetting<?>> settings;
+    private final Map<RoseSetting<?>, Object> settingsValueCache;
     private final String[] header;
     private final boolean writeDefaultValueComments;
     private CommentedFileConfiguration fileConfiguration;
@@ -16,15 +19,22 @@ import java.util.List;
     private BasicRoseConfig(File file, List<RoseSetting<?>> settings, String[] header, boolean writeDefaultValueComments) {
         this.file = file;
         this.settings = settings;
+        this.settingsValueCache = new HashMap<>(Math.min(16, this.settings.size()));
         this.header = header;
         this.writeDefaultValueComments = writeDefaultValueComments;
         this.reload();
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T> T get(RoseSetting<T> setting) {
+        if (this.settingsValueCache.containsKey(setting))
+            return (T) this.settingsValueCache.get(setting);
+
         try {
-            return setting.getSerializer().read(this.getBaseConfig(), setting);
+            T value = setting.getSerializer().read(this.getBaseConfig(), setting);
+            this.settingsValueCache.put(setting, value);
+            return value;
         } catch (Exception e) {
             e.printStackTrace();
             return setting.getDefaultValue();
@@ -34,6 +44,7 @@ import java.util.List;
     @Override
     public <T> void set(RoseSetting<T> setting, T value) {
         setting.getSerializer().write(this.getBaseConfig(), setting, value);
+        this.settingsValueCache.put(setting, value);
     }
 
     @Override
@@ -51,6 +62,7 @@ import java.util.List;
     @Override
     public void reload() {
         this.fileConfiguration = null;
+        this.settingsValueCache.clear();
         if (this.settings.isEmpty() && this.header.length == 0)
             return;
 
