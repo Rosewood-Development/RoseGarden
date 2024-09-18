@@ -1,5 +1,9 @@
 package dev.rosewood.rosegarden.utils;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -13,6 +17,15 @@ import java.util.regex.Pattern;
 public final class StringPlaceholders {
 
     private final static StringPlaceholders EMPTY = new StringPlaceholders(Collections.emptyMap(), "%", "%");
+    private final static LoadingCache<String, Pattern> PATTERN_CACHE = CacheBuilder.newBuilder()
+            .concurrencyLevel(2)
+            .expireAfterAccess(Duration.ofMinutes(1))
+            .build(new CacheLoader<String, Pattern>() {
+                @Override
+                public Pattern load(String key) throws Exception {
+                    return Pattern.compile(key);
+                }
+            });
 
     private final String startDelimiter, endDelimiter;
     private final Map<String, String> placeholders;
@@ -30,8 +43,11 @@ public final class StringPlaceholders {
      * @return the string with the placeholders replaced
      */
     public String apply(String string) {
-        for (String key : this.placeholders.keySet())
-            string = string.replaceAll(Pattern.quote(this.startDelimiter + key + this.endDelimiter), Matcher.quoteReplacement(this.placeholders.get(key)));
+        for (String key : this.placeholders.keySet()) {
+            String patternKey = Pattern.quote(this.startDelimiter + key + this.endDelimiter);
+            Pattern pattern = PATTERN_CACHE.getUnchecked(patternKey);
+            string = pattern.matcher(string).replaceAll(Matcher.quoteReplacement(this.placeholders.get(key)));
+        }
         return string;
     }
 
