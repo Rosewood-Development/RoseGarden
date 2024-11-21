@@ -18,7 +18,7 @@ public abstract class ArgumentHandler<T> {
      * @param context A readonly command context
      * @param argument The argument being handled
      * @param inputIterator The input iterator
-     * @return The String input converted to the handled object type, or null if the conversion failed
+     * @return The String input converted to the handled object type
      * @throws HandledArgumentException when an argument is unable to be handled
      */
     public abstract T handle(CommandContext context, Argument argument, InputIterator inputIterator) throws HandledArgumentException;

@@ -3,11 +3,11 @@ package dev.rosewood.rosegarden.utils;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import java.time.Duration;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -19,7 +19,7 @@ public final class StringPlaceholders {
     private final static StringPlaceholders EMPTY = new StringPlaceholders(Collections.emptyMap(), "%", "%");
     private final static LoadingCache<String, Pattern> PATTERN_CACHE = CacheBuilder.newBuilder()
             .concurrencyLevel(2)
-            .expireAfterAccess(Duration.ofMinutes(1))
+            .expireAfterAccess(1, TimeUnit.MINUTES)
             .build(new CacheLoader<String, Pattern>() {
                 @Override
                 public Pattern load(String key) throws Exception {

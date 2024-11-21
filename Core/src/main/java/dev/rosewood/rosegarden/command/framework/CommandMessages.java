@@ -50,6 +50,7 @@ public class CommandMessages {
         this.put("argument-handler-player-selector-entity", "Selector resulted in a selected non-player entity");
         this.put("argument-handler-short", "Short [%input%] must be a whole number between -32,768 and 32,767 inclusively");
         this.put("argument-handler-value", "Value [%input%] must be one of the following: %values%");
+        this.put("argument-handler-registry-value", "Value [%input%] is not a valid %type%.");
     }};
 
 }

@@ -24,7 +24,7 @@ public class EnumArgumentHandler<T extends Enum<T>> extends ArgumentHandler<T> {
                 .filter(x -> x.name().equalsIgnoreCase(input))
                 .findFirst();
 
-        if (value.isEmpty()) {
+        if (!value.isPresent()) {
             StringPlaceholders placeholders = StringPlaceholders.of(
                     "enum", this.getHandledType().getSimpleName(),
                     "input", input,
