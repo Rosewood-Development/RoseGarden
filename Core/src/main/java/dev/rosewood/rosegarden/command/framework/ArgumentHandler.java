@@ -13,7 +13,7 @@ public abstract class ArgumentHandler<T> {
 
     /**
      * Converts a String input from an argument instance into the handled type.
-     * The handler must consume at least one element from the inputIterator else the handle will fail.
+     * The handler must consume at least one element from the inputIterator else the handler will fail.
      *
      * @param context A readonly command context
      * @param argument The argument being handled
@@ -47,13 +47,20 @@ public abstract class ArgumentHandler<T> {
 
         private final StringPlaceholders placeholders;
 
-        public HandledArgumentException(String message, StringPlaceholders placeholders) {
-            super(message);
+        /**
+         * @param messageKey The message description key to load from the locale file
+         * @param placeholders The placeholders to parse the message with
+         */
+        public HandledArgumentException(String messageKey, StringPlaceholders placeholders) {
+            super(messageKey);
             this.placeholders = placeholders;
         }
 
-        public HandledArgumentException(String message) {
-            this(message, StringPlaceholders.empty());
+        /**
+         * @param messageKey The message description key to load from the locale file
+         */
+        public HandledArgumentException(String messageKey) {
+            this(messageKey, StringPlaceholders.empty());
         }
 
         public StringPlaceholders getPlaceholders() {

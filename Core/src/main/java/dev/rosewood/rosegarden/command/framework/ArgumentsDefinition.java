@@ -52,6 +52,30 @@ public class ArgumentsDefinition {
         return new Builder();
     }
 
+    public static <T> ArgumentsDefinition of(String name1, ArgumentHandler<T> handler1) {
+        return new Builder()
+                .required(name1, handler1)
+                .build();
+    }
+
+    public static <T> ArgumentsDefinition of(String name1, ArgumentHandler<T> handler1,
+                                             String name2, ArgumentHandler<T> handler2) {
+        return new Builder()
+                .required(name1, handler1)
+                .required(name2, handler2)
+                .build();
+    }
+
+    public static <T> ArgumentsDefinition of(String name1, ArgumentHandler<T> handler1,
+                                             String name2, ArgumentHandler<T> handler2,
+                                             String name3, ArgumentHandler<T> handler3) {
+        return new Builder()
+                .required(name1, handler1)
+                .required(name2, handler2)
+                .required(name3, handler3)
+                .build();
+    }
+
     public static class Builder {
 
         private final List<Argument> arguments;

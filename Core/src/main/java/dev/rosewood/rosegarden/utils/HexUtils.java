@@ -390,9 +390,7 @@ public final class HexUtils {
 
         @Override
         public Color nextColor() {
-            // Do some wizardry to get a function that bounces back and forth between 0 and a cap given an increasing input
-            // Thanks to BomBardyGamer for assisting with this
-            int adjustedStep = (int) Math.round(Math.abs(((2 * Math.asin(Math.sin(this.step * (Math.PI / (2 * this.steps))))) / Math.PI) * this.steps));
+            int adjustedStep = this.adjustStep(this.step, this.steps);
 
             Color color;
             if (this.gradients.size() < 2) {
@@ -405,6 +403,16 @@ public final class HexUtils {
 
             this.step++;
             return color;
+        }
+
+        private int adjustStep(long t, int steps) {
+            int period = steps * 2;
+            int modT = (int) (t % period);
+            if (modT <= steps) {
+                return modT;
+            } else {
+                return period - modT;
+            }
         }
 
         public static class TwoStopGradient {
