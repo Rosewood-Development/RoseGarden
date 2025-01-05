@@ -3,7 +3,7 @@ import org.apache.tools.ant.filters.ReplaceTokens
 dependencies {
     // Referenced dependencies
     compileOnly "io.papermc.paper:paper-api:$spigotVersion-R0.1-SNAPSHOT"
-    compileOnly 'me.clip:placeholderapi:2.11.3'
+    compileOnly 'me.clip:placeholderapi:2.11.6'
 
     // Shaded dependencies
     api 'org.bstats:bstats-bukkit:3.0.2'
