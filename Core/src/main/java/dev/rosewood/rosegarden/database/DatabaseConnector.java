@@ -26,6 +26,14 @@ public interface DatabaseConnector {
     void connect(ConnectionCallback callback, boolean useTransaction);
 
     /**
+     * Aquires a database connection.
+     * You must close this connection by calling {@link Connection#close()}.
+     *
+     * @return The database connection.
+     */
+    Connection connect() throws SQLException;
+
+    /**
      * @return the lock to notify when all connections have been finalized
      */
     Object getLock();

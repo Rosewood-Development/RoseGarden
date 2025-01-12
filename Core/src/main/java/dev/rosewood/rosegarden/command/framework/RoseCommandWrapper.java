@@ -205,7 +205,7 @@ public class RoseCommandWrapper extends BukkitCommand {
             return true;
         }
 
-        CommandContext context = new CommandContext(sender, commandLabel, args);
+        CommandContext context = new CommandContext(this.rosePlugin, sender, commandLabel, args);
         CommandExecutionWalker walker = new CommandExecutionWalker(this.command);
         InputIterator inputIterator = new InputIterator(Arrays.asList(args));
 
@@ -318,7 +318,7 @@ public class RoseCommandWrapper extends BukkitCommand {
         if (this.command.isPlayerOnly() && !isPlayer || !this.command.canUse(sender))
             return Collections.emptyList();
 
-        CommandContext context = new CommandContext(sender, commandLabel, args);
+        CommandContext context = new CommandContext(this.rosePlugin, sender, commandLabel, args);
         CommandExecutionWalker walker = new CommandExecutionWalker(this.command);
         InputIterator inputIterator = new InputIterator(Arrays.asList(args));
 

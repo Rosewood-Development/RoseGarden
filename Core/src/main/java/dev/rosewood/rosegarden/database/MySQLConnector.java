@@ -69,6 +69,11 @@ public class MySQLConnector implements DatabaseConnector {
     }
 
     @Override
+    public Connection connect() throws SQLException {
+        return this.hikari.getConnection();
+    }
+
+    @Override
     public Object getLock() {
         return this.lock;
     }

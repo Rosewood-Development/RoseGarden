@@ -3,6 +3,7 @@ package dev.rosewood.rosegarden.command.framework;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
+import dev.rosewood.rosegarden.RosePlugin;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -13,6 +14,7 @@ import org.bukkit.command.CommandSender;
 
 public class CommandContext {
 
+    private final RosePlugin rosePlugin;
     private final CommandSender sender;
     private final String commandLabel;
     private final String[] rawArguments;
@@ -23,7 +25,8 @@ public class CommandContext {
     private final List<Argument> argumentsPath;
     private final Map<Argument, String[]> rawArgumentsPath;
 
-    public CommandContext(CommandSender sender, String commandLabel, String[] rawArguments) {
+    public CommandContext(RosePlugin rosePlugin, CommandSender sender, String commandLabel, String[] rawArguments) {
+        this.rosePlugin = rosePlugin;
         this.sender = sender;
         this.commandLabel = commandLabel;
         this.rawArguments = rawArguments;
@@ -34,6 +37,13 @@ public class CommandContext {
         this.parametersByName = new LinkedHashMap<>();
         this.argumentsPath = new ArrayList<>();
         this.rawArgumentsPath = new LinkedHashMap<>();
+    }
+
+    /**
+     * @return the executing RosePlugin instance
+     */
+    public RosePlugin getRosePlugin() {
+        return this.rosePlugin;
     }
 
     /**

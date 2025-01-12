@@ -123,6 +123,17 @@ public class SQLiteConnector implements DatabaseConnector {
     }
 
     @Override
+    public Connection connect() {
+        try {
+            if (this.connection == null || this.connection.isClosed())
+                this.connection = DriverManager.getConnection(this.connectionString);
+        } catch (SQLException ex) {
+            this.rosePlugin.getLogger().severe("An error occurred retrieving the SQLite database connection: " + ex.getMessage());
+        }
+        return this.connection;
+    }
+
+    @Override
     public Object getLock() {
         return this.lock;
     }

@@ -58,6 +58,8 @@ public interface RoseSetting<T> {
             String defaultComment = "Default: ";
             if (RoseGardenUtils.containsConfigSpecialCharacters(defaultValueString)) {
                 defaultComment += "'" + defaultValueString + "'";
+            } else if (defaultValueString.trim().isEmpty()) {
+                defaultComment += "''";
             } else {
                 defaultComment += defaultValueString;
             }
