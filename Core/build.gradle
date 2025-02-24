@@ -26,6 +26,11 @@ tasks.register('processSource', Sync) {
     into "${layout.buildDirectory.get()}/src"
 }
 
+tasks.register('sourcesJar', Jar) {
+    archiveClassifier.set('sources')
+    from sourceSets.main.allSource
+}
+
 compileJava {
     source = processSource.outputs
 }
@@ -41,6 +46,7 @@ publishing {
         shadow(MavenPublication) { publication ->
             artifactId = 'rosegarden'
             project.shadow.component(publication)
+            artifact sourcesJar
         }
     }
 }

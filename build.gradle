@@ -8,10 +8,10 @@ subprojects {
     apply plugin: 'maven-publish'
     apply plugin: 'jacoco'
     group = 'dev.rosewood'
-    targetCompatibility = '1.8'
-    sourceCompatibility = '1.8'
 
     java {
+        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_1_8
         disableAutoTargetJvm() // Allows depending on Paper's newer APIs even though they use newer java version
     }
 
