@@ -19,7 +19,7 @@ import java.util.Map;
     private BasicRoseConfig(File file, List<RoseSetting<?>> settings, String[] header, boolean writeDefaultValueComments) {
         this.file = file;
         this.settings = settings;
-        this.settingsValueCache = new HashMap<>(Math.min(16, this.settings.size()));
+        this.settingsValueCache = new HashMap<>((int) Math.round(this.settings.size() / 0.75 + 1));
         this.header = header;
         this.writeDefaultValueComments = writeDefaultValueComments;
         this.reload();
@@ -63,6 +63,11 @@ import java.util.Map;
     public void reload() {
         this.fileConfiguration = null;
         this.settingsValueCache.clear();
+
+        for (RoseSetting<?> setting : this.settings)
+            if (setting instanceof BackedRoseSetting<?>)
+                ((BackedRoseSetting<?>) setting).reload();
+
         if (this.settings.isEmpty() && this.header.length == 0)
             return;
 

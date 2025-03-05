@@ -31,7 +31,7 @@ public interface RoseSetting<T> {
     String[] getComments();
 
     /**
-     * @return the value of this setting from the config.yml
+     * @return the value of this setting from the backing {@link RoseConfig}
      * @throws UnsupportedOperationException if this setting is not backed by a config
      */
     default T get() {
@@ -39,7 +39,14 @@ public interface RoseSetting<T> {
     }
 
     /**
-     * @return true if this setting is backed by a config and {@link #get()} can be called.
+     * @return the value of this setting from the given RoseConfig
+     */
+    default T get(RoseConfig config) {
+        return config.get(this);
+    }
+
+    /**
+     * @return true if this setting is backed by a config and {@link #get()} can be called without a {@link RoseConfig}.
      */
     default boolean isBacked() {
         return false;
