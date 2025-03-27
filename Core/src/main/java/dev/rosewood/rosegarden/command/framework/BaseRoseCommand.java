@@ -2,12 +2,14 @@ package dev.rosewood.rosegarden.command.framework;
 
 import dev.rosewood.rosegarden.RosePlugin;
 import dev.rosewood.rosegarden.command.framework.annotation.RoseExecutable;
+import dev.rosewood.rosegarden.utils.ClassUtils;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.bukkit.command.CommandException;
@@ -21,11 +23,10 @@ import org.bukkit.command.CommandException;
  * a {@link CommandContext} instance and the following parameters will be the command arguments as defined by the
  * {@link ArgumentsDefinition}. For example:
  * <blockquote><pre>
- *     @RoseExecutable
- *     public void execute(CommandContext context, /* additional parameters here *\/) {
- *         // ...
- *     }
- * <pre></blockquote>
+ * \@RoseExecutable
+ * public void execute(CommandContext context, /* additional parameters here *\/) {
+ *     // ...
+ * }<pre></blockquote>
  * <p>
  * Additionally, make sure to provide the arguments for the command in the {@link ArgumentsDefinition} provided through
  * {@link #createCommandInfo()}.
@@ -150,6 +151,10 @@ public abstract class BaseRoseCommand implements RoseCommand {
         for (int i = 0; i < maxItems; i++) {
             Class<?> methodType = this.arrayGetOrNull(methodTypes, i + 1);
             Class<?> argumentType = this.arrayGetOrNull(argumentTypes, i);
+            if (methodType != null && argumentType != null) {
+                System.out.println(methodType.getSimpleName());
+                System.out.println(argumentType.getSimpleName());
+            }
 
             if (methodType == null) {
                 // Parameters do not match, do not consider this as an option
@@ -163,7 +168,7 @@ public abstract class BaseRoseCommand implements RoseCommand {
                     // Parameters do not match but can be nulled, allow this to match if no better alternatives are found
                     score--;
                 }
-            } else if (methodType.isAssignableFrom(argumentType)) {
+            } else if (methodType.isAssignableFrom(argumentType) || Objects.equals(ClassUtils.PRIMITIVE_TO_BOXED.get(methodType), argumentType)) {
                 // Parameters match perfectly
                 score++;
             } else {
@@ -187,6 +192,9 @@ public abstract class BaseRoseCommand implements RoseCommand {
         Map<Class<?>, Integer> parameterCounts = new HashMap<>();
         for (int i = 1; i < parameters.length; i++) {
             Class<?> parameterType = parameterTypes[i];
+            if (parameterType.isPrimitive())
+                parameterType = ClassUtils.PRIMITIVE_TO_BOXED.get(parameterType);
+
             int index;
             if (parameterCounts.containsKey(parameterType)) {
                 index = parameterCounts.get(parameterType) + 1;

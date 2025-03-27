@@ -4,6 +4,7 @@ import dev.rosewood.rosegarden.RosePlugin;
 import dev.rosewood.rosegarden.command.framework.command.reflection.DefaultedReflectionCommand;
 import dev.rosewood.rosegarden.command.framework.command.reflection.MissingExecutableReflectionCommand;
 import dev.rosewood.rosegarden.command.framework.command.reflection.MixedReflectionCommand;
+import dev.rosewood.rosegarden.command.framework.command.reflection.PrimitiveReflectionCommand;
 import dev.rosewood.rosegarden.command.framework.command.reflection.ReflectionCommand;
 import dev.rosewood.rosegarden.manager.AbstractLocaleManager;
 import java.util.logging.Logger;
@@ -16,7 +17,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -119,6 +119,18 @@ public class CommandExecutionReflectionTest {
         commandWrapper.execute(this.sender, command.getName(), this.splitInput(input));
 
         this.verifySuccess("VALUE_1");
+    }
+
+    @Test
+    public void testExecution_primitiveExecution() {
+        BaseRoseCommand command = new PrimitiveReflectionCommand(this.rosePlugin);
+        RoseCommandWrapper commandWrapper = new RoseCommandWrapper(this.rosePlugin, command);
+
+        String input = "42";
+
+        commandWrapper.execute(this.sender, command.getName(), this.splitInput(input));
+
+        this.verifySuccess("42");
     }
 
     private void verifySuccess(String expected) {

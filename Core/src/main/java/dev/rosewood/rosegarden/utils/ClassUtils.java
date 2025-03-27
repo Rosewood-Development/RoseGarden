@@ -6,12 +6,25 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class ClassUtils {
+
+    public static final Map<Class<?>, Class<?>> PRIMITIVE_TO_BOXED = new HashMap<Class<?>, Class<?>>() {{
+        this.put(byte.class, Byte.class);
+        this.put(short.class, Short.class);
+        this.put(int.class, Integer.class);
+        this.put(long.class, Long.class);
+        this.put(float.class, double.class);
+        this.put(double.class, Double.class);
+        this.put(boolean.class, Boolean.class);
+        this.put(char.class, Character.class);
+    }};
 
     private static JarFile getJar(JavaPlugin instance) {
         try {
