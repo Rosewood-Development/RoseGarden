@@ -1,27 +1,54 @@
 package dev.rosewood.rosegarden.config;
 
 import dev.rosewood.rosegarden.RosePlugin;
-import dev.rosewood.rosegarden.utils.RoseGardenUtils;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.function.Supplier;
+import org.bukkit.configuration.ConfigurationSection;
 
 public interface RoseSetting<T> {
 
     /**
-     * @return the configuration key of this setting
+     * Writes the setting to the given config.
+     *
+     * @param config the config to write to
+     */
+    void write(CommentedConfigurationSection config);
+
+    /**
+     * Writes the setting and its default value to the given config.
+     *
+     * @param config the config to write to
+     */
+    void writeWithDefault(CommentedConfigurationSection config);
+
+    /**
+     * Reads the setting from the given config and returns it.
+     *
+     * @param config the config to read from
+     * @return the setting value
+     */
+    T read(ConfigurationSection config);
+
+    /**
+     * Reads the setting from the given config and sets it as the default value supplier.
+     *
+     * @param config the config to read from
+     */
+    void readDefault(ConfigurationSection config);
+
+    /**
+     * @return the serializer for this setting
+     */
+    SettingSerializer<T> getSerializer();
+
+    /**
+     * @return the key name of this setting
      */
     String getKey();
 
     /**
-     * @return the serializer for reading/writing values to/from the config
-     */
-    RoseSettingSerializer<T> getSerializer();
-
-    /**
-     * @return the default value of this setting
+     * @return a new instance of the default value
      */
     T getDefaultValue();
 
@@ -52,53 +79,149 @@ public interface RoseSetting<T> {
         return false;
     }
 
-    default void writeDefault(CommentedConfigurationSection config, boolean writeDefaultValueComment) {
-        if (!writeDefaultValueComment) {
-            this.getSerializer().write(config, this, this.getDefaultValue());
-            return;
-        }
+    /**
+     * @return true if this setting should not be written as YAML, it will still be saved as PDC
+     */
+    boolean isHidden();
 
-        T defaultValue = this.getDefaultValue();
-        List<String> comments = new ArrayList<>(Arrays.asList(this.getComments()));
-        if (defaultValue != null && !(defaultValue instanceof Collection)) {
-            String defaultValueString = defaultValue.toString();
-            String defaultComment = "Default: ";
-            if (RoseGardenUtils.containsConfigSpecialCharacters(defaultValueString)) {
-                defaultComment += "'" + defaultValueString + "'";
-            } else if (defaultValueString.trim().isEmpty()) {
-                defaultComment += "''";
-            } else {
-                defaultComment += defaultValueString;
-            }
-            comments.add(defaultComment);
-        }
+    /**
+     * Creates a new RoseSetting as a copy of this RoseSetting but with a different default value and optionally comments.
+     * This should only be used for primitives or immutable types. Instances will be shared.
+     * Comments can be removed by setting them to null, empty comments will cause them to be copied from the original.
+     *
+     * @param defaultValue the new default value
+     * @return a copy of this RoseSetting with a different default value
+     */
+    RoseSetting<T> copy(T defaultValue, String... comments);
 
-        String[] commentsArray = comments.toArray(new String[0]);
-        this.getSerializer().write(config, this.getKey(), this.getDefaultValue(), commentsArray);
+    /**
+     * Creates a new RoseSetting as a copy of this RoseSetting but with a different default value.
+     * This should be used for mutable types where the underlying value may be changed during the lifetime of
+     * this setting.
+     * Comments can be removed by setting them to null, empty comments will cause them to be copied from the original.
+     *
+     * @param defaultValueSupplier the new default value supplier
+     * @return a copy of this RoseSetting with a different default value
+     */
+    RoseSetting<T> copy(Supplier<T> defaultValueSupplier, String... comments);
+
+    static RoseSetting<Boolean> forBoolean(String name, boolean defaultValue, String... comments) {
+        return of(name, SettingSerializers.BOOLEAN, () -> defaultValue, comments);
     }
 
-    static <T> RoseSetting<T> of(String key, RoseSettingSerializer<T> serializer, T defaultValue, String... comments) {
-        return of(key, serializer, (Supplier<T>) () -> defaultValue, comments);
+    static RoseSetting<Integer> forInteger(String name, int defaultValue, String... comments) {
+        return of(name, SettingSerializers.INTEGER, () -> defaultValue, comments);
     }
 
-    static <T> RoseSetting<T> of(String key, RoseSettingSerializer<T> serializer, Supplier<T> defaultValueSupplier, String... comments) {
-        return new BasicRoseSetting<>(key, serializer, defaultValueSupplier, comments);
+    static RoseSetting<Long> forLong(String name, long defaultValue, String... comments) {
+        return of(name, SettingSerializers.LONG, () -> defaultValue, comments);
     }
 
-    static RoseSetting<CommentedConfigurationSection> ofSection(String key, String... comments) {
-        return new BasicRoseSetting<>(key, RoseSettingSerializers.SECTION, (CommentedConfigurationSection) null, comments);
+    static RoseSetting<Short> forShort(String name, short defaultValue, String... comments) {
+        return of(name, SettingSerializers.SHORT, () -> defaultValue, comments);
     }
 
-    static <T> RoseSetting<T> backed(RosePlugin rosePlugin, String key, RoseSettingSerializer<T> serializer, T defaultValue, String... comments) {
-        return backed(rosePlugin, key, serializer, (Supplier<T>) () -> defaultValue, comments);
+    static RoseSetting<Byte> forByte(String name, byte defaultValue, String... comments) {
+        return of(name, SettingSerializers.BYTE, () -> defaultValue, comments);
     }
 
-    static <T> RoseSetting<T> backed(RosePlugin rosePlugin, String key, RoseSettingSerializer<T> serializer, Supplier<T> defaultValueSupplier, String... comments) {
-        return new BackedRoseSetting<>(rosePlugin, key, serializer, defaultValueSupplier, comments);
+    static RoseSetting<Double> forDouble(String name, double defaultValue, String... comments) {
+        return of(name, SettingSerializers.DOUBLE, () -> defaultValue, comments);
     }
 
-    static RoseSetting<CommentedConfigurationSection> backedSection(RosePlugin rosePlugin, String key, String... comments) {
-        return new BackedRoseSetting<>(rosePlugin, key, RoseSettingSerializers.SECTION, (CommentedConfigurationSection) null, comments);
+    static RoseSetting<Float> forFloat(String name, float defaultValue, String... comments) {
+        return of(name, SettingSerializers.FLOAT, () -> defaultValue, comments);
+    }
+
+    static RoseSetting<Character> forCharacter(String name, char defaultValue, String... comments) {
+        return of(name, SettingSerializers.CHAR, () -> defaultValue, comments);
+    }
+
+    static RoseSetting<String> forString(String name, String defaultValue, String... comments) {
+        return of(name, SettingSerializers.STRING, () -> defaultValue, comments);
+    }
+
+    static RoseSetting<List<String>> forStringList(String name, List<String> defaultValue, String... comments) {
+        return of(name, SettingSerializers.ofList(SettingSerializers.STRING), () -> new ArrayList<>(defaultValue), comments);
+    }
+
+    @SuppressWarnings("unchecked")
+    static <T extends Enum<T>> RoseSetting<T> forEnum(String name, T defaultValue, String... comments) {
+        return of(name, SettingSerializers.ofEnum(defaultValue.getClass()), () -> defaultValue, comments);
+    }
+
+    static RoseSetting<ConfigurationSection> forSection(String name, String... comments) {
+        return ofValue(name, SettingSerializers.SECTION, null, comments);
+    }
+
+    /**
+     * Creates a RoseSetting with a given default value.
+     * This should only be used for primitives or immutable types. Instances will be shared.
+     *
+     * @param name The name of the setting
+     * @param serializer The serializer for the setting
+     * @param defaultValue The default value, do not use a mutable value
+     * @param comments Comments describing the setting for writing to YAML
+     * @return a new RoseSetting
+     * @param <T> the type of value this setting is for
+     */
+    static <T> RoseSetting<T> ofValue(String name, SettingSerializer<T> serializer, T defaultValue, String... comments) {
+        return new BasicRoseSetting<>(serializer, name.toLowerCase(), () -> defaultValue, false, comments != null ? comments : new String[0]);
+    }
+
+    /**
+     * Creates a RoseSetting with a given default value supplier.
+     *
+     * @param name The name of the setting
+     * @param serializer The serializer for the setting
+     * @param defaultValueSupplier The default value supplier to return a new default value instance
+     * @param comments Comments describing the setting for writing to YAML
+     * @return a new RoseSetting
+     * @param <T> the type of value this setting is for
+     */
+    static <T> RoseSetting<T> of(String name, SettingSerializer<T> serializer, Supplier<T> defaultValueSupplier, String... comments) {
+        return new BasicRoseSetting<>(serializer, name.toLowerCase(), defaultValueSupplier, false, comments != null ? comments : new String[0]);
+    }
+
+    /**
+     * Creates a RoseSetting with a given default value.
+     * This should only be used for primitives or immutable types. Instances will be shared.
+     * Will not be written to YAML, will be written to PDC.
+     *
+     * @param name The name of the setting
+     * @param serializer The serializer for the setting
+     * @param defaultValue The default value, do not use a mutable value
+     * @return a new RoseSetting
+     * @param <T> the type of value this setting is for
+     */
+    static <T> RoseSetting<T> forHiddenValue(String name, SettingSerializer<T> serializer, T defaultValue) {
+        return new BasicRoseSetting<>(serializer, name.toLowerCase(), () -> defaultValue, true);
+    }
+
+    /**
+     * Creates a RoseSetting with a given default value supplier.
+     * Will not be written to YAML, will be written to PDC.
+     *
+     * @param name The name of the setting
+     * @param serializer The serializer for the setting
+     * @param defaultValueSupplier The default value supplier to return a new default value instance
+     * @return a new RoseSetting
+     * @param <T> the type of value this setting is for
+     */
+    static <T> RoseSetting<T> forHidden(String name, SettingSerializer<T> serializer, Supplier<T> defaultValueSupplier) {
+        return new BasicRoseSetting<>(serializer, name.toLowerCase(), defaultValueSupplier, true);
+    }
+
+    static <T> RoseSetting<T> forBacked(String name, RosePlugin backing, SettingSerializer<T> serializer, Supplier<T> defaultValueSupplier, String... comments) {
+        return new BackedRoseSetting<>(backing, serializer, name.toLowerCase(), defaultValueSupplier, comments);
+    }
+
+    static <T> RoseSetting<T> forBackedValue(String name, RosePlugin backing, SettingSerializer<T> serializer, T defaultValue, String... comments) {
+        return new BackedRoseSetting<>(backing, serializer, name.toLowerCase(), () -> defaultValue, comments);
+    }
+
+    static <T> RoseSetting<ConfigurationSection> forBackedSection(String name, RosePlugin backing, String... comments) {
+        return forBackedValue(name, backing, SettingSerializers.SECTION, null, comments);
     }
 
 }

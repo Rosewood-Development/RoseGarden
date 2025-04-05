@@ -151,10 +151,6 @@ public abstract class BaseRoseCommand implements RoseCommand {
         for (int i = 0; i < maxItems; i++) {
             Class<?> methodType = this.arrayGetOrNull(methodTypes, i + 1);
             Class<?> argumentType = this.arrayGetOrNull(argumentTypes, i);
-            if (methodType != null && argumentType != null) {
-                System.out.println(methodType.getSimpleName());
-                System.out.println(argumentType.getSimpleName());
-            }
 
             if (methodType == null) {
                 // Parameters do not match, do not consider this as an option

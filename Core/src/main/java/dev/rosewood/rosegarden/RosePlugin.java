@@ -4,6 +4,7 @@ import dev.rosewood.rosegarden.command.framework.RoseCommandWrapper;
 import dev.rosewood.rosegarden.command.rwd.RwdCommand;
 import dev.rosewood.rosegarden.config.RoseConfig;
 import dev.rosewood.rosegarden.config.RoseSetting;
+import dev.rosewood.rosegarden.config.SettingHolder;
 import dev.rosewood.rosegarden.manager.AbstractCommandManager;
 import dev.rosewood.rosegarden.manager.AbstractDataManager;
 import dev.rosewood.rosegarden.manager.AbstractLocaleManager;
@@ -31,6 +32,7 @@ import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.ServicesManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class RosePlugin extends JavaPlugin {
 
@@ -38,6 +40,11 @@ public abstract class RosePlugin extends JavaPlugin {
      * The RosePlugin identifier
      */
     public static final String ROSEGARDEN_VERSION = "@version@";
+
+    /**
+     * The RosePlugin instance
+     */
+    private static RosePlugin instance;
 
     /**
      * The plugin ID on Spigot
@@ -90,6 +97,8 @@ public abstract class RosePlugin extends JavaPlugin {
 
         this.managers = new ConcurrentHashMap<>();
         this.managerInitializationStack = new ConcurrentLinkedDeque<>();
+
+        instance = this;
     }
 
     @Override
@@ -162,11 +171,11 @@ public abstract class RosePlugin extends JavaPlugin {
     }
 
     /**
-     * @return the settings that should be written to the config.yml
+     * @return the SettingHolder containing settings to be written to the config.yml
      */
-    @NotNull
-    protected List<RoseSetting<?>> getRoseConfigSettings() {
-        return Collections.emptyList();
+    @Nullable
+    protected SettingHolder getRoseConfigSettingHolder() {
+        return null;
     }
 
     /**
@@ -311,12 +320,14 @@ public abstract class RosePlugin extends JavaPlugin {
             List<RoseSetting<?>> settings = new ArrayList<>();
 
             if (this.hasLocaleManager())
-                settings.addAll(AbstractLocaleManager.SettingKey.getKeys());
+                settings.addAll(AbstractLocaleManager.Settings.INSTANCE.get());
 
-            settings.addAll(this.getRoseConfigSettings());
+            SettingHolder settingHolder = this.getRoseConfigSettingHolder();
+            if (settingHolder != null)
+                settings.addAll(settingHolder.get());
 
             if (this.hasDataManager() && !this.isLocalDatabaseOnly())
-                settings.addAll(AbstractDataManager.SettingKey.getKeys());
+                settings.addAll(AbstractDataManager.Settings.INSTANCE.get());
 
             File file = new File(this.getDataFolder(), "config.yml");
             this.roseConfig = RoseConfig.builder(file)
@@ -415,6 +426,10 @@ public abstract class RosePlugin extends JavaPlugin {
 
     public final boolean hasCommandManager() {
         return this.commandManagerClass != null;
+    }
+
+    public static RosePlugin instance() {
+        return instance;
     }
 
     /**

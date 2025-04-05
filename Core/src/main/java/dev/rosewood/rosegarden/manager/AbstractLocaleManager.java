@@ -4,7 +4,7 @@ import dev.rosewood.rosegarden.RosePlugin;
 import dev.rosewood.rosegarden.command.framework.CommandMessages;
 import dev.rosewood.rosegarden.config.CommentedFileConfiguration;
 import dev.rosewood.rosegarden.config.RoseSetting;
-import dev.rosewood.rosegarden.config.RoseSettingSerializers;
+import dev.rosewood.rosegarden.config.SettingHolder;
 import dev.rosewood.rosegarden.hook.PlaceholderAPIHook;
 import dev.rosewood.rosegarden.locale.Locale;
 import dev.rosewood.rosegarden.locale.YamlFileLocale;
@@ -26,21 +26,23 @@ import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractLocaleManager extends Manager {
 
-    public static final class SettingKey {
-        private static final List<RoseSetting<?>> KEYS = new ArrayList<>();
+    public static final class Settings implements SettingHolder {
+        public static final SettingHolder INSTANCE = new Settings();
+        private static final List<RoseSetting<?>> SETTINGS = new ArrayList<>();
 
-        public static final RoseSetting<String> LOCALE = create(RoseSetting.of("locale", RoseSettingSerializers.STRING, "en_US", "The locale to use in the /locale folder"));
+        public static final RoseSetting<String> LOCALE = create(RoseSetting.forString("locale", "en_US", "The locale to use in the /locale folder"));
+
+        private Settings() {}
+
+        @Override
+        public List<RoseSetting<?>> get() {
+            return Collections.unmodifiableList(SETTINGS);
+        }
 
         private static <T> RoseSetting<T> create(RoseSetting<T> setting) {
-            KEYS.add(setting);
+            SETTINGS.add(setting);
             return setting;
         }
-
-        public static List<RoseSetting<?>> getKeys() {
-            return Collections.unmodifiableList(KEYS);
-        }
-
-        private SettingKey() {}
     }
 
     protected final File localeDirectory;
@@ -109,7 +111,7 @@ public abstract class AbstractLocaleManager extends Manager {
         locales.forEach(this::registerLocale);
 
         // Find the desired locale file in the locale directory, allow both .lang and .yml file extensions
-        String localeName = this.rosePlugin.getRoseConfig().get(SettingKey.LOCALE);
+        String localeName = this.rosePlugin.getRoseConfig().get(Settings.LOCALE);
         File localeFile = new File(this.localeDirectory, localeName + ".yml");
         if (localeFile.exists()) {
             this.loadedLocale = new YamlFileLocale(localeFile);

@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/* package */ class BasicRoseConfig implements RoseConfig {
+class BasicRoseConfig implements RoseConfig {
 
     private final File file;
     private final List<RoseSetting<?>> settings;
@@ -82,7 +82,12 @@ import java.util.Map;
             if (config.contains(setting.getKey()))
                 continue;
 
-            setting.writeDefault(config, this.writeDefaultValueComments);
+            if (this.writeDefaultValueComments) {
+                setting.writeWithDefault(config);
+            } else {
+                setting.write(config);
+            }
+
             changed = true;
         }
 
@@ -118,6 +123,12 @@ import java.util.Map;
         @Override
         public RoseConfig.Builder settings(List<RoseSetting<?>> settings) {
             this.settings = new ArrayList<>(settings);
+            return this;
+        }
+
+        @Override
+        public RoseConfig.Builder settings(SettingHolder settingHolder) {
+            this.settings = new ArrayList<>(settingHolder.get());
             return this;
         }
 

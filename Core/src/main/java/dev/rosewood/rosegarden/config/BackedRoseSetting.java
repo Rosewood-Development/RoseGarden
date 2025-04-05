@@ -3,17 +3,13 @@ package dev.rosewood.rosegarden.config;
 import dev.rosewood.rosegarden.RosePlugin;
 import java.util.function.Supplier;
 
-/* package */ class BackedRoseSetting<T> extends BasicRoseSetting<T> {
+class BackedRoseSetting<T> extends BasicRoseSetting<T> {
 
     private final RosePlugin backing;
     private T value;
 
-    public BackedRoseSetting(RosePlugin backing, String key, RoseSettingSerializer<T> serializer, T defaultValue, String... comments) {
-        this(backing, key, serializer, () -> defaultValue, comments);
-    }
-
-    public BackedRoseSetting(RosePlugin backing, String key, RoseSettingSerializer<T> serializer, Supplier<T> defaultValueSupplier, String... comments) {
-        super(key, serializer, defaultValueSupplier, comments);
+    protected BackedRoseSetting(RosePlugin backing, SettingSerializer<T> serializer, String key, Supplier<T> defaultValueSupplier, String... comments) {
+        super(serializer, key, defaultValueSupplier, false, comments);
         this.backing = backing;
         this.value = null;
     }
@@ -32,6 +28,14 @@ import java.util.function.Supplier;
 
     void reload() {
         this.value = null;
+    }
+
+    @Override
+    public String toString() {
+        return "BackedRoseSetting{" +
+                "key='" + this.key + '\'' +
+                ", defaultValue=" + this.defaultValueSupplier.get() +
+                '}';
     }
 
 }
