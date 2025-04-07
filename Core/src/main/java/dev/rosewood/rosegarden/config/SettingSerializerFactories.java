@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 import org.bukkit.Keyed;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.persistence.PersistentDataContainer;
 import static dev.rosewood.rosegarden.config.SettingSerializers.setWithComments;
 
 @SuppressWarnings("unchecked")
@@ -203,6 +204,51 @@ final class SettingSerializerFactories {
                     }
                 }
                 return map;
+            }
+        };
+    }
+
+    public static <T, M> SettingSerializer<T> ofFieldMapped(Class<T> type, String fieldKey, SettingSerializer<M> fieldSerializer, Map<M, SettingSerializer<? extends T>> mapper) {
+        return new SettingSerializer<T>(type, null) {
+            @Override
+            public void write(ConfigurationSection config, String key, T value, String... comments) {
+                SettingSerializer<T> serializer = this.mapField(fieldSerializer.read(config, fieldKey));
+                if (serializer != null)
+                    serializer.write(config, key, value, comments);
+            }
+
+            @Override
+            public void writeWithDefault(ConfigurationSection config, String key, T value, String... comments) {
+                SettingSerializer<T> serializer = this.mapField(fieldSerializer.read(config, fieldKey));
+                if (serializer != null)
+                    serializer.writeWithDefault(config, key, value, comments);
+            }
+
+            @Override
+            public void write(PersistentDataContainer container, String key, T value) {
+                SettingSerializer<T> serializer = this.mapField(fieldSerializer.read(container, fieldKey));
+                if (serializer != null)
+                    serializer.write(container, key, value);
+            }
+
+            @Override
+            public T read(ConfigurationSection config, String key) {
+                SettingSerializer<T> serializer = this.mapField(fieldSerializer.read(config, fieldKey));
+                return serializer != null ? serializer.read(config, key) : null;
+            }
+
+            @Override
+            public T read(PersistentDataContainer container, String key) {
+                SettingSerializer<T> serializer = this.mapField(fieldSerializer.read(container, fieldKey));
+                return serializer != null ? serializer.read(container, key) : null;
+            }
+
+            @SuppressWarnings("unchecked") // always maps to subtypes since it extends T
+            private SettingSerializer<T> mapField(M value) {
+                if (value == null)
+                    return null;
+                SettingSerializer<? extends T> serializer = mapper.get(value);
+                return (SettingSerializer<T>) serializer;
             }
         };
     }

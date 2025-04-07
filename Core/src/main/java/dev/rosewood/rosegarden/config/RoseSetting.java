@@ -145,9 +145,8 @@ public interface RoseSetting<T> {
         return of(name, SettingSerializers.ofList(SettingSerializers.STRING), () -> new ArrayList<>(defaultValue), comments);
     }
 
-    @SuppressWarnings("unchecked")
-    static <T extends Enum<T>> RoseSetting<T> forEnum(String name, T defaultValue, String... comments) {
-        return of(name, SettingSerializers.ofEnum(defaultValue.getClass()), () -> defaultValue, comments);
+    static <T extends Enum<T>> RoseSetting<T> forEnum(String name, Class<T> enumClass, T defaultValue, String... comments) {
+        return of(name, SettingSerializers.ofEnum(enumClass), () -> defaultValue, comments);
     }
 
     static RoseSetting<ConfigurationSection> forSection(String name, String... comments) {

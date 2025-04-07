@@ -1,8 +1,10 @@
 package dev.rosewood.rosegarden.config;
 
+import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.MemoryConfiguration;
 import org.bukkit.persistence.PersistentDataAdapterContext;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
@@ -15,6 +17,47 @@ public class RecordSettingSerializerBuilder<O> {
 
     private RecordSettingSerializerBuilder(Class<O> type) {
         this.type = type;
+    }
+
+    private static <T, O> T getValueOrDefault(ConfigurationSection section, SettingField<O, T> settingField) {
+        T value;
+        if (settingField.flatten()) {
+            // Lift keys into the expected section for the field serializer if flattened
+            MemoryConfiguration liftedSection = new MemoryConfiguration();
+            Map<String, Object> map = section.getValues(true);
+            String prefix = settingField.key() + ".";
+            map.forEach((key, val) -> liftedSection.addDefault(prefix + key, val));
+            value = settingField.settingSerializer().read(liftedSection, settingField.key());
+        } else {
+            value = settingField.settingSerializer().read(section, settingField.key());
+        }
+        if (value == null)
+            value = settingField.defaultValue();
+        return value;
+    }
+
+    private static <T, O> T getPersistentValueOrDefault(PersistentDataContainer container, SettingField<O, T> settingField) {
+        T value = settingField.settingSerializer().read(container, settingField.key());
+        if (value == null)
+            value = settingField.defaultValue();
+        return value;
+    }
+
+    private static <T, O> void writeConfigurationField(ConfigurationSection section, SettingField<O, T> settingField, O value, boolean writeDefaults) {
+        if (writeDefaults) {
+            settingField.settingSerializer().writeWithDefault(section, settingField.key(), settingField.getter().apply(value), settingField.comments());
+        } else {
+            settingField.settingSerializer().write(section, settingField.key(), settingField.getter().apply(value), settingField.comments());
+        }
+        if (settingField.flatten() && section.isConfigurationSection(settingField.key())) {
+            // Flatten keys down a level by deleting the section they're in and add them to their parent
+            ConfigurationSection flatteningSection = section.getConfigurationSection(settingField.key());
+            if (flatteningSection != null) {
+                Map<String, Object> map = flatteningSection.getValues(true);
+                section.set(settingField.key(), null);
+                map.forEach(section::set);
+            }
+        }
     }
 
     public static <O> SettingSerializer<O> create(Class<O> clazz, Function<RecordSettingSerializerBuilder<O>, Built<O>> builder) {
@@ -159,7 +202,7 @@ public class RecordSettingSerializerBuilder<O> {
             }
             @Override
             public O fromPrimitive(PersistentDataContainer primitive, PersistentDataAdapterContext context) {
-                T1 value1 = settingField1.settingSerializer().read(primitive, settingField1.key());
+                T1 value1 = getPersistentValueOrDefault(primitive, settingField1);
                 return constructor.apply(value1);
             }
         };
@@ -167,17 +210,17 @@ public class RecordSettingSerializerBuilder<O> {
             @Override
             public void write(ConfigurationSection config, String key, O value, String... comments) {
                 ConfigurationSection section = getOrCreateSection(config, key, comments);
-                settingField1.settingSerializer().write(section, settingField1.key(), settingField1.getter().apply(value), settingField1.comments());
+                writeConfigurationField(section, settingField1, value, false);
             }
             @Override
             public void writeWithDefault(ConfigurationSection config, String key, O value, String... comments) {
                 ConfigurationSection section = getOrCreateSection(config, key, comments);
-                settingField1.settingSerializer().writeWithDefault(section, settingField1.key(), settingField1.getter().apply(value), settingField1.comments());
+                writeConfigurationField(section, settingField1, value, true);
             }
             @Override
             public O read(ConfigurationSection config, String key) {
-                ConfigurationSection section = config.getConfigurationSection(key);
-                T1 value1 = settingField1.settingSerializer().read(section, settingField1.key());
+                ConfigurationSection section = getOrCreateSection(config, key);
+                T1 value1 = getValueOrDefault(section, settingField1);
                 return constructor.apply(value1);
             }
         };
@@ -205,8 +248,8 @@ public class RecordSettingSerializerBuilder<O> {
             }
             @Override
             public O fromPrimitive(PersistentDataContainer primitive, PersistentDataAdapterContext context) {
-                T1 value1 = settingField1.settingSerializer().read(primitive, settingField1.key());
-                T2 value2 = settingField2.settingSerializer().read(primitive, settingField2.key());
+                T1 value1 = getPersistentValueOrDefault(primitive, settingField1);
+                T2 value2 = getPersistentValueOrDefault(primitive, settingField2);
                 return constructor.apply(value1, value2);
             }
         };
@@ -214,20 +257,20 @@ public class RecordSettingSerializerBuilder<O> {
             @Override
             public void write(ConfigurationSection config, String key, O value, String... comments) {
                 ConfigurationSection section = getOrCreateSection(config, key, comments);
-                settingField1.settingSerializer().write(section, settingField1.key(), settingField1.getter().apply(value), settingField1.comments());
-                settingField2.settingSerializer().write(section, settingField2.key(), settingField2.getter().apply(value), settingField2.comments());
+                writeConfigurationField(section, settingField1, value, false);
+                writeConfigurationField(section, settingField2, value, false);
             }
             @Override
             public void writeWithDefault(ConfigurationSection config, String key, O value, String... comments) {
                 ConfigurationSection section = getOrCreateSection(config, key, comments);
-                settingField1.settingSerializer().writeWithDefault(section, settingField1.key(), settingField1.getter().apply(value), settingField1.comments());
-                settingField2.settingSerializer().writeWithDefault(section, settingField2.key(), settingField2.getter().apply(value), settingField2.comments());
+                writeConfigurationField(section, settingField1, value, true);
+                writeConfigurationField(section, settingField2, value, true);
             }
             @Override
             public O read(ConfigurationSection config, String key) {
-                ConfigurationSection section = config.getConfigurationSection(key);
-                T1 value1 = settingField1.settingSerializer().read(section, settingField1.key());
-                T2 value2 = settingField2.settingSerializer().read(section, settingField2.key());
+                ConfigurationSection section = getOrCreateSection(config, key);
+                T1 value1 = getValueOrDefault(section, settingField1);
+                T2 value2 = getValueOrDefault(section, settingField2);
                 return constructor.apply(value1, value2);
             }
         };
@@ -257,9 +300,9 @@ public class RecordSettingSerializerBuilder<O> {
             }
             @Override
             public O fromPrimitive(PersistentDataContainer primitive, PersistentDataAdapterContext context) {
-                T1 value1 = settingField1.settingSerializer().read(primitive, settingField1.key());
-                T2 value2 = settingField2.settingSerializer().read(primitive, settingField2.key());
-                T3 value3 = settingField3.settingSerializer().read(primitive, settingField3.key());
+                T1 value1 = getPersistentValueOrDefault(primitive, settingField1);
+                T2 value2 = getPersistentValueOrDefault(primitive, settingField2);
+                T3 value3 = getPersistentValueOrDefault(primitive, settingField3);
                 return constructor.apply(value1, value2, value3);
             }
         };
@@ -267,23 +310,23 @@ public class RecordSettingSerializerBuilder<O> {
             @Override
             public void write(ConfigurationSection config, String key, O value, String... comments) {
                 ConfigurationSection section = getOrCreateSection(config, key, comments);
-                settingField1.settingSerializer().write(section, settingField1.key(), settingField1.getter().apply(value), settingField1.comments());
-                settingField2.settingSerializer().write(section, settingField2.key(), settingField2.getter().apply(value), settingField2.comments());
-                settingField3.settingSerializer().write(section, settingField3.key(), settingField3.getter().apply(value), settingField3.comments());
+                writeConfigurationField(section, settingField1, value, false);
+                writeConfigurationField(section, settingField2, value, false);
+                writeConfigurationField(section, settingField3, value, false);
             }
             @Override
             public void writeWithDefault(ConfigurationSection config, String key, O value, String... comments) {
                 ConfigurationSection section = getOrCreateSection(config, key, comments);
-                settingField1.settingSerializer().writeWithDefault(section, settingField1.key(), settingField1.getter().apply(value), settingField1.comments());
-                settingField2.settingSerializer().writeWithDefault(section, settingField2.key(), settingField2.getter().apply(value), settingField2.comments());
-                settingField3.settingSerializer().writeWithDefault(section, settingField3.key(), settingField3.getter().apply(value), settingField3.comments());
+                writeConfigurationField(section, settingField1, value, true);
+                writeConfigurationField(section, settingField2, value, true);
+                writeConfigurationField(section, settingField3, value, true);
             }
             @Override
             public O read(ConfigurationSection config, String key) {
-                ConfigurationSection section = config.getConfigurationSection(key);
-                T1 value1 = settingField1.settingSerializer().read(section, settingField1.key());
-                T2 value2 = settingField2.settingSerializer().read(section, settingField2.key());
-                T3 value3 = settingField3.settingSerializer().read(section, settingField3.key());
+                ConfigurationSection section = getOrCreateSection(config, key);
+                T1 value1 = getValueOrDefault(section, settingField1);
+                T2 value2 = getValueOrDefault(section, settingField2);
+                T3 value3 = getValueOrDefault(section, settingField3);
                 return constructor.apply(value1, value2, value3);
             }
         };
@@ -315,10 +358,10 @@ public class RecordSettingSerializerBuilder<O> {
             }
             @Override
             public O fromPrimitive(PersistentDataContainer primitive, PersistentDataAdapterContext context) {
-                T1 value1 = settingField1.settingSerializer().read(primitive, settingField1.key());
-                T2 value2 = settingField2.settingSerializer().read(primitive, settingField2.key());
-                T3 value3 = settingField3.settingSerializer().read(primitive, settingField3.key());
-                T4 value4 = settingField4.settingSerializer().read(primitive, settingField4.key());
+                T1 value1 = getPersistentValueOrDefault(primitive, settingField1);
+                T2 value2 = getPersistentValueOrDefault(primitive, settingField2);
+                T3 value3 = getPersistentValueOrDefault(primitive, settingField3);
+                T4 value4 = getPersistentValueOrDefault(primitive, settingField4);
                 return constructor.apply(value1, value2, value3, value4);
             }
         };
@@ -326,26 +369,26 @@ public class RecordSettingSerializerBuilder<O> {
             @Override
             public void write(ConfigurationSection config, String key, O value, String... comments) {
                 ConfigurationSection section = getOrCreateSection(config, key, comments);
-                settingField1.settingSerializer().write(section, settingField1.key(), settingField1.getter().apply(value), settingField1.comments());
-                settingField2.settingSerializer().write(section, settingField2.key(), settingField2.getter().apply(value), settingField2.comments());
-                settingField3.settingSerializer().write(section, settingField3.key(), settingField3.getter().apply(value), settingField3.comments());
-                settingField4.settingSerializer().write(section, settingField4.key(), settingField4.getter().apply(value), settingField4.comments());
+                writeConfigurationField(section, settingField1, value, false);
+                writeConfigurationField(section, settingField2, value, false);
+                writeConfigurationField(section, settingField3, value, false);
+                writeConfigurationField(section, settingField4, value, false);
             }
             @Override
             public void writeWithDefault(ConfigurationSection config, String key, O value, String... comments) {
                 ConfigurationSection section = getOrCreateSection(config, key, comments);
-                settingField1.settingSerializer().writeWithDefault(section, settingField1.key(), settingField1.getter().apply(value), settingField1.comments());
-                settingField2.settingSerializer().writeWithDefault(section, settingField2.key(), settingField2.getter().apply(value), settingField2.comments());
-                settingField3.settingSerializer().writeWithDefault(section, settingField3.key(), settingField3.getter().apply(value), settingField3.comments());
-                settingField4.settingSerializer().writeWithDefault(section, settingField4.key(), settingField4.getter().apply(value), settingField4.comments());
+                writeConfigurationField(section, settingField1, value, true);
+                writeConfigurationField(section, settingField2, value, true);
+                writeConfigurationField(section, settingField3, value, true);
+                writeConfigurationField(section, settingField4, value, true);
             }
             @Override
             public O read(ConfigurationSection config, String key) {
-                ConfigurationSection section = config.getConfigurationSection(key);
-                T1 value1 = settingField1.settingSerializer().read(section, settingField1.key());
-                T2 value2 = settingField2.settingSerializer().read(section, settingField2.key());
-                T3 value3 = settingField3.settingSerializer().read(section, settingField3.key());
-                T4 value4 = settingField4.settingSerializer().read(section, settingField4.key());
+                ConfigurationSection section = getOrCreateSection(config, key);
+                T1 value1 = getValueOrDefault(section, settingField1);
+                T2 value2 = getValueOrDefault(section, settingField2);
+                T3 value3 = getValueOrDefault(section, settingField3);
+                T4 value4 = getValueOrDefault(section, settingField4);
                 return constructor.apply(value1, value2, value3, value4);
             }
         };
@@ -379,11 +422,11 @@ public class RecordSettingSerializerBuilder<O> {
             }
             @Override
             public O fromPrimitive(PersistentDataContainer primitive, PersistentDataAdapterContext context) {
-                T1 value1 = settingField1.settingSerializer().read(primitive, settingField1.key());
-                T2 value2 = settingField2.settingSerializer().read(primitive, settingField2.key());
-                T3 value3 = settingField3.settingSerializer().read(primitive, settingField3.key());
-                T4 value4 = settingField4.settingSerializer().read(primitive, settingField4.key());
-                T5 value5 = settingField5.settingSerializer().read(primitive, settingField5.key());
+                T1 value1 = getPersistentValueOrDefault(primitive, settingField1);
+                T2 value2 = getPersistentValueOrDefault(primitive, settingField2);
+                T3 value3 = getPersistentValueOrDefault(primitive, settingField3);
+                T4 value4 = getPersistentValueOrDefault(primitive, settingField4);
+                T5 value5 = getPersistentValueOrDefault(primitive, settingField5);
                 return constructor.apply(value1, value2, value3, value4, value5);
             }
         };
@@ -391,29 +434,29 @@ public class RecordSettingSerializerBuilder<O> {
             @Override
             public void write(ConfigurationSection config, String key, O value, String... comments) {
                 ConfigurationSection section = getOrCreateSection(config, key, comments);
-                settingField1.settingSerializer().write(section, settingField1.key(), settingField1.getter().apply(value), settingField1.comments());
-                settingField2.settingSerializer().write(section, settingField2.key(), settingField2.getter().apply(value), settingField2.comments());
-                settingField3.settingSerializer().write(section, settingField3.key(), settingField3.getter().apply(value), settingField3.comments());
-                settingField4.settingSerializer().write(section, settingField4.key(), settingField4.getter().apply(value), settingField4.comments());
-                settingField5.settingSerializer().write(section, settingField5.key(), settingField5.getter().apply(value), settingField5.comments());
+                writeConfigurationField(section, settingField1, value, false);
+                writeConfigurationField(section, settingField2, value, false);
+                writeConfigurationField(section, settingField3, value, false);
+                writeConfigurationField(section, settingField4, value, false);
+                writeConfigurationField(section, settingField5, value, false);
             }
             @Override
             public void writeWithDefault(ConfigurationSection config, String key, O value, String... comments) {
                 ConfigurationSection section = getOrCreateSection(config, key, comments);
-                settingField1.settingSerializer().writeWithDefault(section, settingField1.key(), settingField1.getter().apply(value), settingField1.comments());
-                settingField2.settingSerializer().writeWithDefault(section, settingField2.key(), settingField2.getter().apply(value), settingField2.comments());
-                settingField3.settingSerializer().writeWithDefault(section, settingField3.key(), settingField3.getter().apply(value), settingField3.comments());
-                settingField4.settingSerializer().writeWithDefault(section, settingField4.key(), settingField4.getter().apply(value), settingField4.comments());
-                settingField5.settingSerializer().writeWithDefault(section, settingField5.key(), settingField5.getter().apply(value), settingField5.comments());
+                writeConfigurationField(section, settingField1, value, true);
+                writeConfigurationField(section, settingField2, value, true);
+                writeConfigurationField(section, settingField3, value, true);
+                writeConfigurationField(section, settingField4, value, true);
+                writeConfigurationField(section, settingField5, value, true);
             }
             @Override
             public O read(ConfigurationSection config, String key) {
-                ConfigurationSection section = config.getConfigurationSection(key);
-                T1 value1 = settingField1.settingSerializer().read(section, settingField1.key());
-                T2 value2 = settingField2.settingSerializer().read(section, settingField2.key());
-                T3 value3 = settingField3.settingSerializer().read(section, settingField3.key());
-                T4 value4 = settingField4.settingSerializer().read(section, settingField4.key());
-                T5 value5 = settingField5.settingSerializer().read(section, settingField5.key());
+                ConfigurationSection section = getOrCreateSection(config, key);
+                T1 value1 = getValueOrDefault(section, settingField1);
+                T2 value2 = getValueOrDefault(section, settingField2);
+                T3 value3 = getValueOrDefault(section, settingField3);
+                T4 value4 = getValueOrDefault(section, settingField4);
+                T5 value5 = getValueOrDefault(section, settingField5);
                 return constructor.apply(value1, value2, value3, value4, value5);
             }
         };
@@ -449,12 +492,12 @@ public class RecordSettingSerializerBuilder<O> {
             }
             @Override
             public O fromPrimitive(PersistentDataContainer primitive, PersistentDataAdapterContext context) {
-                T1 value1 = settingField1.settingSerializer().read(primitive, settingField1.key());
-                T2 value2 = settingField2.settingSerializer().read(primitive, settingField2.key());
-                T3 value3 = settingField3.settingSerializer().read(primitive, settingField3.key());
-                T4 value4 = settingField4.settingSerializer().read(primitive, settingField4.key());
-                T5 value5 = settingField5.settingSerializer().read(primitive, settingField5.key());
-                T6 value6 = settingField6.settingSerializer().read(primitive, settingField6.key());
+                T1 value1 = getPersistentValueOrDefault(primitive, settingField1);
+                T2 value2 = getPersistentValueOrDefault(primitive, settingField2);
+                T3 value3 = getPersistentValueOrDefault(primitive, settingField3);
+                T4 value4 = getPersistentValueOrDefault(primitive, settingField4);
+                T5 value5 = getPersistentValueOrDefault(primitive, settingField5);
+                T6 value6 = getPersistentValueOrDefault(primitive, settingField6);
                 return constructor.apply(value1, value2, value3, value4, value5, value6);
             }
         };
@@ -462,32 +505,32 @@ public class RecordSettingSerializerBuilder<O> {
             @Override
             public void write(ConfigurationSection config, String key, O value, String... comments) {
                 ConfigurationSection section = getOrCreateSection(config, key, comments);
-                settingField1.settingSerializer().write(section, settingField1.key(), settingField1.getter().apply(value), settingField1.comments());
-                settingField2.settingSerializer().write(section, settingField2.key(), settingField2.getter().apply(value), settingField2.comments());
-                settingField3.settingSerializer().write(section, settingField3.key(), settingField3.getter().apply(value), settingField3.comments());
-                settingField4.settingSerializer().write(section, settingField4.key(), settingField4.getter().apply(value), settingField4.comments());
-                settingField5.settingSerializer().write(section, settingField5.key(), settingField5.getter().apply(value), settingField5.comments());
-                settingField6.settingSerializer().write(section, settingField6.key(), settingField6.getter().apply(value), settingField6.comments());
+                writeConfigurationField(section, settingField1, value, false);
+                writeConfigurationField(section, settingField2, value, false);
+                writeConfigurationField(section, settingField3, value, false);
+                writeConfigurationField(section, settingField4, value, false);
+                writeConfigurationField(section, settingField5, value, false);
+                writeConfigurationField(section, settingField6, value, false);
             }
             @Override
             public void writeWithDefault(ConfigurationSection config, String key, O value, String... comments) {
                 ConfigurationSection section = getOrCreateSection(config, key, comments);
-                settingField1.settingSerializer().writeWithDefault(section, settingField1.key(), settingField1.getter().apply(value), settingField1.comments());
-                settingField2.settingSerializer().writeWithDefault(section, settingField2.key(), settingField2.getter().apply(value), settingField2.comments());
-                settingField3.settingSerializer().writeWithDefault(section, settingField3.key(), settingField3.getter().apply(value), settingField3.comments());
-                settingField4.settingSerializer().writeWithDefault(section, settingField4.key(), settingField4.getter().apply(value), settingField4.comments());
-                settingField5.settingSerializer().writeWithDefault(section, settingField5.key(), settingField5.getter().apply(value), settingField5.comments());
-                settingField6.settingSerializer().writeWithDefault(section, settingField6.key(), settingField6.getter().apply(value), settingField6.comments());
+                writeConfigurationField(section, settingField1, value, true);
+                writeConfigurationField(section, settingField2, value, true);
+                writeConfigurationField(section, settingField3, value, true);
+                writeConfigurationField(section, settingField4, value, true);
+                writeConfigurationField(section, settingField5, value, true);
+                writeConfigurationField(section, settingField6, value, true);
             }
             @Override
             public O read(ConfigurationSection config, String key) {
-                ConfigurationSection section = config.getConfigurationSection(key);
-                T1 value1 = settingField1.settingSerializer().read(section, settingField1.key());
-                T2 value2 = settingField2.settingSerializer().read(section, settingField2.key());
-                T3 value3 = settingField3.settingSerializer().read(section, settingField3.key());
-                T4 value4 = settingField4.settingSerializer().read(section, settingField4.key());
-                T5 value5 = settingField5.settingSerializer().read(section, settingField5.key());
-                T6 value6 = settingField6.settingSerializer().read(section, settingField6.key());
+                ConfigurationSection section = getOrCreateSection(config, key);
+                T1 value1 = getValueOrDefault(section, settingField1);
+                T2 value2 = getValueOrDefault(section, settingField2);
+                T3 value3 = getValueOrDefault(section, settingField3);
+                T4 value4 = getValueOrDefault(section, settingField4);
+                T5 value5 = getValueOrDefault(section, settingField5);
+                T6 value6 = getValueOrDefault(section, settingField6);
                 return constructor.apply(value1, value2, value3, value4, value5, value6);
             }
         };
@@ -525,13 +568,13 @@ public class RecordSettingSerializerBuilder<O> {
             }
             @Override
             public O fromPrimitive(PersistentDataContainer primitive, PersistentDataAdapterContext context) {
-                T1 value1 = settingField1.settingSerializer().read(primitive, settingField1.key());
-                T2 value2 = settingField2.settingSerializer().read(primitive, settingField2.key());
-                T3 value3 = settingField3.settingSerializer().read(primitive, settingField3.key());
-                T4 value4 = settingField4.settingSerializer().read(primitive, settingField4.key());
-                T5 value5 = settingField5.settingSerializer().read(primitive, settingField5.key());
-                T6 value6 = settingField6.settingSerializer().read(primitive, settingField6.key());
-                T7 value7 = settingField7.settingSerializer().read(primitive, settingField7.key());
+                T1 value1 = getPersistentValueOrDefault(primitive, settingField1);
+                T2 value2 = getPersistentValueOrDefault(primitive, settingField2);
+                T3 value3 = getPersistentValueOrDefault(primitive, settingField3);
+                T4 value4 = getPersistentValueOrDefault(primitive, settingField4);
+                T5 value5 = getPersistentValueOrDefault(primitive, settingField5);
+                T6 value6 = getPersistentValueOrDefault(primitive, settingField6);
+                T7 value7 = getPersistentValueOrDefault(primitive, settingField7);
                 return constructor.apply(value1, value2, value3, value4, value5, value6, value7);
             }
         };
@@ -539,35 +582,35 @@ public class RecordSettingSerializerBuilder<O> {
             @Override
             public void write(ConfigurationSection config, String key, O value, String... comments) {
                 ConfigurationSection section = getOrCreateSection(config, key, comments);
-                settingField1.settingSerializer().write(section, settingField1.key(), settingField1.getter().apply(value), settingField1.comments());
-                settingField2.settingSerializer().write(section, settingField2.key(), settingField2.getter().apply(value), settingField2.comments());
-                settingField3.settingSerializer().write(section, settingField3.key(), settingField3.getter().apply(value), settingField3.comments());
-                settingField4.settingSerializer().write(section, settingField4.key(), settingField4.getter().apply(value), settingField4.comments());
-                settingField5.settingSerializer().write(section, settingField5.key(), settingField5.getter().apply(value), settingField5.comments());
-                settingField6.settingSerializer().write(section, settingField6.key(), settingField6.getter().apply(value), settingField6.comments());
-                settingField7.settingSerializer().write(section, settingField7.key(), settingField7.getter().apply(value), settingField7.comments());
+                writeConfigurationField(section, settingField1, value, false);
+                writeConfigurationField(section, settingField2, value, false);
+                writeConfigurationField(section, settingField3, value, false);
+                writeConfigurationField(section, settingField4, value, false);
+                writeConfigurationField(section, settingField5, value, false);
+                writeConfigurationField(section, settingField6, value, false);
+                writeConfigurationField(section, settingField7, value, false);
             }
             @Override
             public void writeWithDefault(ConfigurationSection config, String key, O value, String... comments) {
                 ConfigurationSection section = getOrCreateSection(config, key, comments);
-                settingField1.settingSerializer().writeWithDefault(section, settingField1.key(), settingField1.getter().apply(value), settingField1.comments());
-                settingField2.settingSerializer().writeWithDefault(section, settingField2.key(), settingField2.getter().apply(value), settingField2.comments());
-                settingField3.settingSerializer().writeWithDefault(section, settingField3.key(), settingField3.getter().apply(value), settingField3.comments());
-                settingField4.settingSerializer().writeWithDefault(section, settingField4.key(), settingField4.getter().apply(value), settingField4.comments());
-                settingField5.settingSerializer().writeWithDefault(section, settingField5.key(), settingField5.getter().apply(value), settingField5.comments());
-                settingField6.settingSerializer().writeWithDefault(section, settingField6.key(), settingField6.getter().apply(value), settingField6.comments());
-                settingField7.settingSerializer().writeWithDefault(section, settingField7.key(), settingField7.getter().apply(value), settingField7.comments());
+                writeConfigurationField(section, settingField1, value, true);
+                writeConfigurationField(section, settingField2, value, true);
+                writeConfigurationField(section, settingField3, value, true);
+                writeConfigurationField(section, settingField4, value, true);
+                writeConfigurationField(section, settingField5, value, true);
+                writeConfigurationField(section, settingField6, value, true);
+                writeConfigurationField(section, settingField7, value, true);
             }
             @Override
             public O read(ConfigurationSection config, String key) {
-                ConfigurationSection section = config.getConfigurationSection(key);
-                T1 value1 = settingField1.settingSerializer().read(section, settingField1.key());
-                T2 value2 = settingField2.settingSerializer().read(section, settingField2.key());
-                T3 value3 = settingField3.settingSerializer().read(section, settingField3.key());
-                T4 value4 = settingField4.settingSerializer().read(section, settingField4.key());
-                T5 value5 = settingField5.settingSerializer().read(section, settingField5.key());
-                T6 value6 = settingField6.settingSerializer().read(section, settingField6.key());
-                T7 value7 = settingField7.settingSerializer().read(section, settingField7.key());
+                ConfigurationSection section = getOrCreateSection(config, key);
+                T1 value1 = getValueOrDefault(section, settingField1);
+                T2 value2 = getValueOrDefault(section, settingField2);
+                T3 value3 = getValueOrDefault(section, settingField3);
+                T4 value4 = getValueOrDefault(section, settingField4);
+                T5 value5 = getValueOrDefault(section, settingField5);
+                T6 value6 = getValueOrDefault(section, settingField6);
+                T7 value7 = getValueOrDefault(section, settingField7);
                 return constructor.apply(value1, value2, value3, value4, value5, value6, value7);
             }
         };
@@ -607,14 +650,14 @@ public class RecordSettingSerializerBuilder<O> {
             }
             @Override
             public O fromPrimitive(PersistentDataContainer primitive, PersistentDataAdapterContext context) {
-                T1 value1 = settingField1.settingSerializer().read(primitive, settingField1.key());
-                T2 value2 = settingField2.settingSerializer().read(primitive, settingField2.key());
-                T3 value3 = settingField3.settingSerializer().read(primitive, settingField3.key());
-                T4 value4 = settingField4.settingSerializer().read(primitive, settingField4.key());
-                T5 value5 = settingField5.settingSerializer().read(primitive, settingField5.key());
-                T6 value6 = settingField6.settingSerializer().read(primitive, settingField6.key());
-                T7 value7 = settingField7.settingSerializer().read(primitive, settingField7.key());
-                T8 value8 = settingField8.settingSerializer().read(primitive, settingField8.key());
+                T1 value1 = getPersistentValueOrDefault(primitive, settingField1);
+                T2 value2 = getPersistentValueOrDefault(primitive, settingField2);
+                T3 value3 = getPersistentValueOrDefault(primitive, settingField3);
+                T4 value4 = getPersistentValueOrDefault(primitive, settingField4);
+                T5 value5 = getPersistentValueOrDefault(primitive, settingField5);
+                T6 value6 = getPersistentValueOrDefault(primitive, settingField6);
+                T7 value7 = getPersistentValueOrDefault(primitive, settingField7);
+                T8 value8 = getPersistentValueOrDefault(primitive, settingField8);
                 return constructor.apply(value1, value2, value3, value4, value5, value6, value7, value8);
             }
         };
@@ -622,38 +665,38 @@ public class RecordSettingSerializerBuilder<O> {
             @Override
             public void write(ConfigurationSection config, String key, O value, String... comments) {
                 ConfigurationSection section = getOrCreateSection(config, key, comments);
-                settingField1.settingSerializer().write(section, settingField1.key(), settingField1.getter().apply(value), settingField1.comments());
-                settingField2.settingSerializer().write(section, settingField2.key(), settingField2.getter().apply(value), settingField2.comments());
-                settingField3.settingSerializer().write(section, settingField3.key(), settingField3.getter().apply(value), settingField3.comments());
-                settingField4.settingSerializer().write(section, settingField4.key(), settingField4.getter().apply(value), settingField4.comments());
-                settingField5.settingSerializer().write(section, settingField5.key(), settingField5.getter().apply(value), settingField5.comments());
-                settingField6.settingSerializer().write(section, settingField6.key(), settingField6.getter().apply(value), settingField6.comments());
-                settingField7.settingSerializer().write(section, settingField7.key(), settingField7.getter().apply(value), settingField7.comments());
-                settingField8.settingSerializer().write(section, settingField8.key(), settingField8.getter().apply(value), settingField8.comments());
+                writeConfigurationField(section, settingField1, value, false);
+                writeConfigurationField(section, settingField2, value, false);
+                writeConfigurationField(section, settingField3, value, false);
+                writeConfigurationField(section, settingField4, value, false);
+                writeConfigurationField(section, settingField5, value, false);
+                writeConfigurationField(section, settingField6, value, false);
+                writeConfigurationField(section, settingField7, value, false);
+                writeConfigurationField(section, settingField8, value, false);
             }
             @Override
             public void writeWithDefault(ConfigurationSection config, String key, O value, String... comments) {
                 ConfigurationSection section = getOrCreateSection(config, key, comments);
-                settingField1.settingSerializer().writeWithDefault(section, settingField1.key(), settingField1.getter().apply(value), settingField1.comments());
-                settingField2.settingSerializer().writeWithDefault(section, settingField2.key(), settingField2.getter().apply(value), settingField2.comments());
-                settingField3.settingSerializer().writeWithDefault(section, settingField3.key(), settingField3.getter().apply(value), settingField3.comments());
-                settingField4.settingSerializer().writeWithDefault(section, settingField4.key(), settingField4.getter().apply(value), settingField4.comments());
-                settingField5.settingSerializer().writeWithDefault(section, settingField5.key(), settingField5.getter().apply(value), settingField5.comments());
-                settingField6.settingSerializer().writeWithDefault(section, settingField6.key(), settingField6.getter().apply(value), settingField6.comments());
-                settingField7.settingSerializer().writeWithDefault(section, settingField7.key(), settingField7.getter().apply(value), settingField7.comments());
-                settingField8.settingSerializer().writeWithDefault(section, settingField8.key(), settingField8.getter().apply(value), settingField8.comments());
+                writeConfigurationField(section, settingField1, value, true);
+                writeConfigurationField(section, settingField2, value, true);
+                writeConfigurationField(section, settingField3, value, true);
+                writeConfigurationField(section, settingField4, value, true);
+                writeConfigurationField(section, settingField5, value, true);
+                writeConfigurationField(section, settingField6, value, true);
+                writeConfigurationField(section, settingField7, value, true);
+                writeConfigurationField(section, settingField8, value, true);
             }
             @Override
             public O read(ConfigurationSection config, String key) {
-                ConfigurationSection section = config.getConfigurationSection(key);
-                T1 value1 = settingField1.settingSerializer().read(section, settingField1.key());
-                T2 value2 = settingField2.settingSerializer().read(section, settingField2.key());
-                T3 value3 = settingField3.settingSerializer().read(section, settingField3.key());
-                T4 value4 = settingField4.settingSerializer().read(section, settingField4.key());
-                T5 value5 = settingField5.settingSerializer().read(section, settingField5.key());
-                T6 value6 = settingField6.settingSerializer().read(section, settingField6.key());
-                T7 value7 = settingField7.settingSerializer().read(section, settingField7.key());
-                T8 value8 = settingField8.settingSerializer().read(section, settingField8.key());
+                ConfigurationSection section = getOrCreateSection(config, key);
+                T1 value1 = getValueOrDefault(section, settingField1);
+                T2 value2 = getValueOrDefault(section, settingField2);
+                T3 value3 = getValueOrDefault(section, settingField3);
+                T4 value4 = getValueOrDefault(section, settingField4);
+                T5 value5 = getValueOrDefault(section, settingField5);
+                T6 value6 = getValueOrDefault(section, settingField6);
+                T7 value7 = getValueOrDefault(section, settingField7);
+                T8 value8 = getValueOrDefault(section, settingField8);
                 return constructor.apply(value1, value2, value3, value4, value5, value6, value7, value8);
             }
         };
@@ -695,15 +738,15 @@ public class RecordSettingSerializerBuilder<O> {
             }
             @Override
             public O fromPrimitive(PersistentDataContainer primitive, PersistentDataAdapterContext context) {
-                T1 value1 = settingField1.settingSerializer().read(primitive, settingField1.key());
-                T2 value2 = settingField2.settingSerializer().read(primitive, settingField2.key());
-                T3 value3 = settingField3.settingSerializer().read(primitive, settingField3.key());
-                T4 value4 = settingField4.settingSerializer().read(primitive, settingField4.key());
-                T5 value5 = settingField5.settingSerializer().read(primitive, settingField5.key());
-                T6 value6 = settingField6.settingSerializer().read(primitive, settingField6.key());
-                T7 value7 = settingField7.settingSerializer().read(primitive, settingField7.key());
-                T8 value8 = settingField8.settingSerializer().read(primitive, settingField8.key());
-                T9 value9 = settingField9.settingSerializer().read(primitive, settingField9.key());
+                T1 value1 = getPersistentValueOrDefault(primitive, settingField1);
+                T2 value2 = getPersistentValueOrDefault(primitive, settingField2);
+                T3 value3 = getPersistentValueOrDefault(primitive, settingField3);
+                T4 value4 = getPersistentValueOrDefault(primitive, settingField4);
+                T5 value5 = getPersistentValueOrDefault(primitive, settingField5);
+                T6 value6 = getPersistentValueOrDefault(primitive, settingField6);
+                T7 value7 = getPersistentValueOrDefault(primitive, settingField7);
+                T8 value8 = getPersistentValueOrDefault(primitive, settingField8);
+                T9 value9 = getPersistentValueOrDefault(primitive, settingField9);
                 return constructor.apply(value1, value2, value3, value4, value5, value6, value7, value8, value9);
             }
         };
@@ -711,41 +754,41 @@ public class RecordSettingSerializerBuilder<O> {
             @Override
             public void write(ConfigurationSection config, String key, O value, String... comments) {
                 ConfigurationSection section = getOrCreateSection(config, key, comments);
-                settingField1.settingSerializer().write(section, settingField1.key(), settingField1.getter().apply(value), settingField1.comments());
-                settingField2.settingSerializer().write(section, settingField2.key(), settingField2.getter().apply(value), settingField2.comments());
-                settingField3.settingSerializer().write(section, settingField3.key(), settingField3.getter().apply(value), settingField3.comments());
-                settingField4.settingSerializer().write(section, settingField4.key(), settingField4.getter().apply(value), settingField4.comments());
-                settingField5.settingSerializer().write(section, settingField5.key(), settingField5.getter().apply(value), settingField5.comments());
-                settingField6.settingSerializer().write(section, settingField6.key(), settingField6.getter().apply(value), settingField6.comments());
-                settingField7.settingSerializer().write(section, settingField7.key(), settingField7.getter().apply(value), settingField7.comments());
-                settingField8.settingSerializer().write(section, settingField8.key(), settingField8.getter().apply(value), settingField8.comments());
-                settingField9.settingSerializer().write(section, settingField9.key(), settingField9.getter().apply(value), settingField9.comments());
+                writeConfigurationField(section, settingField1, value, false);
+                writeConfigurationField(section, settingField2, value, false);
+                writeConfigurationField(section, settingField3, value, false);
+                writeConfigurationField(section, settingField4, value, false);
+                writeConfigurationField(section, settingField5, value, false);
+                writeConfigurationField(section, settingField6, value, false);
+                writeConfigurationField(section, settingField7, value, false);
+                writeConfigurationField(section, settingField8, value, false);
+                writeConfigurationField(section, settingField9, value, false);
             }
             @Override
             public void writeWithDefault(ConfigurationSection config, String key, O value, String... comments) {
                 ConfigurationSection section = getOrCreateSection(config, key, comments);
-                settingField1.settingSerializer().writeWithDefault(section, settingField1.key(), settingField1.getter().apply(value), settingField1.comments());
-                settingField2.settingSerializer().writeWithDefault(section, settingField2.key(), settingField2.getter().apply(value), settingField2.comments());
-                settingField3.settingSerializer().writeWithDefault(section, settingField3.key(), settingField3.getter().apply(value), settingField3.comments());
-                settingField4.settingSerializer().writeWithDefault(section, settingField4.key(), settingField4.getter().apply(value), settingField4.comments());
-                settingField5.settingSerializer().writeWithDefault(section, settingField5.key(), settingField5.getter().apply(value), settingField5.comments());
-                settingField6.settingSerializer().writeWithDefault(section, settingField6.key(), settingField6.getter().apply(value), settingField6.comments());
-                settingField7.settingSerializer().writeWithDefault(section, settingField7.key(), settingField7.getter().apply(value), settingField7.comments());
-                settingField8.settingSerializer().writeWithDefault(section, settingField8.key(), settingField8.getter().apply(value), settingField8.comments());
-                settingField9.settingSerializer().writeWithDefault(section, settingField9.key(), settingField9.getter().apply(value), settingField9.comments());
+                writeConfigurationField(section, settingField1, value, true);
+                writeConfigurationField(section, settingField2, value, true);
+                writeConfigurationField(section, settingField3, value, true);
+                writeConfigurationField(section, settingField4, value, true);
+                writeConfigurationField(section, settingField5, value, true);
+                writeConfigurationField(section, settingField6, value, true);
+                writeConfigurationField(section, settingField7, value, true);
+                writeConfigurationField(section, settingField8, value, true);
+                writeConfigurationField(section, settingField9, value, true);
             }
             @Override
             public O read(ConfigurationSection config, String key) {
-                ConfigurationSection section = config.getConfigurationSection(key);
-                T1 value1 = settingField1.settingSerializer().read(section, settingField1.key());
-                T2 value2 = settingField2.settingSerializer().read(section, settingField2.key());
-                T3 value3 = settingField3.settingSerializer().read(section, settingField3.key());
-                T4 value4 = settingField4.settingSerializer().read(section, settingField4.key());
-                T5 value5 = settingField5.settingSerializer().read(section, settingField5.key());
-                T6 value6 = settingField6.settingSerializer().read(section, settingField6.key());
-                T7 value7 = settingField7.settingSerializer().read(section, settingField7.key());
-                T8 value8 = settingField8.settingSerializer().read(section, settingField8.key());
-                T9 value9 = settingField9.settingSerializer().read(section, settingField9.key());
+                ConfigurationSection section = getOrCreateSection(config, key);
+                T1 value1 = getValueOrDefault(section, settingField1);
+                T2 value2 = getValueOrDefault(section, settingField2);
+                T3 value3 = getValueOrDefault(section, settingField3);
+                T4 value4 = getValueOrDefault(section, settingField4);
+                T5 value5 = getValueOrDefault(section, settingField5);
+                T6 value6 = getValueOrDefault(section, settingField6);
+                T7 value7 = getValueOrDefault(section, settingField7);
+                T8 value8 = getValueOrDefault(section, settingField8);
+                T9 value9 = getValueOrDefault(section, settingField9);
                 return constructor.apply(value1, value2, value3, value4, value5, value6, value7, value8, value9);
             }
         };
@@ -789,16 +832,16 @@ public class RecordSettingSerializerBuilder<O> {
             }
             @Override
             public O fromPrimitive(PersistentDataContainer primitive, PersistentDataAdapterContext context) {
-                T1 value1 = settingField1.settingSerializer().read(primitive, settingField1.key());
-                T2 value2 = settingField2.settingSerializer().read(primitive, settingField2.key());
-                T3 value3 = settingField3.settingSerializer().read(primitive, settingField3.key());
-                T4 value4 = settingField4.settingSerializer().read(primitive, settingField4.key());
-                T5 value5 = settingField5.settingSerializer().read(primitive, settingField5.key());
-                T6 value6 = settingField6.settingSerializer().read(primitive, settingField6.key());
-                T7 value7 = settingField7.settingSerializer().read(primitive, settingField7.key());
-                T8 value8 = settingField8.settingSerializer().read(primitive, settingField8.key());
-                T9 value9 = settingField9.settingSerializer().read(primitive, settingField9.key());
-                T10 value10 = settingField10.settingSerializer().read(primitive, settingField10.key());
+                T1 value1 = getPersistentValueOrDefault(primitive, settingField1);
+                T2 value2 = getPersistentValueOrDefault(primitive, settingField2);
+                T3 value3 = getPersistentValueOrDefault(primitive, settingField3);
+                T4 value4 = getPersistentValueOrDefault(primitive, settingField4);
+                T5 value5 = getPersistentValueOrDefault(primitive, settingField5);
+                T6 value6 = getPersistentValueOrDefault(primitive, settingField6);
+                T7 value7 = getPersistentValueOrDefault(primitive, settingField7);
+                T8 value8 = getPersistentValueOrDefault(primitive, settingField8);
+                T9 value9 = getPersistentValueOrDefault(primitive, settingField9);
+                T10 value10 = getPersistentValueOrDefault(primitive, settingField10);
                 return constructor.apply(value1, value2, value3, value4, value5, value6, value7, value8, value9, value10);
             }
         };
@@ -806,44 +849,44 @@ public class RecordSettingSerializerBuilder<O> {
             @Override
             public void write(ConfigurationSection config, String key, O value, String... comments) {
                 ConfigurationSection section = getOrCreateSection(config, key, comments);
-                settingField1.settingSerializer().write(section, settingField1.key(), settingField1.getter().apply(value), settingField1.comments());
-                settingField2.settingSerializer().write(section, settingField2.key(), settingField2.getter().apply(value), settingField2.comments());
-                settingField3.settingSerializer().write(section, settingField3.key(), settingField3.getter().apply(value), settingField3.comments());
-                settingField4.settingSerializer().write(section, settingField4.key(), settingField4.getter().apply(value), settingField4.comments());
-                settingField5.settingSerializer().write(section, settingField5.key(), settingField5.getter().apply(value), settingField5.comments());
-                settingField6.settingSerializer().write(section, settingField6.key(), settingField6.getter().apply(value), settingField6.comments());
-                settingField7.settingSerializer().write(section, settingField7.key(), settingField7.getter().apply(value), settingField7.comments());
-                settingField8.settingSerializer().write(section, settingField8.key(), settingField8.getter().apply(value), settingField8.comments());
-                settingField9.settingSerializer().write(section, settingField9.key(), settingField9.getter().apply(value), settingField9.comments());
-                settingField10.settingSerializer().write(section, settingField10.key(), settingField10.getter().apply(value), settingField10.comments());
+                writeConfigurationField(section, settingField1, value, false);
+                writeConfigurationField(section, settingField2, value, false);
+                writeConfigurationField(section, settingField3, value, false);
+                writeConfigurationField(section, settingField4, value, false);
+                writeConfigurationField(section, settingField5, value, false);
+                writeConfigurationField(section, settingField6, value, false);
+                writeConfigurationField(section, settingField7, value, false);
+                writeConfigurationField(section, settingField8, value, false);
+                writeConfigurationField(section, settingField9, value, false);
+                writeConfigurationField(section, settingField10, value, false);
             }
             @Override
             public void writeWithDefault(ConfigurationSection config, String key, O value, String... comments) {
                 ConfigurationSection section = getOrCreateSection(config, key, comments);
-                settingField1.settingSerializer().writeWithDefault(section, settingField1.key(), settingField1.getter().apply(value), settingField1.comments());
-                settingField2.settingSerializer().writeWithDefault(section, settingField2.key(), settingField2.getter().apply(value), settingField2.comments());
-                settingField3.settingSerializer().writeWithDefault(section, settingField3.key(), settingField3.getter().apply(value), settingField3.comments());
-                settingField4.settingSerializer().writeWithDefault(section, settingField4.key(), settingField4.getter().apply(value), settingField4.comments());
-                settingField5.settingSerializer().writeWithDefault(section, settingField5.key(), settingField5.getter().apply(value), settingField5.comments());
-                settingField6.settingSerializer().writeWithDefault(section, settingField6.key(), settingField6.getter().apply(value), settingField6.comments());
-                settingField7.settingSerializer().writeWithDefault(section, settingField7.key(), settingField7.getter().apply(value), settingField7.comments());
-                settingField8.settingSerializer().writeWithDefault(section, settingField8.key(), settingField8.getter().apply(value), settingField8.comments());
-                settingField9.settingSerializer().writeWithDefault(section, settingField9.key(), settingField9.getter().apply(value), settingField9.comments());
-                settingField10.settingSerializer().writeWithDefault(section, settingField10.key(), settingField10.getter().apply(value), settingField10.comments());
+                writeConfigurationField(section, settingField1, value, true);
+                writeConfigurationField(section, settingField2, value, true);
+                writeConfigurationField(section, settingField3, value, true);
+                writeConfigurationField(section, settingField4, value, true);
+                writeConfigurationField(section, settingField5, value, true);
+                writeConfigurationField(section, settingField6, value, true);
+                writeConfigurationField(section, settingField7, value, true);
+                writeConfigurationField(section, settingField8, value, true);
+                writeConfigurationField(section, settingField9, value, true);
+                writeConfigurationField(section, settingField10, value, true);
             }
             @Override
             public O read(ConfigurationSection config, String key) {
-                ConfigurationSection section = config.getConfigurationSection(key);
-                T1 value1 = settingField1.settingSerializer().read(section, settingField1.key());
-                T2 value2 = settingField2.settingSerializer().read(section, settingField2.key());
-                T3 value3 = settingField3.settingSerializer().read(section, settingField3.key());
-                T4 value4 = settingField4.settingSerializer().read(section, settingField4.key());
-                T5 value5 = settingField5.settingSerializer().read(section, settingField5.key());
-                T6 value6 = settingField6.settingSerializer().read(section, settingField6.key());
-                T7 value7 = settingField7.settingSerializer().read(section, settingField7.key());
-                T8 value8 = settingField8.settingSerializer().read(section, settingField8.key());
-                T9 value9 = settingField9.settingSerializer().read(section, settingField9.key());
-                T10 value10 = settingField10.settingSerializer().read(section, settingField10.key());
+                ConfigurationSection section = getOrCreateSection(config, key);
+                T1 value1 = getValueOrDefault(section, settingField1);
+                T2 value2 = getValueOrDefault(section, settingField2);
+                T3 value3 = getValueOrDefault(section, settingField3);
+                T4 value4 = getValueOrDefault(section, settingField4);
+                T5 value5 = getValueOrDefault(section, settingField5);
+                T6 value6 = getValueOrDefault(section, settingField6);
+                T7 value7 = getValueOrDefault(section, settingField7);
+                T8 value8 = getValueOrDefault(section, settingField8);
+                T9 value9 = getValueOrDefault(section, settingField9);
+                T10 value10 = getValueOrDefault(section, settingField10);
                 return constructor.apply(value1, value2, value3, value4, value5, value6, value7, value8, value9, value10);
             }
         };
@@ -889,17 +932,17 @@ public class RecordSettingSerializerBuilder<O> {
             }
             @Override
             public O fromPrimitive(PersistentDataContainer primitive, PersistentDataAdapterContext context) {
-                T1 value1 = settingField1.settingSerializer().read(primitive, settingField1.key());
-                T2 value2 = settingField2.settingSerializer().read(primitive, settingField2.key());
-                T3 value3 = settingField3.settingSerializer().read(primitive, settingField3.key());
-                T4 value4 = settingField4.settingSerializer().read(primitive, settingField4.key());
-                T5 value5 = settingField5.settingSerializer().read(primitive, settingField5.key());
-                T6 value6 = settingField6.settingSerializer().read(primitive, settingField6.key());
-                T7 value7 = settingField7.settingSerializer().read(primitive, settingField7.key());
-                T8 value8 = settingField8.settingSerializer().read(primitive, settingField8.key());
-                T9 value9 = settingField9.settingSerializer().read(primitive, settingField9.key());
-                T10 value10 = settingField10.settingSerializer().read(primitive, settingField10.key());
-                T11 value11 = settingField11.settingSerializer().read(primitive, settingField11.key());
+                T1 value1 = getPersistentValueOrDefault(primitive, settingField1);
+                T2 value2 = getPersistentValueOrDefault(primitive, settingField2);
+                T3 value3 = getPersistentValueOrDefault(primitive, settingField3);
+                T4 value4 = getPersistentValueOrDefault(primitive, settingField4);
+                T5 value5 = getPersistentValueOrDefault(primitive, settingField5);
+                T6 value6 = getPersistentValueOrDefault(primitive, settingField6);
+                T7 value7 = getPersistentValueOrDefault(primitive, settingField7);
+                T8 value8 = getPersistentValueOrDefault(primitive, settingField8);
+                T9 value9 = getPersistentValueOrDefault(primitive, settingField9);
+                T10 value10 = getPersistentValueOrDefault(primitive, settingField10);
+                T11 value11 = getPersistentValueOrDefault(primitive, settingField11);
                 return constructor.apply(value1, value2, value3, value4, value5, value6, value7, value8, value9, value10, value11);
             }
         };
@@ -907,47 +950,47 @@ public class RecordSettingSerializerBuilder<O> {
             @Override
             public void write(ConfigurationSection config, String key, O value, String... comments) {
                 ConfigurationSection section = getOrCreateSection(config, key, comments);
-                settingField1.settingSerializer().write(section, settingField1.key(), settingField1.getter().apply(value), settingField1.comments());
-                settingField2.settingSerializer().write(section, settingField2.key(), settingField2.getter().apply(value), settingField2.comments());
-                settingField3.settingSerializer().write(section, settingField3.key(), settingField3.getter().apply(value), settingField3.comments());
-                settingField4.settingSerializer().write(section, settingField4.key(), settingField4.getter().apply(value), settingField4.comments());
-                settingField5.settingSerializer().write(section, settingField5.key(), settingField5.getter().apply(value), settingField5.comments());
-                settingField6.settingSerializer().write(section, settingField6.key(), settingField6.getter().apply(value), settingField6.comments());
-                settingField7.settingSerializer().write(section, settingField7.key(), settingField7.getter().apply(value), settingField7.comments());
-                settingField8.settingSerializer().write(section, settingField8.key(), settingField8.getter().apply(value), settingField8.comments());
-                settingField9.settingSerializer().write(section, settingField9.key(), settingField9.getter().apply(value), settingField9.comments());
-                settingField10.settingSerializer().write(section, settingField10.key(), settingField10.getter().apply(value), settingField10.comments());
-                settingField11.settingSerializer().write(section, settingField11.key(), settingField11.getter().apply(value), settingField11.comments());
+                writeConfigurationField(section, settingField1, value, false);
+                writeConfigurationField(section, settingField2, value, false);
+                writeConfigurationField(section, settingField3, value, false);
+                writeConfigurationField(section, settingField4, value, false);
+                writeConfigurationField(section, settingField5, value, false);
+                writeConfigurationField(section, settingField6, value, false);
+                writeConfigurationField(section, settingField7, value, false);
+                writeConfigurationField(section, settingField8, value, false);
+                writeConfigurationField(section, settingField9, value, false);
+                writeConfigurationField(section, settingField10, value, false);
+                writeConfigurationField(section, settingField11, value, false);
             }
             @Override
             public void writeWithDefault(ConfigurationSection config, String key, O value, String... comments) {
                 ConfigurationSection section = getOrCreateSection(config, key, comments);
-                settingField1.settingSerializer().writeWithDefault(section, settingField1.key(), settingField1.getter().apply(value), settingField1.comments());
-                settingField2.settingSerializer().writeWithDefault(section, settingField2.key(), settingField2.getter().apply(value), settingField2.comments());
-                settingField3.settingSerializer().writeWithDefault(section, settingField3.key(), settingField3.getter().apply(value), settingField3.comments());
-                settingField4.settingSerializer().writeWithDefault(section, settingField4.key(), settingField4.getter().apply(value), settingField4.comments());
-                settingField5.settingSerializer().writeWithDefault(section, settingField5.key(), settingField5.getter().apply(value), settingField5.comments());
-                settingField6.settingSerializer().writeWithDefault(section, settingField6.key(), settingField6.getter().apply(value), settingField6.comments());
-                settingField7.settingSerializer().writeWithDefault(section, settingField7.key(), settingField7.getter().apply(value), settingField7.comments());
-                settingField8.settingSerializer().writeWithDefault(section, settingField8.key(), settingField8.getter().apply(value), settingField8.comments());
-                settingField9.settingSerializer().writeWithDefault(section, settingField9.key(), settingField9.getter().apply(value), settingField9.comments());
-                settingField10.settingSerializer().writeWithDefault(section, settingField10.key(), settingField10.getter().apply(value), settingField10.comments());
-                settingField11.settingSerializer().writeWithDefault(section, settingField11.key(), settingField11.getter().apply(value), settingField11.comments());
+                writeConfigurationField(section, settingField1, value, true);
+                writeConfigurationField(section, settingField2, value, true);
+                writeConfigurationField(section, settingField3, value, true);
+                writeConfigurationField(section, settingField4, value, true);
+                writeConfigurationField(section, settingField5, value, true);
+                writeConfigurationField(section, settingField6, value, true);
+                writeConfigurationField(section, settingField7, value, true);
+                writeConfigurationField(section, settingField8, value, true);
+                writeConfigurationField(section, settingField9, value, true);
+                writeConfigurationField(section, settingField10, value, true);
+                writeConfigurationField(section, settingField11, value, true);
             }
             @Override
             public O read(ConfigurationSection config, String key) {
-                ConfigurationSection section = config.getConfigurationSection(key);
-                T1 value1 = settingField1.settingSerializer().read(section, settingField1.key());
-                T2 value2 = settingField2.settingSerializer().read(section, settingField2.key());
-                T3 value3 = settingField3.settingSerializer().read(section, settingField3.key());
-                T4 value4 = settingField4.settingSerializer().read(section, settingField4.key());
-                T5 value5 = settingField5.settingSerializer().read(section, settingField5.key());
-                T6 value6 = settingField6.settingSerializer().read(section, settingField6.key());
-                T7 value7 = settingField7.settingSerializer().read(section, settingField7.key());
-                T8 value8 = settingField8.settingSerializer().read(section, settingField8.key());
-                T9 value9 = settingField9.settingSerializer().read(section, settingField9.key());
-                T10 value10 = settingField10.settingSerializer().read(section, settingField10.key());
-                T11 value11 = settingField11.settingSerializer().read(section, settingField11.key());
+                ConfigurationSection section = getOrCreateSection(config, key);
+                T1 value1 = getValueOrDefault(section, settingField1);
+                T2 value2 = getValueOrDefault(section, settingField2);
+                T3 value3 = getValueOrDefault(section, settingField3);
+                T4 value4 = getValueOrDefault(section, settingField4);
+                T5 value5 = getValueOrDefault(section, settingField5);
+                T6 value6 = getValueOrDefault(section, settingField6);
+                T7 value7 = getValueOrDefault(section, settingField7);
+                T8 value8 = getValueOrDefault(section, settingField8);
+                T9 value9 = getValueOrDefault(section, settingField9);
+                T10 value10 = getValueOrDefault(section, settingField10);
+                T11 value11 = getValueOrDefault(section, settingField11);
                 return constructor.apply(value1, value2, value3, value4, value5, value6, value7, value8, value9, value10, value11);
             }
         };
@@ -995,18 +1038,18 @@ public class RecordSettingSerializerBuilder<O> {
             }
             @Override
             public O fromPrimitive(PersistentDataContainer primitive, PersistentDataAdapterContext context) {
-                T1 value1 = settingField1.settingSerializer().read(primitive, settingField1.key());
-                T2 value2 = settingField2.settingSerializer().read(primitive, settingField2.key());
-                T3 value3 = settingField3.settingSerializer().read(primitive, settingField3.key());
-                T4 value4 = settingField4.settingSerializer().read(primitive, settingField4.key());
-                T5 value5 = settingField5.settingSerializer().read(primitive, settingField5.key());
-                T6 value6 = settingField6.settingSerializer().read(primitive, settingField6.key());
-                T7 value7 = settingField7.settingSerializer().read(primitive, settingField7.key());
-                T8 value8 = settingField8.settingSerializer().read(primitive, settingField8.key());
-                T9 value9 = settingField9.settingSerializer().read(primitive, settingField9.key());
-                T10 value10 = settingField10.settingSerializer().read(primitive, settingField10.key());
-                T11 value11 = settingField11.settingSerializer().read(primitive, settingField11.key());
-                T12 value12 = settingField12.settingSerializer().read(primitive, settingField12.key());
+                T1 value1 = getPersistentValueOrDefault(primitive, settingField1);
+                T2 value2 = getPersistentValueOrDefault(primitive, settingField2);
+                T3 value3 = getPersistentValueOrDefault(primitive, settingField3);
+                T4 value4 = getPersistentValueOrDefault(primitive, settingField4);
+                T5 value5 = getPersistentValueOrDefault(primitive, settingField5);
+                T6 value6 = getPersistentValueOrDefault(primitive, settingField6);
+                T7 value7 = getPersistentValueOrDefault(primitive, settingField7);
+                T8 value8 = getPersistentValueOrDefault(primitive, settingField8);
+                T9 value9 = getPersistentValueOrDefault(primitive, settingField9);
+                T10 value10 = getPersistentValueOrDefault(primitive, settingField10);
+                T11 value11 = getPersistentValueOrDefault(primitive, settingField11);
+                T12 value12 = getPersistentValueOrDefault(primitive, settingField12);
                 return constructor.apply(value1, value2, value3, value4, value5, value6, value7, value8, value9, value10, value11, value12);
             }
         };
@@ -1014,50 +1057,50 @@ public class RecordSettingSerializerBuilder<O> {
             @Override
             public void write(ConfigurationSection config, String key, O value, String... comments) {
                 ConfigurationSection section = getOrCreateSection(config, key, comments);
-                settingField1.settingSerializer().write(section, settingField1.key(), settingField1.getter().apply(value), settingField1.comments());
-                settingField2.settingSerializer().write(section, settingField2.key(), settingField2.getter().apply(value), settingField2.comments());
-                settingField3.settingSerializer().write(section, settingField3.key(), settingField3.getter().apply(value), settingField3.comments());
-                settingField4.settingSerializer().write(section, settingField4.key(), settingField4.getter().apply(value), settingField4.comments());
-                settingField5.settingSerializer().write(section, settingField5.key(), settingField5.getter().apply(value), settingField5.comments());
-                settingField6.settingSerializer().write(section, settingField6.key(), settingField6.getter().apply(value), settingField6.comments());
-                settingField7.settingSerializer().write(section, settingField7.key(), settingField7.getter().apply(value), settingField7.comments());
-                settingField8.settingSerializer().write(section, settingField8.key(), settingField8.getter().apply(value), settingField8.comments());
-                settingField9.settingSerializer().write(section, settingField9.key(), settingField9.getter().apply(value), settingField9.comments());
-                settingField10.settingSerializer().write(section, settingField10.key(), settingField10.getter().apply(value), settingField10.comments());
-                settingField11.settingSerializer().write(section, settingField11.key(), settingField11.getter().apply(value), settingField11.comments());
-                settingField12.settingSerializer().write(section, settingField12.key(), settingField12.getter().apply(value), settingField12.comments());
+                writeConfigurationField(section, settingField1, value, false);
+                writeConfigurationField(section, settingField2, value, false);
+                writeConfigurationField(section, settingField3, value, false);
+                writeConfigurationField(section, settingField4, value, false);
+                writeConfigurationField(section, settingField5, value, false);
+                writeConfigurationField(section, settingField6, value, false);
+                writeConfigurationField(section, settingField7, value, false);
+                writeConfigurationField(section, settingField8, value, false);
+                writeConfigurationField(section, settingField9, value, false);
+                writeConfigurationField(section, settingField10, value, false);
+                writeConfigurationField(section, settingField11, value, false);
+                writeConfigurationField(section, settingField12, value, false);
             }
             @Override
             public void writeWithDefault(ConfigurationSection config, String key, O value, String... comments) {
                 ConfigurationSection section = getOrCreateSection(config, key, comments);
-                settingField1.settingSerializer().writeWithDefault(section, settingField1.key(), settingField1.getter().apply(value), settingField1.comments());
-                settingField2.settingSerializer().writeWithDefault(section, settingField2.key(), settingField2.getter().apply(value), settingField2.comments());
-                settingField3.settingSerializer().writeWithDefault(section, settingField3.key(), settingField3.getter().apply(value), settingField3.comments());
-                settingField4.settingSerializer().writeWithDefault(section, settingField4.key(), settingField4.getter().apply(value), settingField4.comments());
-                settingField5.settingSerializer().writeWithDefault(section, settingField5.key(), settingField5.getter().apply(value), settingField5.comments());
-                settingField6.settingSerializer().writeWithDefault(section, settingField6.key(), settingField6.getter().apply(value), settingField6.comments());
-                settingField7.settingSerializer().writeWithDefault(section, settingField7.key(), settingField7.getter().apply(value), settingField7.comments());
-                settingField8.settingSerializer().writeWithDefault(section, settingField8.key(), settingField8.getter().apply(value), settingField8.comments());
-                settingField9.settingSerializer().writeWithDefault(section, settingField9.key(), settingField9.getter().apply(value), settingField9.comments());
-                settingField10.settingSerializer().writeWithDefault(section, settingField10.key(), settingField10.getter().apply(value), settingField10.comments());
-                settingField11.settingSerializer().writeWithDefault(section, settingField11.key(), settingField11.getter().apply(value), settingField11.comments());
-                settingField12.settingSerializer().writeWithDefault(section, settingField12.key(), settingField12.getter().apply(value), settingField12.comments());
+                writeConfigurationField(section, settingField1, value, true);
+                writeConfigurationField(section, settingField2, value, true);
+                writeConfigurationField(section, settingField3, value, true);
+                writeConfigurationField(section, settingField4, value, true);
+                writeConfigurationField(section, settingField5, value, true);
+                writeConfigurationField(section, settingField6, value, true);
+                writeConfigurationField(section, settingField7, value, true);
+                writeConfigurationField(section, settingField8, value, true);
+                writeConfigurationField(section, settingField9, value, true);
+                writeConfigurationField(section, settingField10, value, true);
+                writeConfigurationField(section, settingField11, value, true);
+                writeConfigurationField(section, settingField12, value, true);
             }
             @Override
             public O read(ConfigurationSection config, String key) {
-                ConfigurationSection section = config.getConfigurationSection(key);
-                T1 value1 = settingField1.settingSerializer().read(section, settingField1.key());
-                T2 value2 = settingField2.settingSerializer().read(section, settingField2.key());
-                T3 value3 = settingField3.settingSerializer().read(section, settingField3.key());
-                T4 value4 = settingField4.settingSerializer().read(section, settingField4.key());
-                T5 value5 = settingField5.settingSerializer().read(section, settingField5.key());
-                T6 value6 = settingField6.settingSerializer().read(section, settingField6.key());
-                T7 value7 = settingField7.settingSerializer().read(section, settingField7.key());
-                T8 value8 = settingField8.settingSerializer().read(section, settingField8.key());
-                T9 value9 = settingField9.settingSerializer().read(section, settingField9.key());
-                T10 value10 = settingField10.settingSerializer().read(section, settingField10.key());
-                T11 value11 = settingField11.settingSerializer().read(section, settingField11.key());
-                T12 value12 = settingField12.settingSerializer().read(section, settingField12.key());
+                ConfigurationSection section = getOrCreateSection(config, key);
+                T1 value1 = getValueOrDefault(section, settingField1);
+                T2 value2 = getValueOrDefault(section, settingField2);
+                T3 value3 = getValueOrDefault(section, settingField3);
+                T4 value4 = getValueOrDefault(section, settingField4);
+                T5 value5 = getValueOrDefault(section, settingField5);
+                T6 value6 = getValueOrDefault(section, settingField6);
+                T7 value7 = getValueOrDefault(section, settingField7);
+                T8 value8 = getValueOrDefault(section, settingField8);
+                T9 value9 = getValueOrDefault(section, settingField9);
+                T10 value10 = getValueOrDefault(section, settingField10);
+                T11 value11 = getValueOrDefault(section, settingField11);
+                T12 value12 = getValueOrDefault(section, settingField12);
                 return constructor.apply(value1, value2, value3, value4, value5, value6, value7, value8, value9, value10, value11, value12);
             }
         };

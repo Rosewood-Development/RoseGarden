@@ -101,10 +101,10 @@ public final class SettingSerializers {
     //endregion
 
     //region Record Serializers
-    public static final SettingSerializer<Vector> VECTOR = RecordSettingSerializerBuilder.create(Vector.class, instance -> instance.group(
-            new SettingField<>("x", SettingSerializers.DOUBLE, Vector::getX),
-            new SettingField<>("y", SettingSerializers.DOUBLE, Vector::getY),
-            new SettingField<>("z", SettingSerializers.DOUBLE, Vector::getZ)
+    public static final SettingSerializer<Vector> VECTOR = ofRecord(Vector.class, instance -> instance.group(
+            SettingField.of("x", SettingSerializers.DOUBLE, Vector::getX),
+            SettingField.of("y", SettingSerializers.DOUBLE, Vector::getY),
+            SettingField.of("z", SettingSerializers.DOUBLE, Vector::getZ)
     ).apply(instance, Vector::new));
     //endregion
 
@@ -127,6 +127,16 @@ public final class SettingSerializers {
 
     public static <K, V> SettingSerializer<Map<K, V>> ofMap(SettingSerializer<K> keySerializer, SettingSerializer<V> valueSerializer) {
         return SettingSerializerFactories.ofMap(keySerializer, valueSerializer);
+    }
+    //endregion
+
+    //region Record Serializers
+    public static <O> SettingSerializer<O> ofRecord(Class<O> clazz, Function<RecordSettingSerializerBuilder<O>, RecordSettingSerializerBuilder.Built<O>> builder) {
+        return RecordSettingSerializerBuilder.create(clazz, builder);
+    }
+
+    public static <T, M> SettingSerializer<T> ofFieldMapped(Class<T> type, String fieldKey, SettingSerializer<M> fieldSerializer, Map<M, SettingSerializer<? extends T>> mapper) {
+        return SettingSerializerFactories.ofFieldMapped(type, fieldKey, fieldSerializer, mapper);
     }
     //endregion
 

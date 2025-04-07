@@ -1,23 +1,28 @@
 package dev.rosewood.rosegarden.config;
 
-import java.util.Arrays;
-import java.util.Objects;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public final class SettingField<O, T> {
 
     private final String key;
     private final SettingSerializer<T> settingSerializer;
     private final Function<O, T> getter;
+    private final Supplier<T> defaultValueSupplier;
+    private final boolean flatten;
     private final String[] comments;
 
-    public SettingField(String key,
-                        SettingSerializer<T> settingSerializer,
-                        Function<O, T> getter,
-                        String... comments) {
+    private SettingField(String key,
+                         SettingSerializer<T> settingSerializer,
+                         Function<O, T> getter,
+                         Supplier<T> defaultValueSupplier,
+                         boolean flatten,
+                         String... comments) {
         this.key = key;
         this.settingSerializer = settingSerializer;
         this.getter = getter;
+        this.defaultValueSupplier = defaultValueSupplier;
+        this.flatten = flatten;
         this.comments = comments;
     }
 
@@ -33,40 +38,64 @@ public final class SettingField<O, T> {
         return this.getter;
     }
 
+    public T defaultValue() {
+        if (this.defaultValueSupplier == null)
+            return null;
+        return this.defaultValueSupplier.get();
+    }
+
     public String[] comments() {
         return this.comments;
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) return true;
-        if (obj == null || obj.getClass() != this.getClass()) return false;
-        SettingField<?, ?> that = (SettingField<?, ?>) obj;
-        return Objects.equals(this.key, that.key) &&
-                Objects.equals(this.settingSerializer, that.settingSerializer) &&
-                Objects.equals(this.getter, that.getter) &&
-                Arrays.equals(this.comments, that.comments);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(this.key, this.settingSerializer, this.getter, Arrays.hashCode(this.comments));
-    }
-
-    @Override
-    public String toString() {
-        return "SettingField[" +
-                "key=" + this.key + ", " +
-                "settingSerializer=" + this.settingSerializer + ", " +
-                "getter=" + this.getter + ", " +
-                "comments=" + Arrays.toString(this.comments) + ']';
+    public boolean flatten() {
+        return this.flatten;
     }
 
     public static <O, T> SettingField<O, T> of(String key,
                                                SettingSerializer<T> settingSerializer,
                                                Function<O, T> getter,
                                                String... comments) {
-        return new SettingField<>(key, settingSerializer, getter, comments);
+        return new SettingField<>(key, settingSerializer, getter, null, false, comments);
+    }
+
+    public static <O, T> SettingField<O, T> ofOptional(String key,
+                                                       SettingSerializer<T> settingSerializer,
+                                                       Function<O, T> getter,
+                                                       Supplier<T> defaultValueSupplier,
+                                                       String... comments) {
+        return new SettingField<>(key, settingSerializer, getter, defaultValueSupplier, false, comments);
+    }
+
+    public static <O, T> SettingField<O, T> ofOptionalValue(String key,
+                                                            SettingSerializer<T> settingSerializer,
+                                                            Function<O, T> getter,
+                                                            T defaultValue,
+                                                            String... comments) {
+        return new SettingField<>(key, settingSerializer, getter, () -> defaultValue, false, comments);
+    }
+
+    public static <O, T> SettingField<O, T> ofFlattened(String key,
+                                                        SettingSerializer<T> settingSerializer,
+                                                        Function<O, T> getter,
+                                                        String... comments) {
+        return new SettingField<>(key, settingSerializer, getter, null, true, comments);
+    }
+
+    public static <O, T> SettingField<O, T> ofFlattenedOptional(String key,
+                                                                SettingSerializer<T> settingSerializer,
+                                                                Function<O, T> getter,
+                                                                Supplier<T> defaultValueSupplier,
+                                                                String... comments) {
+        return new SettingField<>(key, settingSerializer, getter, defaultValueSupplier, true, comments);
+    }
+
+    public static <O, T> SettingField<O, T> ofFlattenedOptionalValue(String key,
+                                                                     SettingSerializer<T> settingSerializer,
+                                                                     Function<O, T> getter,
+                                                                     T defaultValue,
+                                                                     String... comments) {
+        return new SettingField<>(key, settingSerializer, getter, () -> defaultValue, true, comments);
     }
 
 }
