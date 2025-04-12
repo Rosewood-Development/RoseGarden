@@ -31,8 +31,16 @@ public class CommentedFileConfiguration extends CommentedConfigurationSection {
     }
 
     public void save(File file, boolean compactLines) {
-        String config = this.getConfigAsString();
-        this.saveConfig(config, file, compactLines);
+        String config = this.prepareConfigString(this.getConfigAsString(), compactLines);
+        this.saveConfig(config, file);
+    }
+
+    public String saveToString(boolean compactLines) {
+        return this.prepareConfigString(this.getConfigAsString(), compactLines);
+    }
+
+    public String saveToString() {
+        return this.saveToString(false);
     }
 
     private String getConfigAsString() {
@@ -143,7 +151,7 @@ public class CommentedFileConfiguration extends CommentedConfigurationSection {
         }
     }
 
-    private String prepareConfigString(String configString) {
+    private String prepareConfigString(String configString, boolean compactLines) {
         boolean lastLine = false;
 
         String[] lines = configString.split("\n");
@@ -176,18 +184,7 @@ public class CommentedFileConfiguration extends CommentedConfigurationSection {
             }
         }
 
-        return config.toString();
-    }
-
-    /**
-     * Writes the configuration string to a file and automatically formats it
-     *
-     * @param configString The entire configuration string
-     * @param file The file to save to
-     * @param compactLines If lines should forcefully be separated by at most one newline character
-     */
-    private void saveConfig(String configString, File file, boolean compactLines) {
-        String configuration = this.prepareConfigString(configString);
+        String configuration = config.toString();
 
         // Apply post-processing to config string to make it pretty
         StringBuilder stringBuilder = new StringBuilder();
@@ -251,8 +248,18 @@ public class CommentedFileConfiguration extends CommentedConfigurationSection {
             }
         }
 
+        return compactedBuilder.toString();
+    }
+
+    /**
+     * Writes the configuration string to a file and automatically formats it
+     *
+     * @param configString The entire configuration string
+     * @param file The file to save to
+     */
+    private void saveConfig(String configString, File file) {
         try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(file.getAbsolutePath()), StandardCharsets.UTF_8)) {
-            writer.write(compactedBuilder.toString());
+            writer.write(configString);
             writer.flush();
         } catch (IOException e) {
             e.printStackTrace();

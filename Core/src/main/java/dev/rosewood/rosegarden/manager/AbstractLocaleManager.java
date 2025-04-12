@@ -30,7 +30,7 @@ public abstract class AbstractLocaleManager extends Manager {
         public static final SettingHolder INSTANCE = new Settings();
         private static final List<RoseSetting<?>> SETTINGS = new ArrayList<>();
 
-        public static final RoseSetting<String> LOCALE = create(RoseSetting.forString("locale", "en_US", "The locale to use in the /locale folder"));
+        public static final RoseSetting<String> LOCALE = create(RoseSetting.ofString("locale", "en_US", "The locale to use in the /locale folder"));
 
         private Settings() {}
 

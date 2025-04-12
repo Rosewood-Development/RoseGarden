@@ -20,20 +20,27 @@ public class RecordSettingSerializerBuilder<O> {
     }
 
     private static <T, O> T getValueOrDefault(ConfigurationSection section, SettingField<O, T> settingField) {
-        T value;
-        if (settingField.flatten()) {
-            // Lift keys into the expected section for the field serializer if flattened
-            MemoryConfiguration liftedSection = new MemoryConfiguration();
-            Map<String, Object> map = section.getValues(true);
-            String prefix = settingField.key() + ".";
-            map.forEach((key, val) -> liftedSection.addDefault(prefix + key, val));
-            value = settingField.settingSerializer().read(liftedSection, settingField.key());
-        } else {
-            value = settingField.settingSerializer().read(section, settingField.key());
-        }
+        if (section == null)
+            return null;
+
+        if (settingField.flatten()) // Lift keys into the expected section for the field serializer if flattened
+            section = liftSection(section, settingField.key());
+
+        T value = settingField.settingSerializer().read(section, settingField.key());
         if (value == null)
             value = settingField.defaultValue();
         return value;
+    }
+
+    private static ConfigurationSection liftSection(ConfigurationSection section, String key) {
+        MemoryConfiguration liftedSection = new MemoryConfiguration();
+        Map<String, Object> map = section.getValues(true);
+        String prefix = key + ".";
+        map.forEach((path, val) -> {
+            liftedSection.set(prefix + path, val);
+            liftedSection.set(path, val); // keep original values so they can still be read if needed by other serializers
+        });
+        return liftedSection;
     }
 
     private static <T, O> T getPersistentValueOrDefault(PersistentDataContainer container, SettingField<O, T> settingField) {
@@ -44,6 +51,16 @@ public class RecordSettingSerializerBuilder<O> {
     }
 
     private static <T, O> void writeConfigurationField(ConfigurationSection section, SettingField<O, T> settingField, O value, boolean writeDefaults) {
+        if (value == null)
+            return;
+
+        // Don't overwrite a setting that's already valid
+        ConfigurationSection checkSection = section;
+        if (settingField.flatten())
+            checkSection = liftSection(checkSection, settingField.key());
+        if (settingField.settingSerializer().readIsValid(checkSection, settingField.key()))
+            return;
+
         if (writeDefaults) {
             settingField.settingSerializer().writeWithDefault(section, settingField.key(), settingField.getter().apply(value), settingField.comments());
         } else {
@@ -58,6 +75,12 @@ public class RecordSettingSerializerBuilder<O> {
                 map.forEach(section::set);
             }
         }
+    }
+
+    private static <T, O> boolean testSection(ConfigurationSection section, SettingField<O, T> settingField) {
+        if (settingField.flatten())
+            section = liftSection(section, settingField.key());
+        return settingField.settingSerializer().readIsValid(section, settingField.key()) || settingField.defaultValue() != null;
     }
 
     public static <O> SettingSerializer<O> create(Class<O> clazz, Function<RecordSettingSerializerBuilder<O>, Built<O>> builder) {
@@ -219,9 +242,15 @@ public class RecordSettingSerializerBuilder<O> {
             }
             @Override
             public O read(ConfigurationSection config, String key) {
-                ConfigurationSection section = getOrCreateSection(config, key);
+                ConfigurationSection section = config.getConfigurationSection(key);
                 T1 value1 = getValueOrDefault(section, settingField1);
                 return constructor.apply(value1);
+            }
+            @Override
+            public boolean readIsValid(ConfigurationSection config, String key) {
+                ConfigurationSection section = config.getConfigurationSection(key);
+                return section != null &&
+                        testSection(section, settingField1);
             }
         };
         return new Built<>(this);
@@ -268,10 +297,17 @@ public class RecordSettingSerializerBuilder<O> {
             }
             @Override
             public O read(ConfigurationSection config, String key) {
-                ConfigurationSection section = getOrCreateSection(config, key);
+                ConfigurationSection section = config.getConfigurationSection(key);
                 T1 value1 = getValueOrDefault(section, settingField1);
                 T2 value2 = getValueOrDefault(section, settingField2);
                 return constructor.apply(value1, value2);
+            }
+            @Override
+            public boolean readIsValid(ConfigurationSection config, String key) {
+                ConfigurationSection section = config.getConfigurationSection(key);
+                return section != null &&
+                        testSection(section, settingField1) &&
+                        testSection(section, settingField2);
             }
         };
         return new Built<>(this);
@@ -323,11 +359,19 @@ public class RecordSettingSerializerBuilder<O> {
             }
             @Override
             public O read(ConfigurationSection config, String key) {
-                ConfigurationSection section = getOrCreateSection(config, key);
+                ConfigurationSection section = config.getConfigurationSection(key);
                 T1 value1 = getValueOrDefault(section, settingField1);
                 T2 value2 = getValueOrDefault(section, settingField2);
                 T3 value3 = getValueOrDefault(section, settingField3);
                 return constructor.apply(value1, value2, value3);
+            }
+            @Override
+            public boolean readIsValid(ConfigurationSection config, String key) {
+                ConfigurationSection section = config.getConfigurationSection(key);
+                return section != null &&
+                        testSection(section, settingField1) &&
+                        testSection(section, settingField2) &&
+                        testSection(section, settingField3);
             }
         };
         return new Built<>(this);
@@ -384,12 +428,21 @@ public class RecordSettingSerializerBuilder<O> {
             }
             @Override
             public O read(ConfigurationSection config, String key) {
-                ConfigurationSection section = getOrCreateSection(config, key);
+                ConfigurationSection section = config.getConfigurationSection(key);
                 T1 value1 = getValueOrDefault(section, settingField1);
                 T2 value2 = getValueOrDefault(section, settingField2);
                 T3 value3 = getValueOrDefault(section, settingField3);
                 T4 value4 = getValueOrDefault(section, settingField4);
                 return constructor.apply(value1, value2, value3, value4);
+            }
+            @Override
+            public boolean readIsValid(ConfigurationSection config, String key) {
+                ConfigurationSection section = config.getConfigurationSection(key);
+                return section != null &&
+                        testSection(section, settingField1) &&
+                        testSection(section, settingField2) &&
+                        testSection(section, settingField3) &&
+                        testSection(section, settingField4);
             }
         };
         return new Built<>(this);
@@ -451,13 +504,23 @@ public class RecordSettingSerializerBuilder<O> {
             }
             @Override
             public O read(ConfigurationSection config, String key) {
-                ConfigurationSection section = getOrCreateSection(config, key);
+                ConfigurationSection section = config.getConfigurationSection(key);
                 T1 value1 = getValueOrDefault(section, settingField1);
                 T2 value2 = getValueOrDefault(section, settingField2);
                 T3 value3 = getValueOrDefault(section, settingField3);
                 T4 value4 = getValueOrDefault(section, settingField4);
                 T5 value5 = getValueOrDefault(section, settingField5);
                 return constructor.apply(value1, value2, value3, value4, value5);
+            }
+            @Override
+            public boolean readIsValid(ConfigurationSection config, String key) {
+                ConfigurationSection section = config.getConfigurationSection(key);
+                return section != null &&
+                        testSection(section, settingField1) &&
+                        testSection(section, settingField2) &&
+                        testSection(section, settingField3) &&
+                        testSection(section, settingField4) &&
+                        testSection(section, settingField5);
             }
         };
         return new Built<>(this);
@@ -524,7 +587,7 @@ public class RecordSettingSerializerBuilder<O> {
             }
             @Override
             public O read(ConfigurationSection config, String key) {
-                ConfigurationSection section = getOrCreateSection(config, key);
+                ConfigurationSection section = config.getConfigurationSection(key);
                 T1 value1 = getValueOrDefault(section, settingField1);
                 T2 value2 = getValueOrDefault(section, settingField2);
                 T3 value3 = getValueOrDefault(section, settingField3);
@@ -532,6 +595,17 @@ public class RecordSettingSerializerBuilder<O> {
                 T5 value5 = getValueOrDefault(section, settingField5);
                 T6 value6 = getValueOrDefault(section, settingField6);
                 return constructor.apply(value1, value2, value3, value4, value5, value6);
+            }
+            @Override
+            public boolean readIsValid(ConfigurationSection config, String key) {
+                ConfigurationSection section = config.getConfigurationSection(key);
+                return section != null &&
+                        testSection(section, settingField1) &&
+                        testSection(section, settingField2) &&
+                        testSection(section, settingField3) &&
+                        testSection(section, settingField4) &&
+                        testSection(section, settingField5) &&
+                        testSection(section, settingField6);
             }
         };
         return new Built<>(this);
@@ -603,7 +677,7 @@ public class RecordSettingSerializerBuilder<O> {
             }
             @Override
             public O read(ConfigurationSection config, String key) {
-                ConfigurationSection section = getOrCreateSection(config, key);
+                ConfigurationSection section = config.getConfigurationSection(key);
                 T1 value1 = getValueOrDefault(section, settingField1);
                 T2 value2 = getValueOrDefault(section, settingField2);
                 T3 value3 = getValueOrDefault(section, settingField3);
@@ -612,6 +686,18 @@ public class RecordSettingSerializerBuilder<O> {
                 T6 value6 = getValueOrDefault(section, settingField6);
                 T7 value7 = getValueOrDefault(section, settingField7);
                 return constructor.apply(value1, value2, value3, value4, value5, value6, value7);
+            }
+            @Override
+            public boolean readIsValid(ConfigurationSection config, String key) {
+                ConfigurationSection section = config.getConfigurationSection(key);
+                return section != null &&
+                        testSection(section, settingField1) &&
+                        testSection(section, settingField2) &&
+                        testSection(section, settingField3) &&
+                        testSection(section, settingField4) &&
+                        testSection(section, settingField5) &&
+                        testSection(section, settingField6) &&
+                        testSection(section, settingField7);
             }
         };
         return new Built<>(this);
@@ -688,7 +774,7 @@ public class RecordSettingSerializerBuilder<O> {
             }
             @Override
             public O read(ConfigurationSection config, String key) {
-                ConfigurationSection section = getOrCreateSection(config, key);
+                ConfigurationSection section = config.getConfigurationSection(key);
                 T1 value1 = getValueOrDefault(section, settingField1);
                 T2 value2 = getValueOrDefault(section, settingField2);
                 T3 value3 = getValueOrDefault(section, settingField3);
@@ -698,6 +784,19 @@ public class RecordSettingSerializerBuilder<O> {
                 T7 value7 = getValueOrDefault(section, settingField7);
                 T8 value8 = getValueOrDefault(section, settingField8);
                 return constructor.apply(value1, value2, value3, value4, value5, value6, value7, value8);
+            }
+            @Override
+            public boolean readIsValid(ConfigurationSection config, String key) {
+                ConfigurationSection section = config.getConfigurationSection(key);
+                return section != null &&
+                        testSection(section, settingField1) &&
+                        testSection(section, settingField2) &&
+                        testSection(section, settingField3) &&
+                        testSection(section, settingField4) &&
+                        testSection(section, settingField5) &&
+                        testSection(section, settingField6) &&
+                        testSection(section, settingField7) &&
+                        testSection(section, settingField8);
             }
         };
         return new Built<>(this);
@@ -779,7 +878,7 @@ public class RecordSettingSerializerBuilder<O> {
             }
             @Override
             public O read(ConfigurationSection config, String key) {
-                ConfigurationSection section = getOrCreateSection(config, key);
+                ConfigurationSection section = config.getConfigurationSection(key);
                 T1 value1 = getValueOrDefault(section, settingField1);
                 T2 value2 = getValueOrDefault(section, settingField2);
                 T3 value3 = getValueOrDefault(section, settingField3);
@@ -790,6 +889,20 @@ public class RecordSettingSerializerBuilder<O> {
                 T8 value8 = getValueOrDefault(section, settingField8);
                 T9 value9 = getValueOrDefault(section, settingField9);
                 return constructor.apply(value1, value2, value3, value4, value5, value6, value7, value8, value9);
+            }
+            @Override
+            public boolean readIsValid(ConfigurationSection config, String key) {
+                ConfigurationSection section = config.getConfigurationSection(key);
+                return section != null &&
+                        testSection(section, settingField1) &&
+                        testSection(section, settingField2) &&
+                        testSection(section, settingField3) &&
+                        testSection(section, settingField4) &&
+                        testSection(section, settingField5) &&
+                        testSection(section, settingField6) &&
+                        testSection(section, settingField7) &&
+                        testSection(section, settingField8) &&
+                        testSection(section, settingField9);
             }
         };
         return new Built<>(this);
@@ -876,7 +989,7 @@ public class RecordSettingSerializerBuilder<O> {
             }
             @Override
             public O read(ConfigurationSection config, String key) {
-                ConfigurationSection section = getOrCreateSection(config, key);
+                ConfigurationSection section = config.getConfigurationSection(key);
                 T1 value1 = getValueOrDefault(section, settingField1);
                 T2 value2 = getValueOrDefault(section, settingField2);
                 T3 value3 = getValueOrDefault(section, settingField3);
@@ -888,6 +1001,21 @@ public class RecordSettingSerializerBuilder<O> {
                 T9 value9 = getValueOrDefault(section, settingField9);
                 T10 value10 = getValueOrDefault(section, settingField10);
                 return constructor.apply(value1, value2, value3, value4, value5, value6, value7, value8, value9, value10);
+            }
+            @Override
+            public boolean readIsValid(ConfigurationSection config, String key) {
+                ConfigurationSection section = config.getConfigurationSection(key);
+                return section != null &&
+                        testSection(section, settingField1) &&
+                        testSection(section, settingField2) &&
+                        testSection(section, settingField3) &&
+                        testSection(section, settingField4) &&
+                        testSection(section, settingField5) &&
+                        testSection(section, settingField6) &&
+                        testSection(section, settingField7) &&
+                        testSection(section, settingField8) &&
+                        testSection(section, settingField9) &&
+                        testSection(section, settingField10);
             }
         };
         return new Built<>(this);
@@ -979,7 +1107,7 @@ public class RecordSettingSerializerBuilder<O> {
             }
             @Override
             public O read(ConfigurationSection config, String key) {
-                ConfigurationSection section = getOrCreateSection(config, key);
+                ConfigurationSection section = config.getConfigurationSection(key);
                 T1 value1 = getValueOrDefault(section, settingField1);
                 T2 value2 = getValueOrDefault(section, settingField2);
                 T3 value3 = getValueOrDefault(section, settingField3);
@@ -992,6 +1120,22 @@ public class RecordSettingSerializerBuilder<O> {
                 T10 value10 = getValueOrDefault(section, settingField10);
                 T11 value11 = getValueOrDefault(section, settingField11);
                 return constructor.apply(value1, value2, value3, value4, value5, value6, value7, value8, value9, value10, value11);
+            }
+            @Override
+            public boolean readIsValid(ConfigurationSection config, String key) {
+                ConfigurationSection section = config.getConfigurationSection(key);
+                return section != null &&
+                        testSection(section, settingField1) &&
+                        testSection(section, settingField2) &&
+                        testSection(section, settingField3) &&
+                        testSection(section, settingField4) &&
+                        testSection(section, settingField5) &&
+                        testSection(section, settingField6) &&
+                        testSection(section, settingField7) &&
+                        testSection(section, settingField8) &&
+                        testSection(section, settingField9) &&
+                        testSection(section, settingField10) &&
+                        testSection(section, settingField11);
             }
         };
         return new Built<>(this);
@@ -1088,7 +1232,7 @@ public class RecordSettingSerializerBuilder<O> {
             }
             @Override
             public O read(ConfigurationSection config, String key) {
-                ConfigurationSection section = getOrCreateSection(config, key);
+                ConfigurationSection section = config.getConfigurationSection(key);
                 T1 value1 = getValueOrDefault(section, settingField1);
                 T2 value2 = getValueOrDefault(section, settingField2);
                 T3 value3 = getValueOrDefault(section, settingField3);
@@ -1102,6 +1246,23 @@ public class RecordSettingSerializerBuilder<O> {
                 T11 value11 = getValueOrDefault(section, settingField11);
                 T12 value12 = getValueOrDefault(section, settingField12);
                 return constructor.apply(value1, value2, value3, value4, value5, value6, value7, value8, value9, value10, value11, value12);
+            }
+            @Override
+            public boolean readIsValid(ConfigurationSection config, String key) {
+                ConfigurationSection section = config.getConfigurationSection(key);
+                return section != null &&
+                        testSection(section, settingField1) &&
+                        testSection(section, settingField2) &&
+                        testSection(section, settingField3) &&
+                        testSection(section, settingField4) &&
+                        testSection(section, settingField5) &&
+                        testSection(section, settingField6) &&
+                        testSection(section, settingField7) &&
+                        testSection(section, settingField8) &&
+                        testSection(section, settingField9) &&
+                        testSection(section, settingField10) &&
+                        testSection(section, settingField11) &&
+                        testSection(section, settingField12);
             }
         };
         return new Built<>(this);

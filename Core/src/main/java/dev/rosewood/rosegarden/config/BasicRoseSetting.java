@@ -21,7 +21,7 @@ class BasicRoseSetting<T> implements RoseSetting<T> {
     }
 
     @Override
-    public void write(CommentedConfigurationSection config) {
+    public void write(ConfigurationSection config) {
         if (this.hidden)
             return;
 
@@ -30,7 +30,7 @@ class BasicRoseSetting<T> implements RoseSetting<T> {
     }
 
     @Override
-    public void writeWithDefault(CommentedConfigurationSection config) {
+    public void writeWithDefault(ConfigurationSection config) {
         if (this.hidden)
             return;
 
@@ -52,6 +52,14 @@ class BasicRoseSetting<T> implements RoseSetting<T> {
             return null;
 
         return this.serializer.read(config, this.key);
+    }
+
+    @Override
+    public boolean readIsValid(ConfigurationSection config) {
+        if (this.hidden)
+            return true;
+
+        return this.serializer.readIsValid(config, this.key);
     }
 
     @Override

@@ -51,7 +51,7 @@ public abstract class SettingSerializer<T> {
      * @param setting The setting to save as in the config
      * @param value The value to save
      */
-    public void write(ConfigurationSection config, RoseSetting<T> setting, T value) {
+    public final void write(ConfigurationSection config, RoseSetting<T> setting, T value) {
         this.write(config, setting.getKey(), value, setting.getComments());
     }
 
@@ -77,7 +77,7 @@ public abstract class SettingSerializer<T> {
      * @param setting The setting to save as in the config
      * @param value The value to save
      */
-    public void writeWithDefault(ConfigurationSection config, RoseSetting<T> setting, T value) {
+    public final void writeWithDefault(ConfigurationSection config, RoseSetting<T> setting, T value) {
         this.writeWithDefault(config, setting.getKey(), value, setting.getComments());
     }
 
@@ -126,7 +126,7 @@ public abstract class SettingSerializer<T> {
      * @param setting The setting to save as in the config, if not namespaced, will be prefixed with the plugin path
      * @param value The value to save
      */
-    public void write(PersistentDataContainer container, RoseSetting<T> setting, T value) {
+    public final void write(PersistentDataContainer container, RoseSetting<T> setting, T value) {
         this.write(container, setting.getKey(), value);
     }
 
@@ -143,11 +143,33 @@ public abstract class SettingSerializer<T> {
      * Reads an object from a ConfigurationSection
      *
      * @param config The ConfigurationSection to read from
-     * @param setting The setting to save as in the config
+     * @param setting The setting to read from in the config
      * @return the value read
      */
-    public T read(ConfigurationSection config, RoseSetting<T> setting) {
+    public final T read(ConfigurationSection config, RoseSetting<T> setting) {
         return this.read(config, setting.getKey());
+    }
+
+    /**
+     * Checks if the setting exists in the given config and has all properties written to
+     *
+     * @param config The ConfigurationSection to read from
+     * @param key The path to the value in the config
+     * @return true if the setting exists in the given config
+     */
+    public boolean readIsValid(ConfigurationSection config, String key) {
+        return config.contains(key);
+    }
+
+    /**
+     * Checks if the setting exists in the given config and has all properties written to
+     *
+     * @param config The ConfigurationSection to read from
+     * @param setting The setting to read from in the config
+     * @return true if the setting exists in the given config
+     */
+    public final boolean readIsValid(ConfigurationSection config, RoseSetting<T> setting) {
+        return this.readIsValid(config, setting.getKey());
     }
 
     /**
@@ -168,7 +190,7 @@ public abstract class SettingSerializer<T> {
      * @param setting The setting to save as in the config, if not namespaced, will be prefixed with the plugin path
      * @return the value read
      */
-    public T read(PersistentDataContainer container, RoseSetting<T> setting) {
+    public final T read(PersistentDataContainer container, RoseSetting<T> setting) {
         return this.read(container, setting.getKey());
     }
 

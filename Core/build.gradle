@@ -35,6 +35,11 @@ compileJava {
     source = processSource.outputs
 }
 
+compileTestJava {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
 shadowJar {
     archiveClassifier.set(null)
 
@@ -52,4 +57,4 @@ publishing {
 }
 
 build.dependsOn shadowJar
-publishShadowPublicationToMavenRepository.dependsOn jar
+generateMetadataFileForShadowPublication.dependsOn jar

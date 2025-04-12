@@ -79,7 +79,7 @@ class BasicRoseConfig implements RoseConfig {
             config.addComments(this.header);
 
         for (RoseSetting<?> setting : this.settings) {
-            if (config.contains(setting.getKey()))
+            if (setting.readIsValid(config))
                 continue;
 
             if (this.writeDefaultValueComments) {

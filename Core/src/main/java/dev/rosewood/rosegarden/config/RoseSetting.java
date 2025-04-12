@@ -13,14 +13,14 @@ public interface RoseSetting<T> {
      *
      * @param config the config to write to
      */
-    void write(CommentedConfigurationSection config);
+    void write(ConfigurationSection config);
 
     /**
      * Writes the setting and its default value to the given config.
      *
      * @param config the config to write to
      */
-    void writeWithDefault(CommentedConfigurationSection config);
+    void writeWithDefault(ConfigurationSection config);
 
     /**
      * Reads the setting from the given config and returns it.
@@ -36,6 +36,14 @@ public interface RoseSetting<T> {
      * @param config the config to read from
      */
     void readDefault(ConfigurationSection config);
+
+    /**
+     * Checks if the setting exists in the given config and has all properties written to
+     *
+     * @param config the config to read from
+     * @return true if the setting exists in the given config
+     */
+    boolean readIsValid(ConfigurationSection config);
 
     /**
      * @return the serializer for this setting
@@ -105,51 +113,51 @@ public interface RoseSetting<T> {
      */
     RoseSetting<T> copy(Supplier<T> defaultValueSupplier, String... comments);
 
-    static RoseSetting<Boolean> forBoolean(String name, boolean defaultValue, String... comments) {
+    static RoseSetting<Boolean> ofBoolean(String name, boolean defaultValue, String... comments) {
         return of(name, SettingSerializers.BOOLEAN, () -> defaultValue, comments);
     }
 
-    static RoseSetting<Integer> forInteger(String name, int defaultValue, String... comments) {
+    static RoseSetting<Integer> ofInteger(String name, int defaultValue, String... comments) {
         return of(name, SettingSerializers.INTEGER, () -> defaultValue, comments);
     }
 
-    static RoseSetting<Long> forLong(String name, long defaultValue, String... comments) {
+    static RoseSetting<Long> ofLong(String name, long defaultValue, String... comments) {
         return of(name, SettingSerializers.LONG, () -> defaultValue, comments);
     }
 
-    static RoseSetting<Short> forShort(String name, short defaultValue, String... comments) {
+    static RoseSetting<Short> ofShort(String name, short defaultValue, String... comments) {
         return of(name, SettingSerializers.SHORT, () -> defaultValue, comments);
     }
 
-    static RoseSetting<Byte> forByte(String name, byte defaultValue, String... comments) {
+    static RoseSetting<Byte> ofByte(String name, byte defaultValue, String... comments) {
         return of(name, SettingSerializers.BYTE, () -> defaultValue, comments);
     }
 
-    static RoseSetting<Double> forDouble(String name, double defaultValue, String... comments) {
+    static RoseSetting<Double> ofDouble(String name, double defaultValue, String... comments) {
         return of(name, SettingSerializers.DOUBLE, () -> defaultValue, comments);
     }
 
-    static RoseSetting<Float> forFloat(String name, float defaultValue, String... comments) {
+    static RoseSetting<Float> ofFloat(String name, float defaultValue, String... comments) {
         return of(name, SettingSerializers.FLOAT, () -> defaultValue, comments);
     }
 
-    static RoseSetting<Character> forCharacter(String name, char defaultValue, String... comments) {
+    static RoseSetting<Character> ofCharacter(String name, char defaultValue, String... comments) {
         return of(name, SettingSerializers.CHAR, () -> defaultValue, comments);
     }
 
-    static RoseSetting<String> forString(String name, String defaultValue, String... comments) {
+    static RoseSetting<String> ofString(String name, String defaultValue, String... comments) {
         return of(name, SettingSerializers.STRING, () -> defaultValue, comments);
     }
 
-    static RoseSetting<List<String>> forStringList(String name, List<String> defaultValue, String... comments) {
+    static RoseSetting<List<String>> ofStringList(String name, List<String> defaultValue, String... comments) {
         return of(name, SettingSerializers.ofList(SettingSerializers.STRING), () -> new ArrayList<>(defaultValue), comments);
     }
 
-    static <T extends Enum<T>> RoseSetting<T> forEnum(String name, Class<T> enumClass, T defaultValue, String... comments) {
+    static <T extends Enum<T>> RoseSetting<T> ofEnum(String name, Class<T> enumClass, T defaultValue, String... comments) {
         return of(name, SettingSerializers.ofEnum(enumClass), () -> defaultValue, comments);
     }
 
-    static RoseSetting<ConfigurationSection> forSection(String name, String... comments) {
+    static RoseSetting<ConfigurationSection> ofSection(String name, String... comments) {
         return ofValue(name, SettingSerializers.SECTION, null, comments);
     }
 
@@ -193,7 +201,7 @@ public interface RoseSetting<T> {
      * @return a new RoseSetting
      * @param <T> the type of value this setting is for
      */
-    static <T> RoseSetting<T> forHiddenValue(String name, SettingSerializer<T> serializer, T defaultValue) {
+    static <T> RoseSetting<T> ofHiddenValue(String name, SettingSerializer<T> serializer, T defaultValue) {
         return new BasicRoseSetting<>(serializer, name.toLowerCase(), () -> defaultValue, true);
     }
 
@@ -207,20 +215,20 @@ public interface RoseSetting<T> {
      * @return a new RoseSetting
      * @param <T> the type of value this setting is for
      */
-    static <T> RoseSetting<T> forHidden(String name, SettingSerializer<T> serializer, Supplier<T> defaultValueSupplier) {
+    static <T> RoseSetting<T> ofHidden(String name, SettingSerializer<T> serializer, Supplier<T> defaultValueSupplier) {
         return new BasicRoseSetting<>(serializer, name.toLowerCase(), defaultValueSupplier, true);
     }
 
-    static <T> RoseSetting<T> forBacked(String name, RosePlugin backing, SettingSerializer<T> serializer, Supplier<T> defaultValueSupplier, String... comments) {
+    static <T> RoseSetting<T> ofBacked(String name, RosePlugin backing, SettingSerializer<T> serializer, Supplier<T> defaultValueSupplier, String... comments) {
         return new BackedRoseSetting<>(backing, serializer, name.toLowerCase(), defaultValueSupplier, comments);
     }
 
-    static <T> RoseSetting<T> forBackedValue(String name, RosePlugin backing, SettingSerializer<T> serializer, T defaultValue, String... comments) {
+    static <T> RoseSetting<T> ofBackedValue(String name, RosePlugin backing, SettingSerializer<T> serializer, T defaultValue, String... comments) {
         return new BackedRoseSetting<>(backing, serializer, name.toLowerCase(), () -> defaultValue, comments);
     }
 
-    static <T> RoseSetting<ConfigurationSection> forBackedSection(String name, RosePlugin backing, String... comments) {
-        return forBackedValue(name, backing, SettingSerializers.SECTION, null, comments);
+    static <T> RoseSetting<ConfigurationSection> ofBackedSection(String name, RosePlugin backing, String... comments) {
+        return ofBackedValue(name, backing, SettingSerializers.SECTION, null, comments);
     }
 
 }

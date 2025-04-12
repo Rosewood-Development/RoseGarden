@@ -27,7 +27,13 @@ final class SettingSerializerFactories {
     public static <T extends Enum<T>> SettingSerializer<T> ofEnum(Class<T> enumClass) {
         return new SettingSerializer<T>(enumClass, CustomPersistentDataType.forEnum(enumClass), x -> x.name().toLowerCase(), x -> Enum.valueOf(enumClass, x.toUpperCase())) {
             public void write(ConfigurationSection config, String key, T value, String... comments) { setWithComments(config, key, value.name().toLowerCase(), comments); }
-            public T read(ConfigurationSection config, String key) { return Enum.valueOf(enumClass, config.getString(key, "").toUpperCase()); }
+            public T read(ConfigurationSection config, String key) {
+                try {
+                    return Enum.valueOf(enumClass, config.getString(key, "").toUpperCase());
+                } catch (IllegalArgumentException e) {
+                    return null;
+                }
+            }
         };
     }
 
@@ -241,6 +247,12 @@ final class SettingSerializerFactories {
             public T read(PersistentDataContainer container, String key) {
                 SettingSerializer<T> serializer = this.mapField(fieldSerializer.read(container, fieldKey));
                 return serializer != null ? serializer.read(container, key) : null;
+            }
+
+            @Override
+            public boolean readIsValid(ConfigurationSection config, String key) {
+                SettingSerializer<T> serializer = this.mapField(fieldSerializer.read(config, fieldKey));
+                return serializer != null && serializer.readIsValid(config, key);
             }
 
             @SuppressWarnings("unchecked") // always maps to subtypes since it extends T

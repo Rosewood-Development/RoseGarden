@@ -35,6 +35,7 @@ class BackedRoseSetting<T> extends BasicRoseSetting<T> {
         return "BackedRoseSetting{" +
                 "key='" + this.key + '\'' +
                 ", defaultValue=" + this.defaultValueSupplier.get() +
+                ", value=" + this.value +
                 '}';
     }
 

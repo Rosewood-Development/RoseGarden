@@ -1,5 +1,5 @@
 plugins {
-    id 'com.gradleup.shadow' version '8.3.0' apply false
+    id 'com.gradleup.shadow' version '8.3.5' apply false
 }
 
 subprojects {
@@ -12,6 +12,7 @@ subprojects {
     java {
         targetCompatibility = JavaVersion.VERSION_1_8
         sourceCompatibility = JavaVersion.VERSION_1_8
+        toolchain.languageVersion.set(JavaLanguageVersion.of(21)) // Tests use newer JDK version
         disableAutoTargetJvm() // Allows depending on Paper's newer APIs even though they use newer java version
     }
 

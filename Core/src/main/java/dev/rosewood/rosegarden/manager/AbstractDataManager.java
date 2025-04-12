@@ -27,15 +27,15 @@ public abstract class AbstractDataManager extends Manager {
         public static final SettingHolder INSTANCE = new Settings();
         private static final List<RoseSetting<?>> SETTINGS = new ArrayList<>();
 
-        public static final RoseSetting<ConfigurationSection> MYSQL_SETTINGS = define(RoseSetting.forSection("mysql-settings", "Settings for if you want to use MySQL for data management"));
-        public static final RoseSetting<Boolean> MYSQL_SETTINGS_ENABLED = define(RoseSetting.forBoolean("mysql-settings.enabled", false, "Enable MySQL", "If false, SQLite will be used instead"));
-        public static final RoseSetting<String> MYSQL_SETTINGS_HOSTNAME = define(RoseSetting.forString("mysql-settings.hostname", "127.0.0.1", "MySQL Database Hostname"));
-        public static final RoseSetting<Integer> MYSQL_SETTINGS_PORT = define(RoseSetting.forInteger("mysql-settings.port", 3306, "MySQL Database Port"));
-        public static final RoseSetting<String> MYSQL_SETTINGS_DATABASE = define(RoseSetting.forString("mysql-settings.database-name", "", "MySQL Database Name"));
-        public static final RoseSetting<String> MYSQL_SETTINGS_USERNAME = define(RoseSetting.forString("mysql-settings.user-name", "", "MySQL Database User Name"));
-        public static final RoseSetting<String> MYSQL_SETTINGS_PASSWORD = define(RoseSetting.forString("mysql-settings.user-password", "", "MySQL Database User Password"));
-        public static final RoseSetting<Boolean> MYSQL_SETTINGS_USE_SSL = define(RoseSetting.forBoolean("mysql-settings.use-ssl", false, "If the database connection should use SSL", "You should enable this if your database supports SSL"));
-        public static final RoseSetting<Integer> MYSQL_SETTINGS_POOL_SIZE = define(RoseSetting.forInteger("mysql-settings.connection-pool-size", 3, "The number of connections to make to the database"));
+        public static final RoseSetting<ConfigurationSection> MYSQL_SETTINGS = define(RoseSetting.ofSection("mysql-settings", "Settings for if you want to use MySQL for data management"));
+        public static final RoseSetting<Boolean> MYSQL_SETTINGS_ENABLED = define(RoseSetting.ofBoolean("mysql-settings.enabled", false, "Enable MySQL", "If false, SQLite will be used instead"));
+        public static final RoseSetting<String> MYSQL_SETTINGS_HOSTNAME = define(RoseSetting.ofString("mysql-settings.hostname", "127.0.0.1", "MySQL Database Hostname"));
+        public static final RoseSetting<Integer> MYSQL_SETTINGS_PORT = define(RoseSetting.ofInteger("mysql-settings.port", 3306, "MySQL Database Port"));
+        public static final RoseSetting<String> MYSQL_SETTINGS_DATABASE = define(RoseSetting.ofString("mysql-settings.database-name", "", "MySQL Database Name"));
+        public static final RoseSetting<String> MYSQL_SETTINGS_USERNAME = define(RoseSetting.ofString("mysql-settings.user-name", "", "MySQL Database User Name"));
+        public static final RoseSetting<String> MYSQL_SETTINGS_PASSWORD = define(RoseSetting.ofString("mysql-settings.user-password", "", "MySQL Database User Password"));
+        public static final RoseSetting<Boolean> MYSQL_SETTINGS_USE_SSL = define(RoseSetting.ofBoolean("mysql-settings.use-ssl", false, "If the database connection should use SSL", "You should enable this if your database supports SSL"));
+        public static final RoseSetting<Integer> MYSQL_SETTINGS_POOL_SIZE = define(RoseSetting.ofInteger("mysql-settings.connection-pool-size", 3, "The number of connections to make to the database"));
 
         private Settings() {}
 
