@@ -10,6 +10,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -19,11 +21,12 @@ import org.bukkit.event.player.PlayerJoinEvent;
 
 public class PluginUpdateManager extends Manager implements Listener {
 
+    private static final List<String> SNAPSHOT_IDENTIFIERS = Arrays.asList("snapshot", "beta", "alpha", "rc");
     private static final String[] SNAPSHOT_HEADER = {
             "================================================",
             " You are currently running a DEVELOPMENT BUILD!",
-            " These types of builds are not meant to be run",
-            " on a production server, and are not supported.",
+            " These types of builds are not fully tested and",
+            "   may contain experimental features or bugs!",
             "================================================"
     };
 
@@ -44,7 +47,7 @@ public class PluginUpdateManager extends Manager implements Listener {
         File configFile = new File(this.rosePlugin.getRoseGardenDataFolder(), "config.yml");
 
         String currentVersion = this.rosePlugin.getDescription().getVersion();
-        if (currentVersion.contains("-SNAPSHOT") && !this.displayedSnapshotHeader) {
+        if (!this.displayedSnapshotHeader && SNAPSHOT_IDENTIFIERS.stream().anyMatch(currentVersion::contains)) {
             for (String line : SNAPSHOT_HEADER)
                 this.rosePlugin.getLogger().warning(line);
             this.displayedSnapshotHeader = true;
