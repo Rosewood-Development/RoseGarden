@@ -2,6 +2,7 @@ package dev.rosewood.rosegarden.utils;
 
 import dev.rosewood.rosegarden.RosePlugin;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -11,6 +12,15 @@ import org.bukkit.command.CommandSender;
 
 public final class RoseGardenUtils {
 
+    private static final List<String> SNAPSHOT_IDENTIFIERS = Arrays.asList("snapshot", "beta", "alpha", "rc");
+    private static final String[] SNAPSHOT_HEADER = {
+            "================================================",
+            " You are currently running a DEVELOPMENT BUILD!",
+            " These types of builds are not fully tested and",
+            "   may contain experimental features or bugs!",
+            "================================================"
+    };
+
     public static final String GRADIENT = "<g:#8A2387:#E94057:#F27121>";
     public static final String PREFIX = "&7[" + GRADIENT + "RoseGarden&7] ";
 
@@ -18,6 +28,16 @@ public final class RoseGardenUtils {
 
     private RoseGardenUtils() {
 
+    }
+
+    public static boolean checkSnapshotVersion(RosePlugin rosePlugin) {
+        String currentVersion = rosePlugin.getDescription().getVersion().toLowerCase();
+        if (SNAPSHOT_IDENTIFIERS.stream().anyMatch(currentVersion::contains)) {
+            for (String line : SNAPSHOT_HEADER)
+                rosePlugin.getLogger().warning(line);
+            return true;
+        }
+        return false;
     }
 
     /**

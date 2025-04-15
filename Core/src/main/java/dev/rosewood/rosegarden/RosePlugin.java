@@ -76,6 +76,7 @@ public abstract class RosePlugin extends JavaPlugin {
 
     private boolean firstInitialization = true;
     private boolean firstToRegister = false;
+    private boolean snapshot = false;
 
     public RosePlugin(int spigotId,
                       int bStatsId,
@@ -112,6 +113,9 @@ public abstract class RosePlugin extends JavaPlugin {
             RoseGardenUtils.getLogger().severe("DEVELOPER ERROR!!! RoseGarden has not been relocated!");
             RoseGardenUtils.getLogger().severe("=====================================================");
         }
+
+        // Warn if this is a development build
+        this.snapshot = RoseGardenUtils.checkSnapshotVersion(this);
     }
 
     @Override
@@ -358,6 +362,13 @@ public abstract class RosePlugin extends JavaPlugin {
      */
     public final boolean isFirstToRegister() {
         return this.firstToRegister;
+    }
+
+    /**
+     * @return true if this plugin version is a development build, false otherwise
+     */
+    public final boolean isSnapshot() {
+        return this.snapshot;
     }
 
     private void injectService() {

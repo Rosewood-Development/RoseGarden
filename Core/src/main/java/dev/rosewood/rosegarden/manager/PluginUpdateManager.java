@@ -21,16 +21,6 @@ import org.bukkit.event.player.PlayerJoinEvent;
 
 public class PluginUpdateManager extends Manager implements Listener {
 
-    private static final List<String> SNAPSHOT_IDENTIFIERS = Arrays.asList("snapshot", "beta", "alpha", "rc");
-    private static final String[] SNAPSHOT_HEADER = {
-            "================================================",
-            " You are currently running a DEVELOPMENT BUILD!",
-            " These types of builds are not fully tested and",
-            "   may contain experimental features or bugs!",
-            "================================================"
-    };
-
-    private boolean displayedSnapshotHeader;
     private String updateVersion;
 
     public PluginUpdateManager(RosePlugin rosePlugin) {
@@ -41,18 +31,10 @@ public class PluginUpdateManager extends Manager implements Listener {
 
     @Override
     public void reload() {
-        if (this.rosePlugin.getSpigotId() == -1)
+        if (this.rosePlugin.getSpigotId() == -1 || this.rosePlugin.isSnapshot())
             return;
 
         File configFile = new File(this.rosePlugin.getRoseGardenDataFolder(), "config.yml");
-
-        String currentVersion = this.rosePlugin.getDescription().getVersion();
-        if (!this.displayedSnapshotHeader && SNAPSHOT_IDENTIFIERS.stream().anyMatch(currentVersion::contains)) {
-            for (String line : SNAPSHOT_HEADER)
-                this.rosePlugin.getLogger().warning(line);
-            this.displayedSnapshotHeader = true;
-            return;
-        }
 
         boolean firstLoad = false;
         CommentedFileConfiguration configuration = CommentedFileConfiguration.loadConfiguration(configFile);
@@ -66,6 +48,7 @@ public class PluginUpdateManager extends Manager implements Listener {
             return;
 
         // Check for updates
+        String currentVersion = this.rosePlugin.getDescription().getVersion().toLowerCase();
         this.rosePlugin.getScheduler().runTaskAsync(() -> this.checkForUpdate(currentVersion));
     }
 
@@ -78,7 +61,7 @@ public class PluginUpdateManager extends Manager implements Listener {
                 RoseGardenUtils.getLogger().info("An update for " + this.rosePlugin.getName() + " (v" + this.updateVersion + ") is available! You are running v" + currentVersion + ".");
             }
         } catch (Exception e) {
-            RoseGardenUtils.getLogger().warning("An error occurred checking for an update. There is either no established internet connection or the Spigot API is down.");
+            RoseGardenUtils.getLogger().warning("An error occurred checking for an update. There is either no internet connection or the Spigot API could not be reached.");
         }
     }
 
