@@ -1,6 +1,7 @@
 package dev.rosewood.rosegarden.config;
 
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.function.Supplier;
 import org.bukkit.configuration.ConfigurationSection;
 
@@ -25,8 +26,12 @@ class BasicRoseSetting<T> implements RoseSetting<T> {
         if (this.hidden)
             return;
 
-        T defaultValue = this.defaultValueSupplier.get();
-        this.serializer.write(config, this.key, defaultValue, this.comments);
+        try {
+            T defaultValue = this.defaultValueSupplier.get();
+            this.serializer.write(config, this.key, defaultValue, this.comments);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -34,8 +39,12 @@ class BasicRoseSetting<T> implements RoseSetting<T> {
         if (this.hidden)
             return;
 
-        T defaultValue = this.defaultValueSupplier.get();
-        this.serializer.writeWithDefault(config, this.key, defaultValue, this.comments);
+        try {
+            T defaultValue = this.defaultValueSupplier.get();
+            this.serializer.writeWithDefault(config, this.key, defaultValue, this.comments);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -43,7 +52,14 @@ class BasicRoseSetting<T> implements RoseSetting<T> {
         if (this.hidden || !config.contains(this.key))
             return;
 
-        this.defaultValueSupplier = () -> this.serializer.read(config, this.key);
+        this.defaultValueSupplier = () -> {
+            try {
+                return this.serializer.read(config, this.key);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return null;
+            }
+        };
     }
 
     @Override
@@ -51,7 +67,12 @@ class BasicRoseSetting<T> implements RoseSetting<T> {
         if (this.hidden || !config.contains(this.key))
             return null;
 
-        return this.serializer.read(config, this.key);
+        try {
+            return this.serializer.read(config, this.key);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     @Override
@@ -59,7 +80,12 @@ class BasicRoseSetting<T> implements RoseSetting<T> {
         if (this.hidden)
             return true;
 
-        return this.serializer.readIsValid(config, this.key);
+        try {
+            return this.serializer.readIsValid(config, this.key);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     @Override
@@ -109,6 +135,18 @@ class BasicRoseSetting<T> implements RoseSetting<T> {
                 "key='" + this.key + '\'' +
                 ", defaultValue=" + this.defaultValueSupplier.get() +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof BasicRoseSetting)) return false;
+        BasicRoseSetting<?> that = (BasicRoseSetting<?>) o;
+        return Objects.equals(this.serializer, that.serializer) && Objects.equals(this.key, that.key);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.serializer, this.key);
     }
 
 }

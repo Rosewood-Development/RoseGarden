@@ -9,6 +9,7 @@ public final class SettingField<O, T> {
     private final SettingSerializer<T> settingSerializer;
     private final Function<O, T> getter;
     private final Supplier<T> defaultValueSupplier;
+    private final boolean optional;
     private final boolean flatten;
     private final String[] comments;
 
@@ -16,12 +17,14 @@ public final class SettingField<O, T> {
                          SettingSerializer<T> settingSerializer,
                          Function<O, T> getter,
                          Supplier<T> defaultValueSupplier,
+                         boolean optional,
                          boolean flatten,
                          String... comments) {
         this.key = key;
         this.settingSerializer = settingSerializer;
         this.getter = getter;
         this.defaultValueSupplier = defaultValueSupplier;
+        this.optional = optional;
         this.flatten = flatten;
         this.comments = comments;
     }
@@ -44,6 +47,10 @@ public final class SettingField<O, T> {
         return this.defaultValueSupplier.get();
     }
 
+    public boolean optional() {
+        return this.optional;
+    }
+
     public String[] comments() {
         return this.comments;
     }
@@ -56,7 +63,7 @@ public final class SettingField<O, T> {
                                                SettingSerializer<T> settingSerializer,
                                                Function<O, T> getter,
                                                String... comments) {
-        return new SettingField<>(key, settingSerializer, getter, null, false, comments);
+        return new SettingField<>(key, settingSerializer, getter, null, false, false, comments);
     }
 
     public static <O, T> SettingField<O, T> ofOptional(String key,
@@ -64,7 +71,7 @@ public final class SettingField<O, T> {
                                                        Function<O, T> getter,
                                                        Supplier<T> defaultValueSupplier,
                                                        String... comments) {
-        return new SettingField<>(key, settingSerializer, getter, defaultValueSupplier, false, comments);
+        return new SettingField<>(key, settingSerializer, getter, defaultValueSupplier, true, false, comments);
     }
 
     public static <O, T> SettingField<O, T> ofOptionalValue(String key,
@@ -72,14 +79,14 @@ public final class SettingField<O, T> {
                                                             Function<O, T> getter,
                                                             T defaultValue,
                                                             String... comments) {
-        return new SettingField<>(key, settingSerializer, getter, () -> defaultValue, false, comments);
+        return new SettingField<>(key, settingSerializer, getter, () -> defaultValue, true, false, comments);
     }
 
     public static <O, T> SettingField<O, T> ofFlattened(String key,
                                                         SettingSerializer<T> settingSerializer,
                                                         Function<O, T> getter,
                                                         String... comments) {
-        return new SettingField<>(key, settingSerializer, getter, null, true, comments);
+        return new SettingField<>(key, settingSerializer, getter, null, false, true, comments);
     }
 
     public static <O, T> SettingField<O, T> ofFlattenedOptional(String key,
@@ -87,7 +94,7 @@ public final class SettingField<O, T> {
                                                                 Function<O, T> getter,
                                                                 Supplier<T> defaultValueSupplier,
                                                                 String... comments) {
-        return new SettingField<>(key, settingSerializer, getter, defaultValueSupplier, true, comments);
+        return new SettingField<>(key, settingSerializer, getter, defaultValueSupplier, true, true, comments);
     }
 
     public static <O, T> SettingField<O, T> ofFlattenedOptionalValue(String key,
@@ -95,7 +102,7 @@ public final class SettingField<O, T> {
                                                                      Function<O, T> getter,
                                                                      T defaultValue,
                                                                      String... comments) {
-        return new SettingField<>(key, settingSerializer, getter, () -> defaultValue, true, comments);
+        return new SettingField<>(key, settingSerializer, getter, () -> defaultValue, true, true, comments);
     }
 
 }

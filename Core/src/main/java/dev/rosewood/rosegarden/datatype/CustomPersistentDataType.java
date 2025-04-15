@@ -1,6 +1,6 @@
 package dev.rosewood.rosegarden.datatype;
 
-import dev.rosewood.rosegarden.RosePlugin;
+import dev.rosewood.rosegarden.utils.KeyHelper;
 import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -274,19 +274,6 @@ public final class CustomPersistentDataType {
             }
 
         };
-    }
-
-    public static class KeyHelper {
-
-        private static final RosePlugin PLUGIN = RosePlugin.instance();
-        private static final Map<String, NamespacedKey> CACHE = new HashMap<>();
-
-        public static NamespacedKey get(String key) {
-            if (key.indexOf(':') != -1)
-                return CACHE.computeIfAbsent(key, x -> NamespacedKey.fromString(key));
-            return CACHE.computeIfAbsent(key, x -> new NamespacedKey(PLUGIN, x));
-        }
-
     }
 
 }

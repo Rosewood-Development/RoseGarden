@@ -1,7 +1,9 @@
 package dev.rosewood.rosegarden.config;
 
 import dev.rosewood.rosegarden.datatype.CustomPersistentDataType;
+import dev.rosewood.rosegarden.utils.KeyHelper;
 import dev.rosewood.rosegarden.utils.RoseGardenUtils;
+import java.util.Objects;
 import java.util.function.Function;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -116,7 +118,7 @@ public abstract class SettingSerializer<T> {
      * @param value The value to save
      */
     public void write(PersistentDataContainer container, String key, T value) {
-        container.set(CustomPersistentDataType.KeyHelper.get(key), this.persistentDataType, value);
+        container.set(KeyHelper.get(key), this.persistentDataType, value);
     }
 
     /**
@@ -180,7 +182,7 @@ public abstract class SettingSerializer<T> {
      * @return the value read
      */
     public T read(PersistentDataContainer container, String key) {
-        return container.get(CustomPersistentDataType.KeyHelper.get(key), this.persistentDataType);
+        return container.get(KeyHelper.get(key), this.persistentDataType);
     }
 
     /**
@@ -212,6 +214,18 @@ public abstract class SettingSerializer<T> {
 
     public Class<T> getType() {
         return this.type;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof SettingSerializer)) return false;
+        SettingSerializer<?> that = (SettingSerializer<?>) o;
+        return Objects.equals(this.type, that.type) && Objects.equals(this.persistentDataType, that.persistentDataType);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.type, this.persistentDataType);
     }
 
 }

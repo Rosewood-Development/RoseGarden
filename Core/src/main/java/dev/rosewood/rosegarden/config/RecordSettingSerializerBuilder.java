@@ -78,9 +78,12 @@ public class RecordSettingSerializerBuilder<O> {
     }
 
     private static <T, O> boolean testSection(ConfigurationSection section, SettingField<O, T> settingField) {
+        if (settingField.optional() && settingField.defaultValue() == null)
+            return true;
+
         if (settingField.flatten())
             section = liftSection(section, settingField.key());
-        return settingField.settingSerializer().readIsValid(section, settingField.key()) || settingField.defaultValue() != null;
+        return settingField.settingSerializer().readIsValid(section, settingField.key());
     }
 
     public static <O> SettingSerializer<O> create(Class<O> clazz, Function<RecordSettingSerializerBuilder<O>, Built<O>> builder) {
