@@ -14,6 +14,10 @@ public final class KeyHelper {
     private static final RosePlugin PLUGIN = RosePlugin.instance();
     private static final Map<String, NamespacedKey> CACHE = new HashMap<>();
 
+    private KeyHelper() {
+
+    }
+
     /**
      * Return a NamespacedKey from the given string.
      * If a namespace is not provided, the RoseGarden plugin name will be used.

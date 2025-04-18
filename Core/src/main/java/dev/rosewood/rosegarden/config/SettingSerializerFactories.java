@@ -62,6 +62,8 @@ final class SettingSerializerFactories {
                 }
             }
             public T[] read(ConfigurationSection config, String key) {
+                if (!this.readIsValid(config, key))
+                    return null;
                 if (serializer.isStringKey()) {
                     List<String> contents = config.getStringList(key);
                     T[] array = (T[]) Array.newInstance(serializer.type, contents.size());
@@ -127,20 +129,20 @@ final class SettingSerializerFactories {
                 }
             }
             public List<T> read(ConfigurationSection config, String key) {
-                if (serializer.isStringKey()) {
+                if (!this.readIsValid(config, key))
+                    return null;
+                if (serializer.isStringKey())
                     return config.getStringList(key).stream().map(serializer::fromStringKey).collect(Collectors.toList());
-                } else {
-                    List<T> list = new ArrayList<>();
-                    ConfigurationSection section = config.getConfigurationSection(key);
-                    if (section != null) {
-                        for (String configKey : section.getKeys(false)) {
-                            T t = serializer.read(section, configKey);
-                            if (t != null)
-                                list.add(t);
-                        }
+                List<T> list = new ArrayList<>();
+                ConfigurationSection section = config.getConfigurationSection(key);
+                if (section != null) {
+                    for (String configKey : section.getKeys(false)) {
+                        T t = serializer.read(section, configKey);
+                        if (t != null)
+                            list.add(t);
                     }
-                    return list;
                 }
+                return list;
             }
             protected String getDefaultCommentText(List<T> values) {
                 if (!serializer.isStringKey() || values.size() > 5)
@@ -187,6 +189,8 @@ final class SettingSerializerFactories {
                 }
             }
             public Map<K, V> read(ConfigurationSection config, String key) {
+                if (!this.readIsValid(config, key))
+                    return null;
                 Map<K, V> map = new HashMap<>();
                 ConfigurationSection section = config.getConfigurationSection(key);
                 if (section != null) {
@@ -255,12 +259,17 @@ final class SettingSerializerFactories {
                 return serializer != null && serializer.readIsValid(config, key);
             }
 
-            @SuppressWarnings("unchecked") // always maps to subtypes since it extends T
+            @SuppressWarnings("unchecked") // always maps to subtypes since it extends T, catching just in case
             private SettingSerializer<T> mapField(M value) {
                 if (value == null)
                     return null;
-                SettingSerializer<? extends T> serializer = mapper.get(value);
-                return (SettingSerializer<T>) serializer;
+                try {
+                    SettingSerializer<? extends T> serializer = mapper.get(value);
+                    return (SettingSerializer<T>) serializer;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return null;
+                }
             }
         };
     }

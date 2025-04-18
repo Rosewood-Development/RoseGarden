@@ -78,7 +78,7 @@ public class RecordSettingSerializerBuilder<O> {
     }
 
     private static <T, O> boolean testSection(ConfigurationSection section, SettingField<O, T> settingField) {
-        if (settingField.optional() && settingField.defaultValue() == null)
+        if (settingField.optional())
             return true;
 
         if (settingField.flatten())
