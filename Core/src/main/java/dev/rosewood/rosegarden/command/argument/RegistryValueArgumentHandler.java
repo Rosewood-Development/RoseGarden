@@ -43,8 +43,14 @@ public class RegistryValueArgumentHandler<T extends Keyed> extends ArgumentHandl
     @Override
     public List<String> suggest(CommandContext context, Argument argument, String[] args) {
         return this.registry.stream()
-                .map(x -> x.getKey().getKey())
+                .map(x -> asMinimalString(x.getKey()))
                 .collect(Collectors.toList());
+    }
+
+    private static String asMinimalString(NamespacedKey key) {
+        if (key.getNamespace().equals(NamespacedKey.MINECRAFT))
+            return key.getKey();
+        return key.toString();
     }
 
 }
