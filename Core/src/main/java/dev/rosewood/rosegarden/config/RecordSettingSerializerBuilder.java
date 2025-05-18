@@ -246,6 +246,8 @@ public class RecordSettingSerializerBuilder<O> {
             @Override
             public O read(ConfigurationSection config, String key) {
                 ConfigurationSection section = config.getConfigurationSection(key);
+                if (section == null)
+                    return null;
                 T1 value1 = getValueOrDefault(section, settingField1);
                 return constructor.apply(value1);
             }
@@ -301,6 +303,8 @@ public class RecordSettingSerializerBuilder<O> {
             @Override
             public O read(ConfigurationSection config, String key) {
                 ConfigurationSection section = config.getConfigurationSection(key);
+                if (section == null)
+                    return null;
                 T1 value1 = getValueOrDefault(section, settingField1);
                 T2 value2 = getValueOrDefault(section, settingField2);
                 return constructor.apply(value1, value2);
@@ -363,6 +367,8 @@ public class RecordSettingSerializerBuilder<O> {
             @Override
             public O read(ConfigurationSection config, String key) {
                 ConfigurationSection section = config.getConfigurationSection(key);
+                if (section == null)
+                    return null;
                 T1 value1 = getValueOrDefault(section, settingField1);
                 T2 value2 = getValueOrDefault(section, settingField2);
                 T3 value3 = getValueOrDefault(section, settingField3);
@@ -432,6 +438,8 @@ public class RecordSettingSerializerBuilder<O> {
             @Override
             public O read(ConfigurationSection config, String key) {
                 ConfigurationSection section = config.getConfigurationSection(key);
+                if (section == null)
+                    return null;
                 T1 value1 = getValueOrDefault(section, settingField1);
                 T2 value2 = getValueOrDefault(section, settingField2);
                 T3 value3 = getValueOrDefault(section, settingField3);
@@ -508,6 +516,8 @@ public class RecordSettingSerializerBuilder<O> {
             @Override
             public O read(ConfigurationSection config, String key) {
                 ConfigurationSection section = config.getConfigurationSection(key);
+                if (section == null)
+                    return null;
                 T1 value1 = getValueOrDefault(section, settingField1);
                 T2 value2 = getValueOrDefault(section, settingField2);
                 T3 value3 = getValueOrDefault(section, settingField3);
@@ -591,6 +601,8 @@ public class RecordSettingSerializerBuilder<O> {
             @Override
             public O read(ConfigurationSection config, String key) {
                 ConfigurationSection section = config.getConfigurationSection(key);
+                if (section == null)
+                    return null;
                 T1 value1 = getValueOrDefault(section, settingField1);
                 T2 value2 = getValueOrDefault(section, settingField2);
                 T3 value3 = getValueOrDefault(section, settingField3);
@@ -681,6 +693,8 @@ public class RecordSettingSerializerBuilder<O> {
             @Override
             public O read(ConfigurationSection config, String key) {
                 ConfigurationSection section = config.getConfigurationSection(key);
+                if (section == null)
+                    return null;
                 T1 value1 = getValueOrDefault(section, settingField1);
                 T2 value2 = getValueOrDefault(section, settingField2);
                 T3 value3 = getValueOrDefault(section, settingField3);
@@ -778,6 +792,8 @@ public class RecordSettingSerializerBuilder<O> {
             @Override
             public O read(ConfigurationSection config, String key) {
                 ConfigurationSection section = config.getConfigurationSection(key);
+                if (section == null)
+                    return null;
                 T1 value1 = getValueOrDefault(section, settingField1);
                 T2 value2 = getValueOrDefault(section, settingField2);
                 T3 value3 = getValueOrDefault(section, settingField3);
@@ -882,6 +898,8 @@ public class RecordSettingSerializerBuilder<O> {
             @Override
             public O read(ConfigurationSection config, String key) {
                 ConfigurationSection section = config.getConfigurationSection(key);
+                if (section == null)
+                    return null;
                 T1 value1 = getValueOrDefault(section, settingField1);
                 T2 value2 = getValueOrDefault(section, settingField2);
                 T3 value3 = getValueOrDefault(section, settingField3);
@@ -993,6 +1011,8 @@ public class RecordSettingSerializerBuilder<O> {
             @Override
             public O read(ConfigurationSection config, String key) {
                 ConfigurationSection section = config.getConfigurationSection(key);
+                if (section == null)
+                    return null;
                 T1 value1 = getValueOrDefault(section, settingField1);
                 T2 value2 = getValueOrDefault(section, settingField2);
                 T3 value3 = getValueOrDefault(section, settingField3);
@@ -1111,6 +1131,8 @@ public class RecordSettingSerializerBuilder<O> {
             @Override
             public O read(ConfigurationSection config, String key) {
                 ConfigurationSection section = config.getConfigurationSection(key);
+                if (section == null)
+                    return null;
                 T1 value1 = getValueOrDefault(section, settingField1);
                 T2 value2 = getValueOrDefault(section, settingField2);
                 T3 value3 = getValueOrDefault(section, settingField3);
@@ -1236,6 +1258,8 @@ public class RecordSettingSerializerBuilder<O> {
             @Override
             public O read(ConfigurationSection config, String key) {
                 ConfigurationSection section = config.getConfigurationSection(key);
+                if (section == null)
+                    return null;
                 T1 value1 = getValueOrDefault(section, settingField1);
                 T2 value2 = getValueOrDefault(section, settingField2);
                 T3 value3 = getValueOrDefault(section, settingField3);
