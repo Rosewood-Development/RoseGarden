@@ -402,7 +402,8 @@ public abstract class RosePlugin extends JavaPlugin {
                     String pluginVersion = plugin.getDescription().getVersion();
                     String website = plugin.getDescription().getWebsite();
                     String updateVersion = (String) updateVersionMethod.invoke(plugin);
-                    data.add(new RosePluginData(pluginName, pluginVersion, updateVersion, website, roseGardenVersion));
+                    List<String> authors = plugin.getDescription().getAuthors();
+                    data.add(new RosePluginData(pluginName, pluginVersion, updateVersion, website, roseGardenVersion, authors));
                 }
             } catch (ReflectiveOperationException | ClassCastException ignored) { }
         }

@@ -50,8 +50,13 @@ public class RwdCommand extends BaseRoseCommand {
             String website = data.website();
 
             List<Text> content = new ArrayList<>();
-            content.add(new Text(TextComponent.fromLegacyText(HexUtils.colorify("&eVersion: &b" + data.version()))));
+            content.add(new Text(TextComponent.fromLegacyText(HexUtils.colorify("&ePlugin Version: &b" + data.version()))));
             content.add(new Text(TextComponent.fromLegacyText(HexUtils.colorify("\n&eRoseGarden Version: &b" + data.roseGardenVersion()))));
+            if (data.authors().size() == 1) {
+                content.add(new Text(TextComponent.fromLegacyText(HexUtils.colorify("\n&eAuthor: &b" + data.authors().get(0)))));
+            } else if (data.authors().size() > 1) {
+                content.add(new Text(TextComponent.fromLegacyText(HexUtils.colorify("\n&eAuthors: &b" + String.join("&e, &b", data.authors())))));
+            }
             if (updateVersion != null)
                 content.add(new Text(TextComponent.fromLegacyText(HexUtils.colorify("\n&eAn update (&b" + updateVersion + "&e) is available! Click to open the Spigot page."))));
 

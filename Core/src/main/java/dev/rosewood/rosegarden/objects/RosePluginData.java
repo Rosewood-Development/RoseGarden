@@ -1,5 +1,7 @@
 package dev.rosewood.rosegarden.objects;
 
+import java.util.List;
+
 public class RosePluginData {
 
     public final String name;
@@ -7,17 +9,20 @@ public class RosePluginData {
     public final String updateVersion;
     public final String website;
     public final String roseGardenVersion;
+    public final List<String> authors;
 
     public RosePluginData(String name,
                           String version,
                           String updateVersion,
                           String website,
-                          String roseGardenVersion) {
+                          String roseGardenVersion,
+                          List<String> authors) {
         this.name = name;
         this.version = version;
         this.updateVersion = updateVersion;
         this.website = website;
         this.roseGardenVersion = roseGardenVersion;
+        this.authors = authors;
     }
 
     public String name() {
@@ -38,6 +43,10 @@ public class RosePluginData {
 
     public String roseGardenVersion() {
         return this.roseGardenVersion;
+    }
+
+    public List<String> authors() {
+        return this.authors;
     }
 
 }
