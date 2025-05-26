@@ -98,7 +98,7 @@ public class PluginUpdateManager extends Manager implements Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        if (this.updateVersion == null || !player.isOp())
+        if (this.updateVersion == null || !player.hasPermission("rosegarden.updates"))
             return;
 
         String website = this.rosePlugin.getDescription().getWebsite();
