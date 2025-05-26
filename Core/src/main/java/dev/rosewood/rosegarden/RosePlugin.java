@@ -109,11 +109,11 @@ public abstract class RosePlugin extends JavaPlugin {
 
         // Log severe if the library is not relocated
         if (!RoseGardenUtils.isRelocated()) {
-            RoseGardenUtils.getLogger().severe("=====================================================");
-            RoseGardenUtils.getLogger().severe("DEVELOPER WARNING! RoseGarden has not been relocated!");
-            RoseGardenUtils.getLogger().severe("    This will not prevent the plugin from loading,   ");
-            RoseGardenUtils.getLogger().severe("        but should be fixed before releasing!        ");
-            RoseGardenUtils.getLogger().severe("=====================================================");
+            this.getLogger().severe("=====================================================");
+            this.getLogger().severe("DEVELOPER WARNING! RoseGarden has not been relocated!");
+            this.getLogger().severe("    This will not prevent the plugin from loading,   ");
+            this.getLogger().severe("        but should be fixed before releasing!        ");
+            this.getLogger().severe("=====================================================");
         }
 
         // Warn if this is a development build

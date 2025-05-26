@@ -190,7 +190,7 @@ public abstract class AbstractDataManager extends Manager {
                 }
 
                 if (badState) {
-                    RoseGardenUtils.getLogger().severe("Database migration table is missing the migration_version row! " +
+                    this.rosePlugin.getLogger().severe("Database migration table is missing the migration_version row! " +
                             "The database is currently in a bad state due to an unknown issue. Attempting to fix the migration " +
                             "column automatically... please contact the plugin developer for assistance if this does not work.");
 

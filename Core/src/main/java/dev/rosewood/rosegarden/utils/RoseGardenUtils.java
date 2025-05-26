@@ -41,18 +41,6 @@ public final class RoseGardenUtils {
     }
 
     /**
-     * @return the Logger for RoseGarden
-     */
-    public static Logger getLogger() {
-        if (logger == null) {
-            logger = new Logger("RoseGarden", null) { };
-            logger.setParent(Bukkit.getLogger());
-            logger.setLevel(Level.ALL);
-        }
-        return logger;
-    }
-
-    /**
      * Checks if a String contains any values for a yaml value that need to be quoted
      *
      * @param string The string to check

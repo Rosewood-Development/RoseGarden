@@ -58,10 +58,10 @@ public class PluginUpdateManager extends Manager implements Listener {
 
             if (RoseGardenUtils.isUpdateAvailable(latestVersion, currentVersion)) {
                 this.updateVersion = latestVersion;
-                RoseGardenUtils.getLogger().info("An update for " + this.rosePlugin.getName() + " (v" + this.updateVersion + ") is available! You are running v" + currentVersion + ".");
+                this.rosePlugin.getLogger().info("An update for " + this.rosePlugin.getName() + " (v" + this.updateVersion + ") is available! You are running v" + currentVersion + ".");
             }
         } catch (Exception e) {
-            RoseGardenUtils.getLogger().warning("An error occurred checking for an update. There is either no internet connection or the Spigot API could not be reached.");
+            this.rosePlugin.getLogger().warning("An error occurred checking for an update. There is either no internet connection or the Spigot API could not be reached.");
         }
     }
 
