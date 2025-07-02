@@ -60,7 +60,7 @@ public abstract class AbstractDataManager extends Manager {
     public void reload() {
         try {
             RoseConfig roseConfig = this.rosePlugin.getRoseConfig();
-            if (roseConfig.get(Settings.MYSQL_SETTINGS_ENABLED)) {
+            if (!this.rosePlugin.isLocalDatabaseOnly() && roseConfig.get(Settings.MYSQL_SETTINGS_ENABLED)) {
                 String hostname = roseConfig.get(Settings.MYSQL_SETTINGS_HOSTNAME);
                 int port = roseConfig.get(Settings.MYSQL_SETTINGS_PORT);
                 String database = roseConfig.get(Settings.MYSQL_SETTINGS_DATABASE);

@@ -39,7 +39,7 @@ public class PluginUpdateManager extends Manager implements Listener {
         boolean firstLoad = false;
         CommentedFileConfiguration configuration = CommentedFileConfiguration.loadConfiguration(configFile);
         if (!configuration.contains("check-updates")) {
-            configuration.set("check-updates", true, "Should all plugins running RoseGarden check for updates?", "RoseGarden is a core library created by Rosewood Development");
+            configuration.set("check-updates", true, "Should all plugins running RoseGarden check for updates?", "RoseGarden is a core library created by Rosewood Development", "Plugin update messages will be sent to players with the 'rosegarden.updates' permission");
             configuration.save(configFile);
             firstLoad = true;
         }
