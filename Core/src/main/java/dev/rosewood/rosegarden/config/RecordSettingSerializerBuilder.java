@@ -5,17 +5,14 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.MemoryConfiguration;
-import org.bukkit.persistence.PersistentDataAdapterContext;
-import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataType;
 import static dev.rosewood.rosegarden.config.SettingSerializerFactories.getOrCreateSection;
 
 public class RecordSettingSerializerBuilder<O> {
 
-    private final Class<O> type;
-    private SettingSerializer<O> serializer;
+    protected final Class<O> type;
+    protected SettingSerializer<O> serializer;
 
-    private RecordSettingSerializerBuilder(Class<O> type) {
+    RecordSettingSerializerBuilder(Class<O> type) {
         this.type = type;
     }
 
@@ -41,13 +38,6 @@ public class RecordSettingSerializerBuilder<O> {
             liftedSection.set(path, val); // keep original values so they can still be read if needed by other serializers
         });
         return liftedSection;
-    }
-
-    private static <T, O> T getPersistentValueOrDefault(PersistentDataContainer container, SettingField<O, T> settingField) {
-        T value = settingField.settingSerializer().read(container, settingField.key());
-        if (value == null)
-            value = settingField.defaultValue();
-        return value;
     }
 
     private static <T, O> void writeConfigurationField(ConfigurationSection section, SettingField<O, T> settingField, O value, boolean writeDefaults) {
@@ -211,28 +201,7 @@ public class RecordSettingSerializerBuilder<O> {
     //<editor-fold desc="build methods" defaultstate="collapsed">
     <T1> Built<O> build1(Function<T1, O> constructor,
                          SettingField<O, T1> settingField1) {
-        PersistentDataType<PersistentDataContainer, O> persistentDataType = new PersistentDataType<PersistentDataContainer, O>() {
-            @Override
-            public Class<PersistentDataContainer> getPrimitiveType() {
-                return PersistentDataContainer.class;
-            }
-            @Override
-            public Class<O> getComplexType() {
-                return RecordSettingSerializerBuilder.this.type;
-            }
-            @Override
-            public PersistentDataContainer toPrimitive(O complex, PersistentDataAdapterContext context) {
-                PersistentDataContainer container = context.newPersistentDataContainer();
-                settingField1.settingSerializer().write(container, settingField1.key(), settingField1.getter().apply(complex));
-                return container;
-            }
-            @Override
-            public O fromPrimitive(PersistentDataContainer primitive, PersistentDataAdapterContext context) {
-                T1 value1 = getPersistentValueOrDefault(primitive, settingField1);
-                return constructor.apply(value1);
-            }
-        };
-        this.serializer = new SettingSerializer<O>(this.type, persistentDataType) {
+        this.serializer = new BaseSettingSerializer<O>(this.type) {
             @Override
             public void write(ConfigurationSection config, String key, O value, String... comments) {
                 ConfigurationSection section = getOrCreateSection(config, key, comments);
@@ -264,30 +233,7 @@ public class RecordSettingSerializerBuilder<O> {
     <T1, T2> Built<O> build2(BiFunction<T1, T2, O> constructor,
                              SettingField<O, T1> settingField1,
                              SettingField<O, T2> settingField2) {
-        PersistentDataType<PersistentDataContainer, O> persistentDataType = new PersistentDataType<PersistentDataContainer, O>() {
-            @Override
-            public Class<PersistentDataContainer> getPrimitiveType() {
-                return PersistentDataContainer.class;
-            }
-            @Override
-            public Class<O> getComplexType() {
-                return RecordSettingSerializerBuilder.this.type;
-            }
-            @Override
-            public PersistentDataContainer toPrimitive(O complex, PersistentDataAdapterContext context) {
-                PersistentDataContainer container = context.newPersistentDataContainer();
-                settingField1.settingSerializer().write(container, settingField1.key(), settingField1.getter().apply(complex));
-                settingField2.settingSerializer().write(container, settingField2.key(), settingField2.getter().apply(complex));
-                return container;
-            }
-            @Override
-            public O fromPrimitive(PersistentDataContainer primitive, PersistentDataAdapterContext context) {
-                T1 value1 = getPersistentValueOrDefault(primitive, settingField1);
-                T2 value2 = getPersistentValueOrDefault(primitive, settingField2);
-                return constructor.apply(value1, value2);
-            }
-        };
-        this.serializer = new SettingSerializer<O>(this.type, persistentDataType) {
+        this.serializer = new BaseSettingSerializer<O>(this.type) {
             @Override
             public void write(ConfigurationSection config, String key, O value, String... comments) {
                 ConfigurationSection section = getOrCreateSection(config, key, comments);
@@ -324,32 +270,7 @@ public class RecordSettingSerializerBuilder<O> {
                                  SettingField<O, T1> settingField1,
                                  SettingField<O, T2> settingField2,
                                  SettingField<O, T3> settingField3) {
-        PersistentDataType<PersistentDataContainer, O> persistentDataType = new PersistentDataType<PersistentDataContainer, O>() {
-            @Override
-            public Class<PersistentDataContainer> getPrimitiveType() {
-                return PersistentDataContainer.class;
-            }
-            @Override
-            public Class<O> getComplexType() {
-                return RecordSettingSerializerBuilder.this.type;
-            }
-            @Override
-            public PersistentDataContainer toPrimitive(O complex, PersistentDataAdapterContext context) {
-                PersistentDataContainer container = context.newPersistentDataContainer();
-                settingField1.settingSerializer().write(container, settingField1.key(), settingField1.getter().apply(complex));
-                settingField2.settingSerializer().write(container, settingField2.key(), settingField2.getter().apply(complex));
-                settingField3.settingSerializer().write(container, settingField3.key(), settingField3.getter().apply(complex));
-                return container;
-            }
-            @Override
-            public O fromPrimitive(PersistentDataContainer primitive, PersistentDataAdapterContext context) {
-                T1 value1 = getPersistentValueOrDefault(primitive, settingField1);
-                T2 value2 = getPersistentValueOrDefault(primitive, settingField2);
-                T3 value3 = getPersistentValueOrDefault(primitive, settingField3);
-                return constructor.apply(value1, value2, value3);
-            }
-        };
-        this.serializer = new SettingSerializer<O>(this.type, persistentDataType) {
+        this.serializer = new BaseSettingSerializer<O>(this.type) {
             @Override
             public void write(ConfigurationSection config, String key, O value, String... comments) {
                 ConfigurationSection section = getOrCreateSection(config, key, comments);
@@ -391,34 +312,7 @@ public class RecordSettingSerializerBuilder<O> {
                                      SettingField<O, T2> settingField2,
                                      SettingField<O, T3> settingField3,
                                      SettingField<O, T4> settingField4) {
-        PersistentDataType<PersistentDataContainer, O> persistentDataType = new PersistentDataType<PersistentDataContainer, O>() {
-            @Override
-            public Class<PersistentDataContainer> getPrimitiveType() {
-                return PersistentDataContainer.class;
-            }
-            @Override
-            public Class<O> getComplexType() {
-                return RecordSettingSerializerBuilder.this.type;
-            }
-            @Override
-            public PersistentDataContainer toPrimitive(O complex, PersistentDataAdapterContext context) {
-                PersistentDataContainer container = context.newPersistentDataContainer();
-                settingField1.settingSerializer().write(container, settingField1.key(), settingField1.getter().apply(complex));
-                settingField2.settingSerializer().write(container, settingField2.key(), settingField2.getter().apply(complex));
-                settingField3.settingSerializer().write(container, settingField3.key(), settingField3.getter().apply(complex));
-                settingField4.settingSerializer().write(container, settingField4.key(), settingField4.getter().apply(complex));
-                return container;
-            }
-            @Override
-            public O fromPrimitive(PersistentDataContainer primitive, PersistentDataAdapterContext context) {
-                T1 value1 = getPersistentValueOrDefault(primitive, settingField1);
-                T2 value2 = getPersistentValueOrDefault(primitive, settingField2);
-                T3 value3 = getPersistentValueOrDefault(primitive, settingField3);
-                T4 value4 = getPersistentValueOrDefault(primitive, settingField4);
-                return constructor.apply(value1, value2, value3, value4);
-            }
-        };
-        this.serializer = new SettingSerializer<O>(this.type, persistentDataType) {
+        this.serializer = new BaseSettingSerializer<O>(this.type) {
             @Override
             public void write(ConfigurationSection config, String key, O value, String... comments) {
                 ConfigurationSection section = getOrCreateSection(config, key, comments);
@@ -465,36 +359,7 @@ public class RecordSettingSerializerBuilder<O> {
                                          SettingField<O, T3> settingField3,
                                          SettingField<O, T4> settingField4,
                                          SettingField<O, T5> settingField5) {
-        PersistentDataType<PersistentDataContainer, O> persistentDataType = new PersistentDataType<PersistentDataContainer, O>() {
-            @Override
-            public Class<PersistentDataContainer> getPrimitiveType() {
-                return PersistentDataContainer.class;
-            }
-            @Override
-            public Class<O> getComplexType() {
-                return RecordSettingSerializerBuilder.this.type;
-            }
-            @Override
-            public PersistentDataContainer toPrimitive(O complex, PersistentDataAdapterContext context) {
-                PersistentDataContainer container = context.newPersistentDataContainer();
-                settingField1.settingSerializer().write(container, settingField1.key(), settingField1.getter().apply(complex));
-                settingField2.settingSerializer().write(container, settingField2.key(), settingField2.getter().apply(complex));
-                settingField3.settingSerializer().write(container, settingField3.key(), settingField3.getter().apply(complex));
-                settingField4.settingSerializer().write(container, settingField4.key(), settingField4.getter().apply(complex));
-                settingField5.settingSerializer().write(container, settingField5.key(), settingField5.getter().apply(complex));
-                return container;
-            }
-            @Override
-            public O fromPrimitive(PersistentDataContainer primitive, PersistentDataAdapterContext context) {
-                T1 value1 = getPersistentValueOrDefault(primitive, settingField1);
-                T2 value2 = getPersistentValueOrDefault(primitive, settingField2);
-                T3 value3 = getPersistentValueOrDefault(primitive, settingField3);
-                T4 value4 = getPersistentValueOrDefault(primitive, settingField4);
-                T5 value5 = getPersistentValueOrDefault(primitive, settingField5);
-                return constructor.apply(value1, value2, value3, value4, value5);
-            }
-        };
-        this.serializer = new SettingSerializer<O>(this.type, persistentDataType) {
+        this.serializer = new BaseSettingSerializer<O>(this.type) {
             @Override
             public void write(ConfigurationSection config, String key, O value, String... comments) {
                 ConfigurationSection section = getOrCreateSection(config, key, comments);
@@ -546,38 +411,7 @@ public class RecordSettingSerializerBuilder<O> {
                                              SettingField<O, T4> settingField4,
                                              SettingField<O, T5> settingField5,
                                              SettingField<O, T6> settingField6) {
-        PersistentDataType<PersistentDataContainer, O> persistentDataType = new PersistentDataType<PersistentDataContainer, O>() {
-            @Override
-            public Class<PersistentDataContainer> getPrimitiveType() {
-                return PersistentDataContainer.class;
-            }
-            @Override
-            public Class<O> getComplexType() {
-                return RecordSettingSerializerBuilder.this.type;
-            }
-            @Override
-            public PersistentDataContainer toPrimitive(O complex, PersistentDataAdapterContext context) {
-                PersistentDataContainer container = context.newPersistentDataContainer();
-                settingField1.settingSerializer().write(container, settingField1.key(), settingField1.getter().apply(complex));
-                settingField2.settingSerializer().write(container, settingField2.key(), settingField2.getter().apply(complex));
-                settingField3.settingSerializer().write(container, settingField3.key(), settingField3.getter().apply(complex));
-                settingField4.settingSerializer().write(container, settingField4.key(), settingField4.getter().apply(complex));
-                settingField5.settingSerializer().write(container, settingField5.key(), settingField5.getter().apply(complex));
-                settingField6.settingSerializer().write(container, settingField6.key(), settingField6.getter().apply(complex));
-                return container;
-            }
-            @Override
-            public O fromPrimitive(PersistentDataContainer primitive, PersistentDataAdapterContext context) {
-                T1 value1 = getPersistentValueOrDefault(primitive, settingField1);
-                T2 value2 = getPersistentValueOrDefault(primitive, settingField2);
-                T3 value3 = getPersistentValueOrDefault(primitive, settingField3);
-                T4 value4 = getPersistentValueOrDefault(primitive, settingField4);
-                T5 value5 = getPersistentValueOrDefault(primitive, settingField5);
-                T6 value6 = getPersistentValueOrDefault(primitive, settingField6);
-                return constructor.apply(value1, value2, value3, value4, value5, value6);
-            }
-        };
-        this.serializer = new SettingSerializer<O>(this.type, persistentDataType) {
+        this.serializer = new BaseSettingSerializer<O>(this.type) {
             @Override
             public void write(ConfigurationSection config, String key, O value, String... comments) {
                 ConfigurationSection section = getOrCreateSection(config, key, comments);
@@ -634,40 +468,7 @@ public class RecordSettingSerializerBuilder<O> {
                                                  SettingField<O, T5> settingField5,
                                                  SettingField<O, T6> settingField6,
                                                  SettingField<O, T7> settingField7) {
-        PersistentDataType<PersistentDataContainer, O> persistentDataType = new PersistentDataType<PersistentDataContainer, O>() {
-            @Override
-            public Class<PersistentDataContainer> getPrimitiveType() {
-                return PersistentDataContainer.class;
-            }
-            @Override
-            public Class<O> getComplexType() {
-                return RecordSettingSerializerBuilder.this.type;
-            }
-            @Override
-            public PersistentDataContainer toPrimitive(O complex, PersistentDataAdapterContext context) {
-                PersistentDataContainer container = context.newPersistentDataContainer();
-                settingField1.settingSerializer().write(container, settingField1.key(), settingField1.getter().apply(complex));
-                settingField2.settingSerializer().write(container, settingField2.key(), settingField2.getter().apply(complex));
-                settingField3.settingSerializer().write(container, settingField3.key(), settingField3.getter().apply(complex));
-                settingField4.settingSerializer().write(container, settingField4.key(), settingField4.getter().apply(complex));
-                settingField5.settingSerializer().write(container, settingField5.key(), settingField5.getter().apply(complex));
-                settingField6.settingSerializer().write(container, settingField6.key(), settingField6.getter().apply(complex));
-                settingField7.settingSerializer().write(container, settingField7.key(), settingField7.getter().apply(complex));
-                return container;
-            }
-            @Override
-            public O fromPrimitive(PersistentDataContainer primitive, PersistentDataAdapterContext context) {
-                T1 value1 = getPersistentValueOrDefault(primitive, settingField1);
-                T2 value2 = getPersistentValueOrDefault(primitive, settingField2);
-                T3 value3 = getPersistentValueOrDefault(primitive, settingField3);
-                T4 value4 = getPersistentValueOrDefault(primitive, settingField4);
-                T5 value5 = getPersistentValueOrDefault(primitive, settingField5);
-                T6 value6 = getPersistentValueOrDefault(primitive, settingField6);
-                T7 value7 = getPersistentValueOrDefault(primitive, settingField7);
-                return constructor.apply(value1, value2, value3, value4, value5, value6, value7);
-            }
-        };
-        this.serializer = new SettingSerializer<O>(this.type, persistentDataType) {
+        this.serializer = new BaseSettingSerializer<O>(this.type) {
             @Override
             public void write(ConfigurationSection config, String key, O value, String... comments) {
                 ConfigurationSection section = getOrCreateSection(config, key, comments);
@@ -729,42 +530,7 @@ public class RecordSettingSerializerBuilder<O> {
                                                      SettingField<O, T6> settingField6,
                                                      SettingField<O, T7> settingField7,
                                                      SettingField<O, T8> settingField8) {
-        PersistentDataType<PersistentDataContainer, O> persistentDataType = new PersistentDataType<PersistentDataContainer, O>() {
-            @Override
-            public Class<PersistentDataContainer> getPrimitiveType() {
-                return PersistentDataContainer.class;
-            }
-            @Override
-            public Class<O> getComplexType() {
-                return RecordSettingSerializerBuilder.this.type;
-            }
-            @Override
-            public PersistentDataContainer toPrimitive(O complex, PersistentDataAdapterContext context) {
-                PersistentDataContainer container = context.newPersistentDataContainer();
-                settingField1.settingSerializer().write(container, settingField1.key(), settingField1.getter().apply(complex));
-                settingField2.settingSerializer().write(container, settingField2.key(), settingField2.getter().apply(complex));
-                settingField3.settingSerializer().write(container, settingField3.key(), settingField3.getter().apply(complex));
-                settingField4.settingSerializer().write(container, settingField4.key(), settingField4.getter().apply(complex));
-                settingField5.settingSerializer().write(container, settingField5.key(), settingField5.getter().apply(complex));
-                settingField6.settingSerializer().write(container, settingField6.key(), settingField6.getter().apply(complex));
-                settingField7.settingSerializer().write(container, settingField7.key(), settingField7.getter().apply(complex));
-                settingField8.settingSerializer().write(container, settingField8.key(), settingField8.getter().apply(complex));
-                return container;
-            }
-            @Override
-            public O fromPrimitive(PersistentDataContainer primitive, PersistentDataAdapterContext context) {
-                T1 value1 = getPersistentValueOrDefault(primitive, settingField1);
-                T2 value2 = getPersistentValueOrDefault(primitive, settingField2);
-                T3 value3 = getPersistentValueOrDefault(primitive, settingField3);
-                T4 value4 = getPersistentValueOrDefault(primitive, settingField4);
-                T5 value5 = getPersistentValueOrDefault(primitive, settingField5);
-                T6 value6 = getPersistentValueOrDefault(primitive, settingField6);
-                T7 value7 = getPersistentValueOrDefault(primitive, settingField7);
-                T8 value8 = getPersistentValueOrDefault(primitive, settingField8);
-                return constructor.apply(value1, value2, value3, value4, value5, value6, value7, value8);
-            }
-        };
-        this.serializer = new SettingSerializer<O>(this.type, persistentDataType) {
+        this.serializer = new BaseSettingSerializer<O>(this.type) {
             @Override
             public void write(ConfigurationSection config, String key, O value, String... comments) {
                 ConfigurationSection section = getOrCreateSection(config, key, comments);
@@ -831,44 +597,7 @@ public class RecordSettingSerializerBuilder<O> {
                                                          SettingField<O, T7> settingField7,
                                                          SettingField<O, T8> settingField8,
                                                          SettingField<O, T9> settingField9) {
-        PersistentDataType<PersistentDataContainer, O> persistentDataType = new PersistentDataType<PersistentDataContainer, O>() {
-            @Override
-            public Class<PersistentDataContainer> getPrimitiveType() {
-                return PersistentDataContainer.class;
-            }
-            @Override
-            public Class<O> getComplexType() {
-                return RecordSettingSerializerBuilder.this.type;
-            }
-            @Override
-            public PersistentDataContainer toPrimitive(O complex, PersistentDataAdapterContext context) {
-                PersistentDataContainer container = context.newPersistentDataContainer();
-                settingField1.settingSerializer().write(container, settingField1.key(), settingField1.getter().apply(complex));
-                settingField2.settingSerializer().write(container, settingField2.key(), settingField2.getter().apply(complex));
-                settingField3.settingSerializer().write(container, settingField3.key(), settingField3.getter().apply(complex));
-                settingField4.settingSerializer().write(container, settingField4.key(), settingField4.getter().apply(complex));
-                settingField5.settingSerializer().write(container, settingField5.key(), settingField5.getter().apply(complex));
-                settingField6.settingSerializer().write(container, settingField6.key(), settingField6.getter().apply(complex));
-                settingField7.settingSerializer().write(container, settingField7.key(), settingField7.getter().apply(complex));
-                settingField8.settingSerializer().write(container, settingField8.key(), settingField8.getter().apply(complex));
-                settingField9.settingSerializer().write(container, settingField9.key(), settingField9.getter().apply(complex));
-                return container;
-            }
-            @Override
-            public O fromPrimitive(PersistentDataContainer primitive, PersistentDataAdapterContext context) {
-                T1 value1 = getPersistentValueOrDefault(primitive, settingField1);
-                T2 value2 = getPersistentValueOrDefault(primitive, settingField2);
-                T3 value3 = getPersistentValueOrDefault(primitive, settingField3);
-                T4 value4 = getPersistentValueOrDefault(primitive, settingField4);
-                T5 value5 = getPersistentValueOrDefault(primitive, settingField5);
-                T6 value6 = getPersistentValueOrDefault(primitive, settingField6);
-                T7 value7 = getPersistentValueOrDefault(primitive, settingField7);
-                T8 value8 = getPersistentValueOrDefault(primitive, settingField8);
-                T9 value9 = getPersistentValueOrDefault(primitive, settingField9);
-                return constructor.apply(value1, value2, value3, value4, value5, value6, value7, value8, value9);
-            }
-        };
-        this.serializer = new SettingSerializer<O>(this.type, persistentDataType) {
+        this.serializer = new BaseSettingSerializer<O>(this.type) {
             @Override
             public void write(ConfigurationSection config, String key, O value, String... comments) {
                 ConfigurationSection section = getOrCreateSection(config, key, comments);
@@ -940,46 +669,7 @@ public class RecordSettingSerializerBuilder<O> {
                                                                SettingField<O, T8> settingField8,
                                                                SettingField<O, T9> settingField9,
                                                                SettingField<O, T10> settingField10) {
-        PersistentDataType<PersistentDataContainer, O> persistentDataType = new PersistentDataType<PersistentDataContainer, O>() {
-            @Override
-            public Class<PersistentDataContainer> getPrimitiveType() {
-                return PersistentDataContainer.class;
-            }
-            @Override
-            public Class<O> getComplexType() {
-                return RecordSettingSerializerBuilder.this.type;
-            }
-            @Override
-            public PersistentDataContainer toPrimitive(O complex, PersistentDataAdapterContext context) {
-                PersistentDataContainer container = context.newPersistentDataContainer();
-                settingField1.settingSerializer().write(container, settingField1.key(), settingField1.getter().apply(complex));
-                settingField2.settingSerializer().write(container, settingField2.key(), settingField2.getter().apply(complex));
-                settingField3.settingSerializer().write(container, settingField3.key(), settingField3.getter().apply(complex));
-                settingField4.settingSerializer().write(container, settingField4.key(), settingField4.getter().apply(complex));
-                settingField5.settingSerializer().write(container, settingField5.key(), settingField5.getter().apply(complex));
-                settingField6.settingSerializer().write(container, settingField6.key(), settingField6.getter().apply(complex));
-                settingField7.settingSerializer().write(container, settingField7.key(), settingField7.getter().apply(complex));
-                settingField8.settingSerializer().write(container, settingField8.key(), settingField8.getter().apply(complex));
-                settingField9.settingSerializer().write(container, settingField9.key(), settingField9.getter().apply(complex));
-                settingField10.settingSerializer().write(container, settingField10.key(), settingField10.getter().apply(complex));
-                return container;
-            }
-            @Override
-            public O fromPrimitive(PersistentDataContainer primitive, PersistentDataAdapterContext context) {
-                T1 value1 = getPersistentValueOrDefault(primitive, settingField1);
-                T2 value2 = getPersistentValueOrDefault(primitive, settingField2);
-                T3 value3 = getPersistentValueOrDefault(primitive, settingField3);
-                T4 value4 = getPersistentValueOrDefault(primitive, settingField4);
-                T5 value5 = getPersistentValueOrDefault(primitive, settingField5);
-                T6 value6 = getPersistentValueOrDefault(primitive, settingField6);
-                T7 value7 = getPersistentValueOrDefault(primitive, settingField7);
-                T8 value8 = getPersistentValueOrDefault(primitive, settingField8);
-                T9 value9 = getPersistentValueOrDefault(primitive, settingField9);
-                T10 value10 = getPersistentValueOrDefault(primitive, settingField10);
-                return constructor.apply(value1, value2, value3, value4, value5, value6, value7, value8, value9, value10);
-            }
-        };
-        this.serializer = new SettingSerializer<O>(this.type, persistentDataType) {
+        this.serializer = new BaseSettingSerializer<O>(this.type) {
             @Override
             public void write(ConfigurationSection config, String key, O value, String... comments) {
                 ConfigurationSection section = getOrCreateSection(config, key, comments);
@@ -1056,48 +746,7 @@ public class RecordSettingSerializerBuilder<O> {
                                                                     SettingField<O, T9> settingField9,
                                                                     SettingField<O, T10> settingField10,
                                                                     SettingField<O, T11> settingField11) {
-        PersistentDataType<PersistentDataContainer, O> persistentDataType = new PersistentDataType<PersistentDataContainer, O>() {
-            @Override
-            public Class<PersistentDataContainer> getPrimitiveType() {
-                return PersistentDataContainer.class;
-            }
-            @Override
-            public Class<O> getComplexType() {
-                return RecordSettingSerializerBuilder.this.type;
-            }
-            @Override
-            public PersistentDataContainer toPrimitive(O complex, PersistentDataAdapterContext context) {
-                PersistentDataContainer container = context.newPersistentDataContainer();
-                settingField1.settingSerializer().write(container, settingField1.key(), settingField1.getter().apply(complex));
-                settingField2.settingSerializer().write(container, settingField2.key(), settingField2.getter().apply(complex));
-                settingField3.settingSerializer().write(container, settingField3.key(), settingField3.getter().apply(complex));
-                settingField4.settingSerializer().write(container, settingField4.key(), settingField4.getter().apply(complex));
-                settingField5.settingSerializer().write(container, settingField5.key(), settingField5.getter().apply(complex));
-                settingField6.settingSerializer().write(container, settingField6.key(), settingField6.getter().apply(complex));
-                settingField7.settingSerializer().write(container, settingField7.key(), settingField7.getter().apply(complex));
-                settingField8.settingSerializer().write(container, settingField8.key(), settingField8.getter().apply(complex));
-                settingField9.settingSerializer().write(container, settingField9.key(), settingField9.getter().apply(complex));
-                settingField10.settingSerializer().write(container, settingField10.key(), settingField10.getter().apply(complex));
-                settingField11.settingSerializer().write(container, settingField11.key(), settingField11.getter().apply(complex));
-                return container;
-            }
-            @Override
-            public O fromPrimitive(PersistentDataContainer primitive, PersistentDataAdapterContext context) {
-                T1 value1 = getPersistentValueOrDefault(primitive, settingField1);
-                T2 value2 = getPersistentValueOrDefault(primitive, settingField2);
-                T3 value3 = getPersistentValueOrDefault(primitive, settingField3);
-                T4 value4 = getPersistentValueOrDefault(primitive, settingField4);
-                T5 value5 = getPersistentValueOrDefault(primitive, settingField5);
-                T6 value6 = getPersistentValueOrDefault(primitive, settingField6);
-                T7 value7 = getPersistentValueOrDefault(primitive, settingField7);
-                T8 value8 = getPersistentValueOrDefault(primitive, settingField8);
-                T9 value9 = getPersistentValueOrDefault(primitive, settingField9);
-                T10 value10 = getPersistentValueOrDefault(primitive, settingField10);
-                T11 value11 = getPersistentValueOrDefault(primitive, settingField11);
-                return constructor.apply(value1, value2, value3, value4, value5, value6, value7, value8, value9, value10, value11);
-            }
-        };
-        this.serializer = new SettingSerializer<O>(this.type, persistentDataType) {
+        this.serializer = new BaseSettingSerializer<O>(this.type) {
             @Override
             public void write(ConfigurationSection config, String key, O value, String... comments) {
                 ConfigurationSection section = getOrCreateSection(config, key, comments);
@@ -1179,50 +828,7 @@ public class RecordSettingSerializerBuilder<O> {
                                                                          SettingField<O, T10> settingField10,
                                                                          SettingField<O, T11> settingField11,
                                                                          SettingField<O, T12> settingField12) {
-        PersistentDataType<PersistentDataContainer, O> persistentDataType = new PersistentDataType<PersistentDataContainer, O>() {
-            @Override
-            public Class<PersistentDataContainer> getPrimitiveType() {
-                return PersistentDataContainer.class;
-            }
-            @Override
-            public Class<O> getComplexType() {
-                return RecordSettingSerializerBuilder.this.type;
-            }
-            @Override
-            public PersistentDataContainer toPrimitive(O complex, PersistentDataAdapterContext context) {
-                PersistentDataContainer container = context.newPersistentDataContainer();
-                settingField1.settingSerializer().write(container, settingField1.key(), settingField1.getter().apply(complex));
-                settingField2.settingSerializer().write(container, settingField2.key(), settingField2.getter().apply(complex));
-                settingField3.settingSerializer().write(container, settingField3.key(), settingField3.getter().apply(complex));
-                settingField4.settingSerializer().write(container, settingField4.key(), settingField4.getter().apply(complex));
-                settingField5.settingSerializer().write(container, settingField5.key(), settingField5.getter().apply(complex));
-                settingField6.settingSerializer().write(container, settingField6.key(), settingField6.getter().apply(complex));
-                settingField7.settingSerializer().write(container, settingField7.key(), settingField7.getter().apply(complex));
-                settingField8.settingSerializer().write(container, settingField8.key(), settingField8.getter().apply(complex));
-                settingField9.settingSerializer().write(container, settingField9.key(), settingField9.getter().apply(complex));
-                settingField10.settingSerializer().write(container, settingField10.key(), settingField10.getter().apply(complex));
-                settingField11.settingSerializer().write(container, settingField11.key(), settingField11.getter().apply(complex));
-                settingField12.settingSerializer().write(container, settingField12.key(), settingField12.getter().apply(complex));
-                return container;
-            }
-            @Override
-            public O fromPrimitive(PersistentDataContainer primitive, PersistentDataAdapterContext context) {
-                T1 value1 = getPersistentValueOrDefault(primitive, settingField1);
-                T2 value2 = getPersistentValueOrDefault(primitive, settingField2);
-                T3 value3 = getPersistentValueOrDefault(primitive, settingField3);
-                T4 value4 = getPersistentValueOrDefault(primitive, settingField4);
-                T5 value5 = getPersistentValueOrDefault(primitive, settingField5);
-                T6 value6 = getPersistentValueOrDefault(primitive, settingField6);
-                T7 value7 = getPersistentValueOrDefault(primitive, settingField7);
-                T8 value8 = getPersistentValueOrDefault(primitive, settingField8);
-                T9 value9 = getPersistentValueOrDefault(primitive, settingField9);
-                T10 value10 = getPersistentValueOrDefault(primitive, settingField10);
-                T11 value11 = getPersistentValueOrDefault(primitive, settingField11);
-                T12 value12 = getPersistentValueOrDefault(primitive, settingField12);
-                return constructor.apply(value1, value2, value3, value4, value5, value6, value7, value8, value9, value10, value11, value12);
-            }
-        };
-        this.serializer = new SettingSerializer<O>(this.type, persistentDataType) {
+        this.serializer = new BaseSettingSerializer<O>(this.type) {
             @Override
             public void write(ConfigurationSection config, String key, O value, String... comments) {
                 ConfigurationSection section = getOrCreateSection(config, key, comments);

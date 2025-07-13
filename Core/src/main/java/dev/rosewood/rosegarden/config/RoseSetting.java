@@ -227,7 +227,7 @@ public interface RoseSetting<T> {
         return new BackedRoseSetting<>(backing, serializer, name.toLowerCase(), () -> defaultValue, comments);
     }
 
-    static <T> RoseSetting<ConfigurationSection> ofBackedSection(String name, RosePlugin backing, String... comments) {
+    static RoseSetting<ConfigurationSection> ofBackedSection(String name, RosePlugin backing, String... comments) {
         return ofBackedValue(name, backing, SettingSerializers.SECTION, null, comments);
     }
 

@@ -1,6 +1,5 @@
 package dev.rosewood.rosegarden.config;
 
-import dev.rosewood.rosegarden.datatype.CustomPersistentDataType;
 import dev.rosewood.rosegarden.utils.NMSUtil;
 import java.util.Arrays;
 import java.util.List;
@@ -11,7 +10,6 @@ import org.bukkit.Keyed;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Vector;
 
 public final class SettingSerializers {
@@ -19,42 +17,42 @@ public final class SettingSerializers {
     private SettingSerializers() { }
 
     //region Primitive Serializers
-    public static final SettingSerializer<Boolean> BOOLEAN = new SettingSerializer<Boolean>(Boolean.class, PersistentDataType.BOOLEAN, Object::toString, Boolean::parseBoolean) {
+    public static final SettingSerializer<Boolean> BOOLEAN = new BaseSettingSerializer<Boolean>(Boolean.class, Object::toString, Boolean::parseBoolean) {
         public void write(ConfigurationSection config, String key, Boolean value, String... comments) { setWithComments(config, key, value, comments); }
         public Boolean read(ConfigurationSection config, String key) { return getOrNull(config, key, ConfigurationSection::getBoolean); }
     };
 
-    public static final SettingSerializer<Integer> INTEGER = new SettingSerializer<Integer>(Integer.class, PersistentDataType.INTEGER, Object::toString, Integer::parseInt) {
+    public static final SettingSerializer<Integer> INTEGER = new BaseSettingSerializer<Integer>(Integer.class, Object::toString, Integer::parseInt) {
         public void write(ConfigurationSection config, String key, Integer value, String... comments) { setWithComments(config, key, value, comments); }
         public Integer read(ConfigurationSection config, String key) { return getOrNull(config, key, ConfigurationSection::getInt); }
     };
 
-    public static final SettingSerializer<Long> LONG = new SettingSerializer<Long>(Long.class, PersistentDataType.LONG, Object::toString, Long::parseLong) {
+    public static final SettingSerializer<Long> LONG = new BaseSettingSerializer<Long>(Long.class, Object::toString, Long::parseLong) {
         public void write(ConfigurationSection config, String key, Long value, String... comments) { setWithComments(config, key, value, comments); }
         public Long read(ConfigurationSection config, String key) { return getOrNull(config, key, ConfigurationSection::getLong); }
     };
 
-    public static final SettingSerializer<Short> SHORT = new SettingSerializer<Short>(Short.class, PersistentDataType.SHORT, Object::toString, Short::parseShort) {
+    public static final SettingSerializer<Short> SHORT = new BaseSettingSerializer<Short>(Short.class, Object::toString, Short::parseShort) {
         public void write(ConfigurationSection config, String key, Short value, String... comments) { setWithComments(config, key, value, comments); }
         public Short read(ConfigurationSection config, String key) { return getOrNull(config, key, (x, y) -> (short) x.getInt(y)); }
     };
 
-    public static final SettingSerializer<Byte> BYTE = new SettingSerializer<Byte>(Byte.class, PersistentDataType.BYTE, Object::toString, Byte::parseByte) {
+    public static final SettingSerializer<Byte> BYTE = new BaseSettingSerializer<Byte>(Byte.class, Object::toString, Byte::parseByte) {
         public void write(ConfigurationSection config, String key, Byte value, String... comments) { setWithComments(config, key, value, comments); }
         public Byte read(ConfigurationSection config, String key) { return getOrNull(config, key, (x, y) -> (byte) x.getInt(y)); }
     };
 
-    public static final SettingSerializer<Double> DOUBLE = new SettingSerializer<Double>(Double.class, PersistentDataType.DOUBLE, Object::toString, Double::parseDouble) {
+    public static final SettingSerializer<Double> DOUBLE = new BaseSettingSerializer<Double>(Double.class, Object::toString, Double::parseDouble) {
         public void write(ConfigurationSection config, String key, Double value, String... comments) { setWithComments(config, key, value, comments); }
         public Double read(ConfigurationSection config, String key) { return getOrNull(config, key, ConfigurationSection::getDouble); }
     };
 
-    public static final SettingSerializer<Float> FLOAT = new SettingSerializer<Float>(Float.class, PersistentDataType.FLOAT, Object::toString, Float::parseFloat) {
+    public static final SettingSerializer<Float> FLOAT = new BaseSettingSerializer<Float>(Float.class, Object::toString, Float::parseFloat) {
         public void write(ConfigurationSection config, String key, Float value, String... comments) { setWithComments(config, key, value, comments); }
         public Float read(ConfigurationSection config, String key) { return getOrNull(config, key, (x, y) -> (float) x.getDouble(y)); }
     };
 
-    public static final SettingSerializer<Character> CHAR = new SettingSerializer<Character>(Character.class, CustomPersistentDataType.CHARACTER, Object::toString, x -> x.charAt(0)) {
+    public static final SettingSerializer<Character> CHAR = new BaseSettingSerializer<Character>(Character.class, Object::toString, x -> x.charAt(0)) {
         public void write(ConfigurationSection config, String key, Character value, String... comments) { setWithComments(config, key, value, comments); }
         public Character read(ConfigurationSection config, String key) {
             String value = config.getString(key);
@@ -82,7 +80,7 @@ public final class SettingSerializers {
     //endregion
 
     //region Other Serializers
-    public static final SettingSerializer<String> STRING = new SettingSerializer<String>(String.class, PersistentDataType.STRING, Function.identity(), Function.identity()) {
+    public static final SettingSerializer<String> STRING = new BaseSettingSerializer<String>(String.class, Function.identity(), Function.identity()) {
         public void write(ConfigurationSection config, String key, String value, String... comments) { setWithComments(config, key, value, comments); }
         public String read(ConfigurationSection config, String key) { return config.getString(key); }
     };
@@ -91,7 +89,7 @@ public final class SettingSerializers {
     public static final SettingSerializer<Material> MATERIAL = ofEnum(Material.class);
     public static final SettingSerializer<List<Material>> MATERIAL_LIST = ofList(MATERIAL);
 
-    public static final SettingSerializer<ConfigurationSection> SECTION = new SettingSerializer<ConfigurationSection>(ConfigurationSection.class, CustomPersistentDataType.SECTION) {
+    public static final SettingSerializer<ConfigurationSection> SECTION = new BaseSettingSerializer<ConfigurationSection>(ConfigurationSection.class) {
         public void write(ConfigurationSection config, String key, ConfigurationSection value, String... comments) {
             if (config instanceof CommentedConfigurationSection) {
                 ((CommentedConfigurationSection) config).addPathedComments(key, comments);

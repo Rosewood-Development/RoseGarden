@@ -1,6 +1,5 @@
 package dev.rosewood.rosegarden.config;
 
-import dev.rosewood.rosegarden.datatype.CustomPersistentDataType;
 import dev.rosewood.rosegarden.utils.NMSUtil;
 import dev.rosewood.rosegarden.utils.RoseGardenUtils;
 import java.lang.reflect.Array;
@@ -15,7 +14,6 @@ import java.util.stream.Collectors;
 import org.bukkit.Keyed;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.persistence.PersistentDataContainer;
 import static dev.rosewood.rosegarden.config.SettingSerializers.setWithComments;
 
 @SuppressWarnings("unchecked")
@@ -25,7 +23,7 @@ final class SettingSerializerFactories {
 
     //region Serializer Factories
     public static <T extends Enum<T>> SettingSerializer<T> ofEnum(Class<T> enumClass) {
-        return new SettingSerializer<T>(enumClass, CustomPersistentDataType.forEnum(enumClass), x -> x.name().toLowerCase(), x -> Enum.valueOf(enumClass, x.toUpperCase())) {
+        return new BaseSettingSerializer<T>(enumClass, x -> x.name().toLowerCase(), x -> Enum.valueOf(enumClass, x.toUpperCase())) {
             public void write(ConfigurationSection config, String key, T value, String... comments) { setWithComments(config, key, value.name().toLowerCase(), comments); }
             public T read(ConfigurationSection config, String key) {
                 try {
@@ -38,14 +36,14 @@ final class SettingSerializerFactories {
     }
 
     public static <T extends Keyed> SettingSerializer<T> ofKeyed(Class<T> keyedClass, Function<NamespacedKey, T> valueOfFunction) {
-        return new SettingSerializer<T>(keyedClass, CustomPersistentDataType.forKeyed(keyedClass, valueOfFunction), x -> translateName(x.getKey()), x -> valueOfFunction.apply(translateKey(x))) {
+        return new BaseSettingSerializer<T>(keyedClass, x -> translateName(x.getKey()), x -> valueOfFunction.apply(translateKey(x))) {
             public void write(ConfigurationSection config, String key, T value, String... comments) { setWithComments(config, key, translateName(value.getKey()), comments); }
             public T read(ConfigurationSection config, String key) { return valueOfFunction.apply(translateKey(config.getString(key))); }
         };
     }
 
     public static <T> SettingSerializer<T[]> ofArray(SettingSerializer<T> serializer) {
-        return new SettingSerializer<T[]>(CustomPersistentDataType.forArray(serializer.persistentDataType)) {
+        return new BaseSettingSerializer<T[]>((Class<T[]>) Array.newInstance(serializer.getType(), 0).getClass()) {
             public void write(ConfigurationSection config, String key, T[] value, String... comments) {
                 if (serializer.isStringKey()) {
                     setWithComments(config, key, Arrays.stream(value).map(x -> x == null ? "" : serializer.asStringKey(x)).collect(Collectors.toList()), comments);
@@ -66,7 +64,7 @@ final class SettingSerializerFactories {
                     return null;
                 if (serializer.isStringKey()) {
                     List<String> contents = config.getStringList(key);
-                    T[] array = (T[]) Array.newInstance(serializer.type, contents.size());
+                    T[] array = (T[]) Array.newInstance(serializer.getType(), contents.size());
                     for (int i = 0; i < contents.size(); i++) {
                         String content = contents.get(i);
                         if (!content.isEmpty())
@@ -77,7 +75,7 @@ final class SettingSerializerFactories {
                     ConfigurationSection section = config.getConfigurationSection(key);
                     if (section != null) {
                         List<String> contents = config.getStringList(key);
-                        T[] array = (T[]) Array.newInstance(serializer.type, contents.size());
+                        T[] array = (T[]) Array.newInstance(serializer.getType(), contents.size());
                         for (String configKey : section.getKeys(false)) {
                             int index = Integer.parseInt(configKey);
                             String content = section.getString(configKey, "");
@@ -85,10 +83,10 @@ final class SettingSerializerFactories {
                                 array[index] = serializer.read(section, configKey);
                         }
                     }
-                    return (T[]) Array.newInstance(serializer.type, 0);
+                    return (T[]) Array.newInstance(serializer.getType(), 0);
                 }
             }
-            protected String getDefaultCommentText(T[] values) {
+            public String getDefaultCommentText(T[] values) {
                 if (!serializer.isStringKey() || values.length > 5)
                     return null;
                 StringBuilder builder = new StringBuilder("Default: [");
@@ -117,7 +115,7 @@ final class SettingSerializerFactories {
     }
 
     public static <T> SettingSerializer<List<T>> ofList(SettingSerializer<T> serializer) {
-        return new SettingSerializer<List<T>>(CustomPersistentDataType.forList(serializer.persistentDataType)) {
+        return new BaseSettingSerializer<List<T>>((Class<List<T>>) (Class<?>) List.class) {
             public void write(ConfigurationSection config, String key, List<T> value, String... comments) {
                 if (serializer.isStringKey()) {
                     setWithComments(config, key, value.stream().map(serializer::asStringKey).collect(Collectors.toList()), comments);
@@ -144,7 +142,7 @@ final class SettingSerializerFactories {
                 }
                 return list;
             }
-            protected String getDefaultCommentText(List<T> values) {
+            public String getDefaultCommentText(List<T> values) {
                 if (!serializer.isStringKey() || values.size() > 5)
                     return null;
                 StringBuilder builder = new StringBuilder("Default: [");
@@ -173,7 +171,7 @@ final class SettingSerializerFactories {
     }
 
     public static <K, V> SettingSerializer<Map<K, V>> ofMap(SettingSerializer<K> keySerializer, SettingSerializer<V> valueSerializer) {
-        return new SettingSerializer<Map<K, V>>(CustomPersistentDataType.forMap(keySerializer.persistentDataType, valueSerializer.persistentDataType)) {
+        return new BaseSettingSerializer<Map<K, V>>((Class<Map<K, V>>) (Class<?>) Map.class) {
             public void write(ConfigurationSection config, String key, Map<K, V> value, String... comments) {
                 ConfigurationSection section = getOrCreateSection(config, key, comments);
                 if (keySerializer.isStringKey() && valueSerializer.isStringKey()) {
@@ -219,59 +217,7 @@ final class SettingSerializerFactories {
     }
 
     public static <T, M> SettingSerializer<T> ofFieldMapped(Class<T> type, String fieldKey, SettingSerializer<M> fieldSerializer, Map<M, SettingSerializer<? extends T>> mapper) {
-        return new SettingSerializer<T>(type, null) {
-            @Override
-            public void write(ConfigurationSection config, String key, T value, String... comments) {
-                SettingSerializer<T> serializer = this.mapField(fieldSerializer.read(config, fieldKey));
-                if (serializer != null)
-                    serializer.write(config, key, value, comments);
-            }
-
-            @Override
-            public void writeWithDefault(ConfigurationSection config, String key, T value, String... comments) {
-                SettingSerializer<T> serializer = this.mapField(fieldSerializer.read(config, fieldKey));
-                if (serializer != null)
-                    serializer.writeWithDefault(config, key, value, comments);
-            }
-
-            @Override
-            public void write(PersistentDataContainer container, String key, T value) {
-                SettingSerializer<T> serializer = this.mapField(fieldSerializer.read(container, fieldKey));
-                if (serializer != null)
-                    serializer.write(container, key, value);
-            }
-
-            @Override
-            public T read(ConfigurationSection config, String key) {
-                SettingSerializer<T> serializer = this.mapField(fieldSerializer.read(config, fieldKey));
-                return serializer != null ? serializer.read(config, key) : null;
-            }
-
-            @Override
-            public T read(PersistentDataContainer container, String key) {
-                SettingSerializer<T> serializer = this.mapField(fieldSerializer.read(container, fieldKey));
-                return serializer != null ? serializer.read(container, key) : null;
-            }
-
-            @Override
-            public boolean readIsValid(ConfigurationSection config, String key) {
-                SettingSerializer<T> serializer = this.mapField(fieldSerializer.read(config, fieldKey));
-                return serializer != null && serializer.readIsValid(config, key);
-            }
-
-            @SuppressWarnings("unchecked") // always maps to subtypes since it extends T, catching just in case
-            private SettingSerializer<T> mapField(M value) {
-                if (value == null)
-                    return null;
-                try {
-                    SettingSerializer<? extends T> serializer = mapper.get(value);
-                    return (SettingSerializer<T>) serializer;
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    return null;
-                }
-            }
-        };
+        return new FieldMappedSettingSerializer<>(type, fieldKey, fieldSerializer, mapper);
     }
     //endregion
 

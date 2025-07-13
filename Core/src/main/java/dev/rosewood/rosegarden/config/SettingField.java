@@ -3,7 +3,7 @@ package dev.rosewood.rosegarden.config;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public final class SettingField<O, T> {
+public class SettingField<O, T> {
 
     private final String key;
     private final SettingSerializer<T> settingSerializer;
@@ -13,13 +13,13 @@ public final class SettingField<O, T> {
     private final boolean flatten;
     private final String[] comments;
 
-    private SettingField(String key,
-                         SettingSerializer<T> settingSerializer,
-                         Function<O, T> getter,
-                         Supplier<T> defaultValueSupplier,
-                         boolean optional,
-                         boolean flatten,
-                         String... comments) {
+    SettingField(String key,
+                 SettingSerializer<T> settingSerializer,
+                 Function<O, T> getter,
+                 Supplier<T> defaultValueSupplier,
+                 boolean optional,
+                 boolean flatten,
+                 String... comments) {
         this.key = key;
         this.settingSerializer = settingSerializer;
         this.getter = getter;

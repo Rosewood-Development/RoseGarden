@@ -11,7 +11,7 @@ class BasicRoseSetting<T> implements RoseSetting<T> {
     protected final String key;
     protected Supplier<T> defaultValueSupplier;
     protected final String[] comments;
-    private final boolean hidden;
+    protected final boolean hidden;
 
     protected BasicRoseSetting(SettingSerializer<T> serializer, String key, Supplier<T> defaultValueSupplier, boolean hidden, String... comments) {
         this.serializer = serializer;
