@@ -25,7 +25,7 @@ public final class RoseGardenUtils {
 
     public static final String GRADIENT = "<g:#8A2387:#E94057:#F27121>";
     public static final String PREFIX = "&7[" + GRADIENT + "RoseGarden&7] ";
-    public static final Pattern DURATION_PATTERN = Pattern.compile("(([1-9][0-9]+|[1-9])[dhms])");
+    public static final Pattern DURATION_PATTERN = Pattern.compile("(([1-9][0-9]+|[1-9])(ms|[smhdwy]))");
 
 
     private static Logger logger;
@@ -148,6 +148,12 @@ public final class RoseGardenUtils {
             String timeUnit = String.valueOf(group.charAt(group.length() - 1));
             int timeValue = Integer.parseInt(group.substring(0, group.length() - 1));
             switch (timeUnit) {
+                case "y":
+                    duration = duration.plusDays(timeValue * 365L);
+                    break;
+                case "w":
+                    duration = duration.plusDays(timeValue * 7L);
+                    break;
                 case "d":
                     duration = duration.plusDays(timeValue);
                     break;
@@ -159,6 +165,9 @@ public final class RoseGardenUtils {
                     break;
                 case "s":
                     duration = duration.plusSeconds(timeValue);
+                    break;
+                case "ms":
+                    duration = duration.plusMillis(timeValue);
                     break;
             }
         }
