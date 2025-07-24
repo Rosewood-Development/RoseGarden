@@ -1,17 +1,15 @@
 package dev.rosewood.rosegarden.config;
 
 import dev.rosewood.rosegarden.datatype.CustomPersistentDataType;
-import dev.rosewood.rosegarden.utils.NMSUtil;
-import java.util.Arrays;
+
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.function.BiFunction;
 import java.util.function.Function;
+
 import org.bukkit.Keyed;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Vector;
 
@@ -46,6 +44,8 @@ public final class PDCSettingSerializers {
 
     public static final PDCSettingSerializer<Material> MATERIAL = ofEnum(Material.class);
     public static final PDCSettingSerializer<List<Material>> MATERIAL_LIST = ofList(MATERIAL);
+     
+    public static final PDCSettingSerializer<Duration> DURATION = SettingSerializers.DURATION.pdc().adapt(CustomPersistentDataType.DURATION);
     //endregion
 
     //region Record Serializers

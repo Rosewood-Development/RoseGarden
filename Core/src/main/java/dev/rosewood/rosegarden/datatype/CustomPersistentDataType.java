@@ -3,12 +3,15 @@ package dev.rosewood.rosegarden.datatype;
 import dev.rosewood.rosegarden.utils.KeyHelper;
 import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
+
+import dev.rosewood.rosegarden.utils.RoseGardenUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Keyed;
 import org.bukkit.Location;
@@ -76,6 +79,17 @@ public final class CustomPersistentDataType {
             return new UUID(byteBuffer.getLong(), byteBuffer.getLong());
         }
 
+    };
+    public static final PersistentDataType<String, Duration> DURATION = new PersistentDataType<String, Duration>() {
+        public Class<String> getPrimitiveType() { return String.class; }
+        public Class<Duration> getComplexType() { return Duration.class; }
+
+        @Override
+        public String toPrimitive(Duration duration, PersistentDataAdapterContext context) { return RoseGardenUtils.durationToString(duration); }
+        
+        @Override
+        public Duration fromPrimitive(String primitive, PersistentDataAdapterContext context) { return RoseGardenUtils.stringToDuration(primitive); }
+    
     };
 
     public static final PersistentDataType<String, Character> CHARACTER = new PersistentDataType<String, Character>() {
