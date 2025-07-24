@@ -1,11 +1,15 @@
 package dev.rosewood.rosegarden.config;
 
 import dev.rosewood.rosegarden.utils.NMSUtil;
+
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+
+import dev.rosewood.rosegarden.utils.RoseGardenUtils;
 import org.bukkit.Keyed;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -86,6 +90,11 @@ public final class SettingSerializers {
     };
     public static final SettingSerializer<List<String>> STRING_LIST = ofList(STRING);
 
+    public static final SettingSerializer<Duration> DURATION = new BaseSettingSerializer<Duration>(Duration.class) {
+        public void write(ConfigurationSection config, String key, Duration value, String... comments) { setWithComments(config, key, RoseGardenUtils.durationToString(value), comments); }
+        public Duration read(ConfigurationSection config, String key) { return RoseGardenUtils.stringToDuration(config.getString(key)); }
+    };
+    
     public static final SettingSerializer<Material> MATERIAL = ofEnum(Material.class);
     public static final SettingSerializer<List<Material>> MATERIAL_LIST = ofList(MATERIAL);
 

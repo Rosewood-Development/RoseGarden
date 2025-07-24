@@ -2,6 +2,8 @@ package dev.rosewood.rosegarden.command.argument;
 
 import dev.rosewood.rosegarden.command.framework.ArgumentHandler;
 import dev.rosewood.rosegarden.utils.NMSUtil;
+
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -22,6 +24,7 @@ public final class ArgumentHandlers {
     public static final ArgumentHandler<Byte> BYTE = new ByteArgumentHandler();
     public static final ArgumentHandler<Character> CHARACTER = new CharacterArgumentHandler();
     public static final ArgumentHandler<Double> DOUBLE = new DoubleArgumentHandler();
+    public static final ArgumentHandler<Duration> DURATION = new DurationArgumentHandler();
     public static final ArgumentHandler<Float> FLOAT = new FloatArgumentHandler();
     public static final ArgumentHandler<String> GREEDY_STRING = new GreedyStringArgumentHandler();
     public static final ArgumentHandler<Integer> INTEGER = new IntegerArgumentHandler();

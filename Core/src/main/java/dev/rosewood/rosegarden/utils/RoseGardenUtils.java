@@ -1,13 +1,15 @@
 package dev.rosewood.rosegarden.utils;
 
 import dev.rosewood.rosegarden.RosePlugin;
+
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.bukkit.Bukkit;
+
 import org.bukkit.command.CommandSender;
 
 public final class RoseGardenUtils {
@@ -23,6 +25,8 @@ public final class RoseGardenUtils {
 
     public static final String GRADIENT = "<g:#8A2387:#E94057:#F27121>";
     public static final String PREFIX = "&7[" + GRADIENT + "RoseGarden&7] ";
+    public static final Pattern DURATION_PATTERN = Pattern.compile("(([1-9][0-9]+|[1-9])[dhms])");
+
 
     private static Logger logger;
 
@@ -126,4 +130,49 @@ public final class RoseGardenUtils {
         return Math.round(timeUnit.toMillis(value) / 50.0);
     }
 
+    /**
+     * Converts a string value into a Duration object
+     * 
+     * @param value The value
+     * @return the value as a duration
+     */
+    public static Duration stringToDuration(String value) {
+        if (value == null) return Duration.ZERO;
+        
+        String input = value.toLowerCase();
+        Matcher matcher = DURATION_PATTERN.matcher(input.toLowerCase());
+        Duration duration = Duration.ZERO;
+
+        while (matcher.find()) {
+            String group = matcher.group();
+            String timeUnit = String.valueOf(group.charAt(group.length() - 1));
+            int timeValue = Integer.parseInt(group.substring(0, group.length() - 1));
+            switch (timeUnit) {
+                case "d":
+                    duration = duration.plusDays(timeValue);
+                    break;
+                case "h":
+                    duration = duration.plusHours(timeValue);
+                    break;
+                case "m":
+                    duration = duration.plusMinutes(timeValue);
+                    break;
+                case "s":
+                    duration = duration.plusSeconds(timeValue);
+                    break;
+            }
+        }
+
+        return duration;
+    }
+
+    /**
+     * Converts a Duration value into a String object
+     *
+     * @param value The value
+     * @return the value as a string
+     */
+    public static String durationToString(Duration value) {
+        return value.toString().substring(2);
+    }
 }
