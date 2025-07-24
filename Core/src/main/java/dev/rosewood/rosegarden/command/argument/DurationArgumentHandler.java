@@ -32,18 +32,9 @@ public class DurationArgumentHandler extends ArgumentHandler<Duration> {
         
         return duration;
     }
-
-    /**
-     * Gets command argument suggestions for the remaining player input.
-     *
-     * @param context  A readonly command context
-     * @param argument The argument being handled
-     * @param args     The player input for this argument
-     * @return A List of possible argument suggestions
-     */
-    @Override
+    
     public List<String> suggest(CommandContext context, Argument argument, String[] args) {
-        String input = args[0]; // maybe ? 
+        String input = args[0];
 
         if (input.isEmpty()) {
             return IntStream.range(1, 10).boxed()
@@ -52,7 +43,6 @@ public class DurationArgumentHandler extends ArgumentHandler<Duration> {
                     .collect(Collectors.toList());
         }
 
-        // 1d5_, 5d4m2_, etc
         return Stream.of("d", "h", "m", "s")
                 .filter(unit -> !input.contains(unit))
                 .map(unit -> input + unit)
