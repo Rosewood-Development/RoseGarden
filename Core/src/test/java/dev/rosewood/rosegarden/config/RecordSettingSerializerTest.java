@@ -9,10 +9,10 @@ import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.Server;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.util.Vector;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -32,8 +32,6 @@ public class RecordSettingSerializerTest {
         SettingSerializer<ParticleData> SERIALIZER = SettingSerializers.ofFieldMapped(ParticleData.class, "particle", SettingSerializers.ofEnum(Particle.class), Map.ofEntries(
                 Map.entry(Particle.DUST, DustOptionsData.SERIALIZER)
         ));
-
-        Object buildData(Location location);
     }
 
     public record DustOptionsData(int red,
@@ -47,15 +45,6 @@ public class RecordSettingSerializerTest {
                 SettingField.of("blue", SettingSerializers.INTEGER, DustOptionsData::blue, "The blue component between 0-255"),
                 SettingField.of("size", SettingSerializers.FLOAT, DustOptionsData::size, "The size component between 0.01-4.0")
         ).apply(instance, DustOptionsData::new));
-
-        @Override
-        public Object buildData(Location location) {
-            int red = Math.clamp(this.red, 0, 255);
-            int green = Math.clamp(this.green, 0, 255);
-            int blue = Math.clamp(this.blue, 0, 255);
-            float size = Math.clamp(this.size, 0.01F, 4.0F);
-            return new Particle.DustOptions(Color.fromRGB(red, green, blue), size);
-        }
     }
 
     public static final RoseSetting<PlayableParticle> TEST_SETTING = RoseSetting.of("test-particle", PlayableParticle.SERIALIZER, () -> new PlayableParticle(Particle.DUST, new DustOptionsData(123, 255, 10, 2f)), "Test particle");
@@ -78,14 +67,32 @@ public class RecordSettingSerializerTest {
 
         TEST_SETTING.write(subsection);
 
-        System.out.println(section.saveToString());
-
         ConfigurationSection particleSection = subsection.getConfigurationSection(TEST_SETTING.getKey());
         assertNotNull(particleSection);
         assertTrue(particleSection.contains("red"));
         assertTrue(particleSection.contains("green"));
         assertTrue(particleSection.contains("blue"));
         assertTrue(particleSection.contains("size"));
+    }
+
+    @Test
+    public void testWriteAndRewriteChangesValue() {
+        CommentedFileConfiguration section = CommentedFileConfiguration.loadConfiguration(BufferedReader.nullReader());
+
+        String sectionName = "test-vector";
+        RoseSetting<Vector> vectorSetting = RoseSetting.of(sectionName, SettingSerializers.VECTOR, () -> new Vector(1, 2, 3));
+
+        vectorSetting.write(section);
+
+        Vector expected = new Vector(1, 2, 3);
+        Vector actual = vectorSetting.read(section);
+        assertEquals(expected, actual);
+
+        Vector modified = new Vector(4, 5, 6);
+        SettingSerializers.VECTOR.write(section, sectionName, modified);
+
+        actual = vectorSetting.read(section);
+        assertEquals(modified, actual);
     }
 
 }

@@ -47,14 +47,14 @@ public abstract class BaseSettingSerializer<T> implements SettingSerializer<T> {
     @Override
     public final String asStringKey(T key) {
         if (this.asStringFunction == null)
-            throw new UnsupportedOperationException("asStringKey not available, check isStringKey() first");
+            throw new UnsupportedOperationException("asStringKey not available for a serializer of type " + this.getClass().getName() + ", check isStringKey() first");
         return this.asStringFunction.apply(key);
     }
 
     @Override
     public final T fromStringKey(String key) {
         if (this.fromStringFunction == null)
-            throw new UnsupportedOperationException("fromStringKey not available, check isStringKey() first");
+            throw new UnsupportedOperationException("fromStringKey not available for a serializer of type " + this.getClass().getName() + ", check isStringKey() first");
         return this.fromStringFunction.apply(key);
     }
 

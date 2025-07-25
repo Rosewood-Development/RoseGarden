@@ -12,7 +12,7 @@ public class PDCDelegatingSettingSerializer<T> extends BaseSettingSerializer<T> 
     private final PersistentDataType<?, T> persistentDataType;
 
     public PDCDelegatingSettingSerializer(SettingSerializer<T> serializer, PersistentDataType<?, T> persistentDataType) {
-        super(serializer.getType(), serializer::asStringKey, serializer::fromStringKey);
+        super(serializer.getType(), serializer.isStringKey() ? serializer::asStringKey : null, serializer.isStringKey() ? serializer::fromStringKey : null);
         this.serializer = serializer;
         this.persistentDataType = persistentDataType;
     }

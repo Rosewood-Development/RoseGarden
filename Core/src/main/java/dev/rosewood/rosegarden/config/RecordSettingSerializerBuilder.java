@@ -1,6 +1,7 @@
 package dev.rosewood.rosegarden.config;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import org.bukkit.configuration.ConfigurationSection;
@@ -44,11 +45,11 @@ public class RecordSettingSerializerBuilder<O> {
         if (value == null)
             return;
 
-        // Don't overwrite a setting that's already valid
+        // Don't overwrite a setting that's already valid and is set to the same value
         ConfigurationSection checkSection = section;
         if (settingField.flatten())
             checkSection = liftSection(checkSection, settingField.key());
-        if (settingField.settingSerializer().readIsValid(checkSection, settingField.key()))
+        if (settingField.settingSerializer().readIsValid(checkSection, settingField.key()) && Objects.equals(settingField.settingSerializer().read(checkSection, settingField.key()), value))
             return;
 
         if (writeDefaults) {
