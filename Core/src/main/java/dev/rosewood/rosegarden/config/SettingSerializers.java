@@ -4,11 +4,15 @@ import dev.rosewood.rosegarden.utils.NMSUtil;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import org.bukkit.Bukkit;
 import org.bukkit.Keyed;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.util.Vector;
 
@@ -103,9 +107,34 @@ public final class SettingSerializers {
         }
         public ConfigurationSection read(ConfigurationSection config, String key) { return config.getConfigurationSection(key); }
     };
+
+    public static final SettingSerializer<World> WORLD = new BaseSettingSerializer<World>(World.class, World::getName, Bukkit::getWorld) {
+        public void write(ConfigurationSection config, String key, World value, String... comments) { setWithComments(config, key, value, comments); }
+        public World read(ConfigurationSection config, String key) {
+            String worldName = config.getString(key);
+            return worldName != null ? Bukkit.getWorld(worldName) : null;
+        }
+    };
+
+    public static final SettingSerializer<UUID> UUID = new BaseSettingSerializer<UUID>(UUID.class, java.util.UUID::toString, java.util.UUID::fromString) {
+        public void write(ConfigurationSection config, String key, UUID value, String... comments) { setWithComments(config, key, value, comments); }
+        public UUID read(ConfigurationSection config, String key) {
+            String uuid = config.getString(key);
+            return uuid != null ? java.util.UUID.fromString(uuid) : null;
+        }
+    };
     //endregion
 
     //region Record Serializers
+    public static final SettingSerializer<Location> LOCATION = ofRecord(Location.class, instance -> instance.group(
+            SettingField.of("world", SettingSerializers.WORLD, Location::getWorld),
+            SettingField.of("x", SettingSerializers.DOUBLE, Location::getX),
+            SettingField.of("y", SettingSerializers.DOUBLE, Location::getY),
+            SettingField.of("z", SettingSerializers.DOUBLE, Location::getZ),
+            SettingField.of("yaw", SettingSerializers.FLOAT, Location::getYaw),
+            SettingField.of("pitch", SettingSerializers.FLOAT, Location::getPitch)
+    ).apply(instance, Location::new));
+
     public static final SettingSerializer<Vector> VECTOR = ofRecord(Vector.class, instance -> instance.group(
             SettingField.of("x", SettingSerializers.DOUBLE, Vector::getX),
             SettingField.of("y", SettingSerializers.DOUBLE, Vector::getY),

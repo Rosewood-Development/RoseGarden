@@ -1,17 +1,15 @@
 package dev.rosewood.rosegarden.config;
 
 import dev.rosewood.rosegarden.datatype.CustomPersistentDataType;
-import dev.rosewood.rosegarden.utils.NMSUtil;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.function.BiFunction;
+import java.util.UUID;
 import java.util.function.Function;
 import org.bukkit.Keyed;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.World;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Vector;
 
@@ -46,9 +44,21 @@ public final class PDCSettingSerializers {
 
     public static final PDCSettingSerializer<Material> MATERIAL = ofEnum(Material.class);
     public static final PDCSettingSerializer<List<Material>> MATERIAL_LIST = ofList(MATERIAL);
+
+    public static final PDCSettingSerializer<World> WORLD = SettingSerializers.WORLD.pdc().adapt(CustomPersistentDataType.WORLD);
+    public static final PDCSettingSerializer<UUID> UUID = SettingSerializers.UUID.pdc().adapt(CustomPersistentDataType.UUID);
     //endregion
 
     //region Record Serializers
+    public static final SettingSerializer<Location> LOCATION = ofRecord(Location.class, instance -> instance.group(
+            PDCSettingField.of("world", PDCSettingSerializers.WORLD, Location::getWorld),
+            PDCSettingField.of("x", PDCSettingSerializers.DOUBLE, Location::getX),
+            PDCSettingField.of("y", PDCSettingSerializers.DOUBLE, Location::getY),
+            PDCSettingField.of("z", PDCSettingSerializers.DOUBLE, Location::getZ),
+            PDCSettingField.of("yaw", PDCSettingSerializers.FLOAT, Location::getYaw),
+            PDCSettingField.of("pitch", PDCSettingSerializers.FLOAT, Location::getPitch)
+    ).apply(instance, Location::new));
+
     public static final PDCSettingSerializer<Vector> VECTOR = ofRecord(Vector.class, instance -> instance.group(
             PDCSettingField.of("x", PDCSettingSerializers.DOUBLE, Vector::getX),
             PDCSettingField.of("y", PDCSettingSerializers.DOUBLE, Vector::getY),

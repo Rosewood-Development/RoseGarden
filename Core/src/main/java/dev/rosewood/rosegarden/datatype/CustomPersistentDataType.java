@@ -22,41 +22,6 @@ import org.bukkit.persistence.PersistentDataType;
 
 public final class CustomPersistentDataType {
 
-    public static final PersistentDataType<PersistentDataContainer, Location> LOCATION = new PersistentDataType<PersistentDataContainer, Location>() {
-
-        public Class<PersistentDataContainer> getPrimitiveType() { return PersistentDataContainer.class; }
-        public Class<Location> getComplexType() { return Location.class; }
-
-        @Override
-        public PersistentDataContainer toPrimitive(Location location, PersistentDataAdapterContext context) {
-            PersistentDataContainer container = context.newPersistentDataContainer();
-            container.set(KeyHelper.get("world"), PersistentDataType.STRING, location.getWorld().getName());
-            container.set(KeyHelper.get("x"), PersistentDataType.DOUBLE, location.getX());
-            container.set(KeyHelper.get("y"), PersistentDataType.DOUBLE, location.getY());
-            container.set(KeyHelper.get("z"), PersistentDataType.DOUBLE, location.getZ());
-            container.set(KeyHelper.get("yaw"), PersistentDataType.FLOAT, location.getYaw());
-            container.set(KeyHelper.get("pitch"), PersistentDataType.FLOAT, location.getPitch());
-            return container;
-        }
-
-        @Override
-        public Location fromPrimitive(PersistentDataContainer container, PersistentDataAdapterContext context) {
-            String worldName = container.get(KeyHelper.get("world"), PersistentDataType.STRING);
-            Double x = container.get(KeyHelper.get("x"), PersistentDataType.DOUBLE);
-            Double y = container.get(KeyHelper.get("y"), PersistentDataType.DOUBLE);
-            Double z = container.get(KeyHelper.get("z"), PersistentDataType.DOUBLE);
-            Float yaw = container.get(KeyHelper.get("yaw"), PersistentDataType.FLOAT);
-            Float pitch = container.get(KeyHelper.get("pitch"), PersistentDataType.FLOAT);
-            if (worldName == null || x == null || y == null || z == null || yaw == null || pitch == null)
-                throw new IllegalArgumentException("Invalid Location");
-            World world = Bukkit.getWorld(worldName);
-            if (world == null)
-                throw new IllegalArgumentException("Invalid Location, world is not loaded");
-            return new Location(world, x, y, z, yaw, pitch);
-        }
-
-    };
-
     public static final PersistentDataType<byte[], UUID> UUID = new PersistentDataType<byte[], UUID>() {
 
         public Class<byte[]> getPrimitiveType() { return byte[].class; }
@@ -95,22 +60,22 @@ public final class CustomPersistentDataType {
 
     };
 
-    // Rather than throwing exceptions, print the stack trace and fail gracefully by still returning values, albeit empty ones
-    public static final PersistentDataType<PersistentDataContainer, ConfigurationSection> SECTION = new PersistentDataType<PersistentDataContainer, ConfigurationSection>() {
+    public static final PersistentDataType<String, World> WORLD = new PersistentDataType<String, World>() {
 
-        public Class<PersistentDataContainer> getPrimitiveType() { return PersistentDataContainer.class; }
-        public Class<ConfigurationSection> getComplexType() { return ConfigurationSection.class; }
+        public Class<String> getPrimitiveType() { return String.class; }
+        public Class<World> getComplexType() { return World.class; }
 
         @Override
-        public PersistentDataContainer toPrimitive(ConfigurationSection container, PersistentDataAdapterContext context) {
-            new RuntimeException("Unsupported usage of PersistentDataType#toPrimitive for ConfigurationSection").printStackTrace();
-            return context.newPersistentDataContainer();
+        public String toPrimitive(World world, PersistentDataAdapterContext context) {
+            return String.valueOf(world);
         }
 
         @Override
-        public ConfigurationSection fromPrimitive(PersistentDataContainer primitive, PersistentDataAdapterContext context) {
-            new RuntimeException("Unsupported usage of PersistentDataType#fromPrimitive for ConfigurationSection").printStackTrace();
-            return new YamlConfiguration();
+        public World fromPrimitive(String primitive, PersistentDataAdapterContext context) {
+            World world = Bukkit.getWorld(primitive);
+            if (world == null)
+                throw new IllegalArgumentException("World is not loaded: " + primitive);
+            return world;
         }
 
     };
