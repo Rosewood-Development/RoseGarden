@@ -33,9 +33,6 @@ public class ItemProvider extends AbstractItemProvider {
     @Override
     public void write(ConfigurationSection section) {
         RoseItem item = this.item.get(Context.empty());
-        if (item.isEmpty())
-            return;
-
         item.serialize(section.createSection(this.getKey()));
     }
 

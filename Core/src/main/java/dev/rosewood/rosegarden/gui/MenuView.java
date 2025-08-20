@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.bukkit.inventory.ItemStack;
 
 /**
  * Represents the view of a menu that a player is currently interacting with.
@@ -185,6 +186,10 @@ public class MenuView implements Tickable {
                 Optional<AbstractItemProvider> itemProvider = icon.getProvider(Providers.ITEM);
                 if (itemProvider.isPresent()) {
                     RoseItem item = itemProvider.get().get(context);
+                    ItemStack currentStack = this.inventory.getItem(slot);
+                    if (item.isEmpty() && currentStack != null)
+                        item = new RoseItem(currentStack).mergeWith(item);
+
                     Optional<StringPlaceholders> placeholders = context.get(Parameters.PLACEHOLDERS);
                     if (!item.isEmpty() && placeholders.isPresent())
                         item.addPlaceholders(placeholders.get());

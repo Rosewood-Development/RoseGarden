@@ -64,8 +64,7 @@ public class ModifyItemAction extends AbstractAction {
         if (!view.isPresent() || !icon.isPresent() || this.modifiedItem == null)
             return;
 
-        //icon.get().addProvider(this.modifiedItem);
-        view.get().getIcon(context.get(Parameters.SLOT).get()).addProvider(this.modifiedItem);
+        icon.get().addProvider(this.modifiedItem);
         view.get().refresh();
     }
 
