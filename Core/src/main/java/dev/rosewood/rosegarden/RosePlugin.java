@@ -7,6 +7,7 @@ import dev.rosewood.rosegarden.config.RoseSetting;
 import dev.rosewood.rosegarden.config.SettingHolder;
 import dev.rosewood.rosegarden.manager.AbstractCommandManager;
 import dev.rosewood.rosegarden.manager.AbstractDataManager;
+import dev.rosewood.rosegarden.manager.AbstractGuiManager;
 import dev.rosewood.rosegarden.manager.AbstractLocaleManager;
 import dev.rosewood.rosegarden.manager.Manager;
 import dev.rosewood.rosegarden.manager.PluginUpdateManager;
@@ -62,6 +63,7 @@ public abstract class RosePlugin extends JavaPlugin {
     private final Class<? extends AbstractDataManager> dataManagerClass;
     private final Class<? extends AbstractLocaleManager> localeManagerClass;
     private final Class<? extends AbstractCommandManager> commandManagerClass;
+    private final Class<? extends AbstractGuiManager> guiManagerClass;
 
     /**
      * The plugin managers
@@ -82,19 +84,23 @@ public abstract class RosePlugin extends JavaPlugin {
                       int bStatsId,
                       Class<? extends AbstractDataManager> dataManagerClass,
                       Class<? extends AbstractLocaleManager> localeManagerClass,
-                      Class<? extends AbstractCommandManager> commandManagerClass) {
+                      Class<? extends AbstractCommandManager> commandManagerClass,
+                      Class<? extends AbstractGuiManager> guiManagerClass) {
         if (dataManagerClass != null && Modifier.isAbstract(dataManagerClass.getModifiers()))
             throw new IllegalArgumentException("dataManagerClass cannot be abstract");
         if (localeManagerClass != null && Modifier.isAbstract(localeManagerClass.getModifiers()))
             throw new IllegalArgumentException("localeManagerClass cannot be abstract");
         if (commandManagerClass != null && Modifier.isAbstract(commandManagerClass.getModifiers()))
             throw new IllegalArgumentException("commandManagerClass cannot be abstract");
+        if (guiManagerClass != null && Modifier.isAbstract(guiManagerClass.getModifiers()))
+            throw new IllegalArgumentException("guiManagerClass cannot be abstract");
 
         this.spigotId = spigotId;
         this.bStatsId = bStatsId;
         this.dataManagerClass = dataManagerClass;
         this.localeManagerClass = localeManagerClass;
         this.commandManagerClass = commandManagerClass;
+        this.guiManagerClass = guiManagerClass;
 
         this.managers = new ConcurrentHashMap<>();
         this.managerInitializationStack = new ConcurrentLinkedDeque<>();
@@ -222,6 +228,9 @@ public abstract class RosePlugin extends JavaPlugin {
             if (this.hasCommandManager())
                 managerLoadPriority.add(this.commandManagerClass);
 
+            if (this.hasGuiManager())
+                managerLoadPriority.add(this.guiManagerClass);
+
             managerLoadPriority.addAll(this.getManagerLoadPriority());
 
             if (this.spigotId != -1)
@@ -305,6 +314,8 @@ public abstract class RosePlugin extends JavaPlugin {
             lookupClass = this.localeManagerClass;
         } else if (this.hasCommandManager() && managerClass == AbstractCommandManager.class) {
             lookupClass = this.commandManagerClass;
+        } else if (this.hasGuiManager() && managerClass == AbstractGuiManager.class) {
+            lookupClass = this.guiManagerClass;
         } else {
             lookupClass = managerClass;
         }
@@ -440,6 +451,10 @@ public abstract class RosePlugin extends JavaPlugin {
 
     public final boolean hasCommandManager() {
         return this.commandManagerClass != null;
+    }
+
+    public final boolean hasGuiManager() {
+        return this.guiManagerClass != null;
     }
 
     public static RosePlugin instance() {
