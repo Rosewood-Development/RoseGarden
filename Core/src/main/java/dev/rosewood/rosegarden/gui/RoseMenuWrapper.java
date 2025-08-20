@@ -65,7 +65,7 @@ public abstract class RoseMenuWrapper {
      * @param pageConsumer A consumer holding the {@link RoseMenu} of the page.
      */
     public void addPage(String title, int size, Consumer<RoseMenu> pageConsumer) {
-        RoseMenu page = new RoseMenu(this.rosePlugin, this.getId() + "-" + this.pages.size(), title, size);
+        RoseMenu page = new RoseMenu(this, this.getId() + "-" + this.pages.size(), title, size, this.pages.size() + 1);
         this.pages.add(page);
         pageConsumer.accept(page);
     }
@@ -78,7 +78,7 @@ public abstract class RoseMenuWrapper {
      * @param tickSpeed Values greater than 0 will allow this menu to tick, allowing for things like animations.
      */
     public void addPage(String title, int size, Consumer<RoseMenu> pageConsumer, int tickSpeed) {
-        RoseMenu page = new RoseMenu(this.rosePlugin, this.getId() + "-" + this.pages.size(), title, size, tickSpeed);
+        RoseMenu page = new RoseMenu(this, this.getId() + "-" + this.pages.size(), title, size, this.pages.size() + 1, tickSpeed);
         this.pages.add(page);
         pageConsumer.accept(page);
     }

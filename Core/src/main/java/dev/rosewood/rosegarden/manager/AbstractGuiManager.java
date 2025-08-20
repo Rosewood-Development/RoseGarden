@@ -99,6 +99,8 @@ public abstract class AbstractGuiManager extends Manager implements Listener {
             return;
 
         RoseMenu menu = wrapper.getPage(page - 1);
+        context.add(Parameters.MENU, menu);
+
         this.openMenus.put(player, menu);
         menu.open(player, context);
     }

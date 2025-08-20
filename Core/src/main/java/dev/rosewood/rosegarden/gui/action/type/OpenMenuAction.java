@@ -18,6 +18,7 @@ public class OpenMenuAction extends AbstractAction {
 
     protected final String menu;
     protected final int page;
+    protected final boolean carryContext;
 
     // Code Constructors
 
@@ -26,6 +27,7 @@ public class OpenMenuAction extends AbstractAction {
 
         this.menu = menu;
         this.page = 1;
+        this.carryContext = false;
     }
 
     public OpenMenuAction(String menu, int page) {
@@ -33,6 +35,15 @@ public class OpenMenuAction extends AbstractAction {
 
         this.menu = menu;
         this.page = page;
+        this.carryContext = false;
+    }
+
+    public OpenMenuAction(String menu, int page, boolean carryContext) {
+        super(ID);
+
+        this.menu = menu;
+        this.page = page;
+        this.carryContext = carryContext;
     }
 
     // Config Constructor
@@ -42,9 +53,11 @@ public class OpenMenuAction extends AbstractAction {
         if (section.isConfigurationSection(ID)) {
             this.menu = section.getString(ID + ".menu");
             this.page = section.getInt(ID + ".page", 1);
+            this.carryContext = section.getBoolean(ID + ".carry-context", false);
         } else {
             this.menu = section.getString(ID);
             this.page = 1;
+            this.carryContext = false;
         }
     }
 
@@ -55,6 +68,8 @@ public class OpenMenuAction extends AbstractAction {
                 section.set(ID + ".menu", this.menu);
 
             section.set(ID + ".page", page);
+            if (this.carryContext)
+                section.set(ID + ".carry-context", true);
         } else {
             section.set(ID, this.menu);
         }
@@ -68,7 +83,7 @@ public class OpenMenuAction extends AbstractAction {
         if (!player.isPresent() || !plugin.isPresent() || this.menu == null)
             return;
 
-        plugin.get().getManager(AbstractGuiManager.class).open(this.menu, player.get(), this.page);
+        plugin.get().getManager(AbstractGuiManager.class).open(this.menu, player.get(), this.page, this.carryContext ? context : null);
     }
 
     public String getMenu() {

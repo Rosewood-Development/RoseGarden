@@ -5,8 +5,10 @@ import dev.rosewood.rosegarden.gui.action.type.CommandAction;
 import dev.rosewood.rosegarden.gui.action.type.ConditionalAction;
 import dev.rosewood.rosegarden.gui.action.type.MessageAction;
 import dev.rosewood.rosegarden.gui.action.type.ModifyItemAction;
+import dev.rosewood.rosegarden.gui.action.type.NextPageAction;
 import dev.rosewood.rosegarden.gui.action.type.OpenMenuAction;
 import dev.rosewood.rosegarden.gui.action.type.PlaySoundAction;
+import dev.rosewood.rosegarden.gui.action.type.PreviousPageAction;
 import dev.rosewood.rosegarden.gui.action.type.RefreshAction;
 import org.bukkit.configuration.ConfigurationSection;
 import java.util.Collections;
@@ -27,6 +29,8 @@ public final class Actions {
     public static final ActionType<CommandAction> COMMANDS = create(CommandAction.ID, CommandAction::new);
     public static final ActionType<MessageAction> MESSAGE = create(MessageAction.ID, MessageAction::new);
     public static final ActionType<ModifyItemAction> MODIFY_ITEM = create(ModifyItemAction.ID, ModifyItemAction::new);
+    public static final ActionType<NextPageAction> NEXT_PAGE = create(NextPageAction.ID, NextPageAction::new);
+    public static final ActionType<PreviousPageAction> PREVIOUS_PAGE = create(PreviousPageAction.ID, PreviousPageAction::new);
 
     private Actions() {
 

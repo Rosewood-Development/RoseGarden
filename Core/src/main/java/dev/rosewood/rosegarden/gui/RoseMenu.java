@@ -28,25 +28,29 @@ import java.util.Optional;
  */
 public class RoseMenu extends Icon {
 
+    private final RoseMenuWrapper wrapper;
     private final RosePlugin rosePlugin;
     private final String id;
     private final List<IconHolder> icons;
     private final Map<Player, MenuView> playerViews;
+    private final int pageIndex;
     private String title;
     private int size;
     private int tickSpeed;
 
-    public RoseMenu(RosePlugin rosePlugin, String id, String title, int size) {
-        this.rosePlugin = rosePlugin;
+    protected RoseMenu(RoseMenuWrapper wrapper, String id, String title, int size, int pageIndex) {
+        this.wrapper = wrapper;
+        this.rosePlugin = wrapper.rosePlugin;
         this.id = id;
         this.title = title;
         this.size = MenuUtils.roundSize(size);
         this.icons = new ArrayList<>();
         this.playerViews = new HashMap<>();
+        this.pageIndex = pageIndex;
     }
 
-    public RoseMenu(RosePlugin rosePlugin, String id, String title, int size, int tickSpeed) {
-        this(rosePlugin, id, title, size);
+    protected RoseMenu(RoseMenuWrapper wrapper, String id, String title, int size, int pageIndex, int tickSpeed) {
+        this(wrapper, id, title, size, pageIndex);
 
         this.tickSpeed = tickSpeed;
     }
@@ -268,6 +272,10 @@ public class RoseMenu extends Icon {
         return view.getInventory();
     }
 
+    public RoseMenuWrapper getWrapper() {
+        return this.wrapper;
+    }
+
     public MenuView getView(Player player) {
         return this.playerViews.get(player);
     }
@@ -294,6 +302,10 @@ public class RoseMenu extends Icon {
 
     public int getTickSpeed() {
         return tickSpeed;
+    }
+
+    public int getPageIndex() {
+        return this.pageIndex;
     }
 
 }
