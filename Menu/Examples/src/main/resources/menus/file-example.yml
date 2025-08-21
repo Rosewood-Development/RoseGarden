@@ -1,0 +1,14 @@
+# An example menu file that's copied on plugin load
+pages:
+  '1':
+    title: '&aExample'
+    size: 54
+    tick-speed: 10
+    icons:
+      '1':
+        fill: checkered
+        item:
+          type: black_concrete
+          display-name: '<r#5:0.5>A concrete example'
+          lore:
+            - '<g#5:#8A2387:#E94057:#F27121>hehehehe'

@@ -7,7 +7,6 @@ import dev.rosewood.rosegarden.config.RoseSetting;
 import dev.rosewood.rosegarden.config.SettingHolder;
 import dev.rosewood.rosegarden.manager.AbstractCommandManager;
 import dev.rosewood.rosegarden.manager.AbstractDataManager;
-import dev.rosewood.rosegarden.manager.AbstractGuiManager;
 import dev.rosewood.rosegarden.manager.AbstractLocaleManager;
 import dev.rosewood.rosegarden.manager.Manager;
 import dev.rosewood.rosegarden.manager.PluginUpdateManager;
@@ -63,7 +62,7 @@ public abstract class RosePlugin extends JavaPlugin {
     private final Class<? extends AbstractDataManager> dataManagerClass;
     private final Class<? extends AbstractLocaleManager> localeManagerClass;
     private final Class<? extends AbstractCommandManager> commandManagerClass;
-    private final Class<? extends AbstractGuiManager> guiManagerClass;
+    private final Class<? extends Manager> guiManagerClass;
 
     /**
      * The plugin managers
@@ -84,8 +83,16 @@ public abstract class RosePlugin extends JavaPlugin {
                       int bStatsId,
                       Class<? extends AbstractDataManager> dataManagerClass,
                       Class<? extends AbstractLocaleManager> localeManagerClass,
+                      Class<? extends AbstractCommandManager> commandManagerClass) {
+        this(spigotId, bStatsId, dataManagerClass, localeManagerClass, commandManagerClass, null);
+    }
+
+    public RosePlugin(int spigotId,
+                      int bStatsId,
+                      Class<? extends AbstractDataManager> dataManagerClass,
+                      Class<? extends AbstractLocaleManager> localeManagerClass,
                       Class<? extends AbstractCommandManager> commandManagerClass,
-                      Class<? extends AbstractGuiManager> guiManagerClass) {
+                      Class<? extends Manager> guiManagerClass) {
         if (dataManagerClass != null && Modifier.isAbstract(dataManagerClass.getModifiers()))
             throw new IllegalArgumentException("dataManagerClass cannot be abstract");
         if (localeManagerClass != null && Modifier.isAbstract(localeManagerClass.getModifiers()))
@@ -167,7 +174,7 @@ public abstract class RosePlugin extends JavaPlugin {
     protected abstract void disable();
 
     /**
-     * @return the order in which Managers should be loaded, excluding
+     * @return the order in which Managers should be loaded, excluding data, locale, and command managers
      */
     @NotNull
     protected abstract List<Class<? extends Manager>> getManagerLoadPriority();
@@ -314,7 +321,7 @@ public abstract class RosePlugin extends JavaPlugin {
             lookupClass = this.localeManagerClass;
         } else if (this.hasCommandManager() && managerClass == AbstractCommandManager.class) {
             lookupClass = this.commandManagerClass;
-        } else if (this.hasGuiManager() && managerClass == AbstractGuiManager.class) {
+        } else if (this.hasGuiManager() && managerClass.getSimpleName().equals("AbstractGuiManager")) {
             lookupClass = this.guiManagerClass;
         } else {
             lookupClass = managerClass;

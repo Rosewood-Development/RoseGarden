@@ -1,0 +1,11 @@
+name: MenuExamples
+version: '@version@'
+authors: [Lilac, Esophose]
+main: dev.rosewood.menuexamples.MenuExamples
+api-version: '1.19'
+description: An example menu plugin using RoseGarden!
+softdepend: []
+permissions:
+  menuexamples.menu:
+    description: Allows opening a menu
+    default: op

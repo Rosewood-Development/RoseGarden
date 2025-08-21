@@ -1,0 +1,46 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
+plugins {
+    id 'java'
+    id 'com.gradleup.shadow' version '8.3.5'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+dependencies {
+    implementation project(':Core')
+    implementation project(':Menu:Implementation')
+
+    compileOnly "io.papermc.paper:paper-api:$spigotVersion-R0.1-SNAPSHOT"
+}
+
+jar {
+    enabled = false
+}
+
+shadowJar {
+    archiveClassifier.set(null)
+    archiveBaseName.set('MenuExamples')
+
+    // Depend on the shadowJar version of Core to include api dependencies
+    dependsOn(':Core:shadowJar')
+
+    relocate('dev.rosewood.rosegarden', 'dev.rosewood.menuexamples.lib.rosegarden')
+
+    exclude 'dev/rosewood/rosegarden/lib/bstats/**/*.class'
+    exclude 'dev/rosewood/rosegarden/lib/hikaricp/**/*.class'
+    exclude 'dev/rosewood/rosegarden/lib/slf4j/**/*.class'
+}
+
+processResources {
+    from (sourceSets.main.resources.srcDirs) {
+        include 'plugin.yml'
+        filter ReplaceTokens, tokens: ["version": project.property("version")]
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    }
+}
+
+build.dependsOn shadowJar

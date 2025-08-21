@@ -1,0 +1,20 @@
+group = 'dev.rosewood'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+dependencies {
+    compileOnly project(':Core')
+    compileOnly "io.papermc.paper:paper-api:$spigotVersion-R0.1-SNAPSHOT"
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) { publication ->
+            artifactId = 'rosegarden-menu'
+            from components.java
+        }
+    }
+}

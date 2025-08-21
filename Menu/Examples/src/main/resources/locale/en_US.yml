@@ -1,0 +1,18 @@
+# Plugin Message Prefix
+prefix: '&7[<g:#8A2387:#E94057:#F27121>{{PLUGIN_NAME}}&7] '
+
+# Generic Command Messages
+no-permission: '&cYou don''t have permission for that!'
+only-player: '&cThis command can only be executed by a player.'
+unknown-command: '&cUnknown command, use &b/%cmd% help &cfor more info.'
+unknown-command-error: '&cAn unknown error occurred; details have been printed to console. Please contact a server administrator.'
+invalid-subcommand: '&cInvalid subcommand.'
+invalid-argument: '&cInvalid argument: %message%.'
+invalid-argument-null: '&cInvalid argument: %name% was null.'
+missing-arguments: '&cMissing arguments, &b%amount% &crequired.'
+missing-arguments-extra: '&cMissing arguments, &b%amount%+ &crequired.'
+
+# Menu Command
+command-menu-description: 'Opens a menu'
+command-menu-invalid: '&b%menu% &cis not a valid menu.'
+command-menu-console: '&cThe console cannot open a menu for itself.'
