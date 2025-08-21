@@ -1,10 +1,28 @@
 package dev.rosewood.rosegarden.gui;
 
+/**
+ * Decides how a slot can be interacted with.
+ */
 public enum EditType {
 
-    ADD, // Items can be added to the slot.
-    TAKE, // Items can be taken from the slot.
-    REPLACE, // Items can be added and taken.
-    NONE // Items can not be edited.
+    /**
+     * Items can be added to the slot.
+     */
+    ADD,
+
+    /**
+     * Items can be taken from the slot.
+     */
+    TAKE,
+
+    /**
+     * Items can be added and taken to/from the slot.
+     */
+    REPLACE,
+
+    /**
+     * Items can not be moved.
+     */
+    NONE
 
 }

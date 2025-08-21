@@ -13,20 +13,28 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * An action that runs commands.
+ * An action that runs commands.<br>
  *
- * Config:
- * trigger-type:
- *   commands:
- *     - command1
- *     - command2
- * OR
- * trigger-type:
- *   commands:
- *     player:
- *       - command1
- *     console:
- *       - command2
+ * Usage:<br>
+ * <pre>
+ *     {@code
+ *     trigger-type:
+ *       commands:
+ *         - command
+ *     }
+ * </pre>
+ * OR<br>
+ * Usage:<br>
+ * <pre>
+ *     {@code
+ *     trigger-type:
+ *       commands:
+ *         player:
+ *           - command
+ *         server:
+ *           - command
+ *     }
+ * </pre>
  */
 public class CommandAction extends AbstractAction {
 

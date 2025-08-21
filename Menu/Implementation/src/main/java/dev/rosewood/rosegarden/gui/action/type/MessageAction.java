@@ -10,11 +10,14 @@ import org.bukkit.entity.Player;
 import java.util.Optional;
 
 /**
- * An action that sends a message to the player.
- *
- * Config:
- * trigger-type:
- *   message: "&esome message"
+ * An action that sends a message to the player.<br>
+ * Usage:<br>
+ * <pre>
+ *     {@code
+ *     trigger-type:
+ *       message: "&esome message"
+ *     }
+ * </pre>
  */
 public class MessageAction extends AbstractAction {
 

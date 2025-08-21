@@ -4,28 +4,28 @@ import dev.rosewood.rosegarden.RosePlugin;
 import dev.rosewood.rosegarden.gui.action.Action;
 import dev.rosewood.rosegarden.gui.fill.Fill;
 import dev.rosewood.rosegarden.gui.icon.Icon;
+import dev.rosewood.rosegarden.gui.icon.IconHolder;
+import dev.rosewood.rosegarden.gui.item.RoseItem;
 import dev.rosewood.rosegarden.gui.parameter.Context;
 import dev.rosewood.rosegarden.gui.parameter.Parameters;
-import dev.rosewood.rosegarden.gui.item.RoseItem;
 import dev.rosewood.rosegarden.gui.provider.Providers;
 import dev.rosewood.rosegarden.gui.provider.animation.MenuTicker;
 import dev.rosewood.rosegarden.gui.provider.animation.Tickable;
 import dev.rosewood.rosegarden.gui.provider.fill.AbstractFillProvider;
 import dev.rosewood.rosegarden.gui.provider.item.AbstractItemProvider;
 import dev.rosewood.rosegarden.gui.provider.slot.AbstractSlotProvider;
-import dev.rosewood.rosegarden.gui.icon.IconHolder;
 import dev.rosewood.rosegarden.hook.PlaceholderAPIHook;
 import dev.rosewood.rosegarden.utils.HexUtils;
 import dev.rosewood.rosegarden.utils.StringPlaceholders;
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.InventoryType;
-import org.bukkit.inventory.Inventory;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 /**
@@ -67,7 +67,7 @@ public class MenuView implements Tickable {
     }
 
     /**
-     * Resets this view from the serialized {@link RoseMenu}.
+     * Resets this view from the serialized {@linkplain RoseMenu}.
      */
     public void init() {
         Context context = Context.of(Parameters.PLUGIN, this.rosePlugin)
@@ -136,6 +136,9 @@ public class MenuView implements Tickable {
         }
     }
 
+    /**
+     * Updates the title of this menu view.
+     */
     public void refreshTitle() {
         if (this.player.getOpenInventory().getTopInventory() == this.inventory) {
             String title = HexUtils.colorify(PlaceholderAPIHook.applyPlaceholders(this.player, this.title));
@@ -143,6 +146,11 @@ public class MenuView implements Tickable {
         }
     }
 
+    /**
+     * Refreshes the items in the menu.<br>
+     * This updates any changes applied to the items.<br>
+     * To complete reset the menu, use {@linkplain MenuView#init()}.
+     */
     private void refreshItems() {
         Context context = Context.of(Parameters.PLUGIN, this.rosePlugin)
                 .add(Parameters.MENU, this.menu)
@@ -151,7 +159,6 @@ public class MenuView implements Tickable {
                 .addAll(this.initContext);
 
         for (int slot : this.activeIcons.keySet()) {
-
             Icon icon = this.activeIcons.get(slot);
             context.add(Parameters.ICON, icon);
 
@@ -177,7 +184,7 @@ public class MenuView implements Tickable {
             }
 
             Optional<AbstractSlotProvider> slotProvider = icon.getProvider(Providers.SLOT);
-            if (!slotProvider.isPresent())
+            if (slotProvider.isEmpty())
                 continue;
 
             List<Integer> slots = slotProvider.get().get(context);
@@ -202,6 +209,9 @@ public class MenuView implements Tickable {
         }
     }
 
+    /**
+     * Refreshes the menu items and title.
+     */
     public void refresh() {
         this.refreshTitle();
         this.refreshItems();

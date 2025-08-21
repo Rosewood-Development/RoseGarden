@@ -2,9 +2,9 @@ package dev.rosewood.rosegarden.gui.provider.trigger;
 
 import dev.rosewood.rosegarden.gui.action.Action;
 import dev.rosewood.rosegarden.gui.action.type.ConditionalAction;
-import org.bukkit.configuration.ConfigurationSection;
 import java.util.Arrays;
 import java.util.List;
+import org.bukkit.configuration.ConfigurationSection;
 
 public class ConditionalTrigger extends TriggerProvider {
 

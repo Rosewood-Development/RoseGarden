@@ -27,16 +27,16 @@ public class MenuFill implements Fill {
         this.next++;
 
         Optional<Icon> icon = context.get(Parameters.ICON);
-        if (!icon.isPresent())
+        if (icon.isEmpty())
             return new ItemProvider(RoseItem.empty());
 
-        return ItemProvider.of(RoseItem.of(Material.DIAMOND, "Fill Item " + this.next));
+        return icon.get().getProvider(Providers.ITEM).orElse(new ItemProvider(RoseItem.empty()));
     }
 
     @Override
     public AbstractSlotProvider getSlots(Context context) {
         Optional<RoseMenu> menu = context.get(Parameters.MENU);
-        if (!menu.isPresent())
+        if (menu.isEmpty())
             return null;
 
         // If the icon has slots, use those instead.

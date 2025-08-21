@@ -10,6 +10,17 @@ import java.util.Optional;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
+/**
+ * An action that opens the next page of the open menu.<br>
+ *
+ * Usage:<br>
+ * <pre>
+ *     {@code
+ *     trigger-type:
+ *       next-page: true
+ *     }
+ * </pre>
+ */
 public class NextPageAction extends AbstractAction {
 
     public static final String ID = "next-page";

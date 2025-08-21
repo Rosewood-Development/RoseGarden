@@ -14,7 +14,16 @@ import org.bukkit.configuration.ConfigurationSection;
 import java.util.Optional;
 
 /**
- * An action that modifies the clicked item.
+ * An action that modifies the clicked item.<br>
+* Usage:<br>
+* <pre>
+*     {@code
+*     trigger-type:
+*       modify-item:
+ *         item:
+ *           property: value
+*     }
+* </pre>
  */
 public class ModifyItemAction extends AbstractAction {
 
@@ -42,7 +51,8 @@ public class ModifyItemAction extends AbstractAction {
         this.modifiedItem = new ItemProvider(context -> modifiedItem);
     }
 
-    // Config Constructor
+    // Config Constructors
+
     public ModifyItemAction(ConfigurationSection section) {
         super(ID, section);
 

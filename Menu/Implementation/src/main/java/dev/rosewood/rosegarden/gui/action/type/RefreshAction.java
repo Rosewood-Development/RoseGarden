@@ -9,6 +9,14 @@ import java.util.Optional;
 
 /**
  * An action that refreshes the open menu.
+ *
+ * Usage:<br>
+ * <pre>
+ *     {@code
+ *     trigger-type:
+ *       refresh: true
+ *     }
+ * </pre>
  */
 public class RefreshAction extends AbstractAction {
 

@@ -4,11 +4,15 @@ import dev.rosewood.rosegarden.gui.action.Action;
 import dev.rosewood.rosegarden.gui.action.Actions;
 import dev.rosewood.rosegarden.gui.parameter.Context;
 import dev.rosewood.rosegarden.gui.provider.AbstractProvider;
-import org.bukkit.configuration.ConfigurationSection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import org.bukkit.configuration.ConfigurationSection;
 
+/**
+ * A {@linkplain AbstractProvider provider} that holds a list of {@linkplain Action actions}.<br>
+ * Used for calling actions when an event happens.
+ */
 public class TriggerProvider extends AbstractProvider<List<Action>> {
 
     protected final String trigger;

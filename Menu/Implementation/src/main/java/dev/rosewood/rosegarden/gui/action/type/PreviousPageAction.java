@@ -10,6 +10,17 @@ import java.util.Optional;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
+/**
+ * An action that opens the previous page of the open menu.<br>
+ *
+ * Usage:<br>
+ * <pre>
+ *     {@code
+ *     trigger-type:
+ *       previous-page: true
+ *     }
+ * </pre>
+ */
 public class PreviousPageAction extends AbstractAction {
 
     public static final String ID = "previous-page";

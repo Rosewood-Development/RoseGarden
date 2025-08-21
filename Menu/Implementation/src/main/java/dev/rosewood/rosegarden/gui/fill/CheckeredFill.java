@@ -26,7 +26,7 @@ public class CheckeredFill implements Fill {
         if (!icon.isPresent())
             return new ItemProvider(RoseItem.empty());
 
-        return (AbstractItemProvider) icon.get().getProvider(Providers.ITEM).orElse(new ItemProvider(RoseItem.empty()));
+        return icon.get().getProvider(Providers.ITEM).orElse(new ItemProvider(RoseItem.empty()));
     }
 
     @Override

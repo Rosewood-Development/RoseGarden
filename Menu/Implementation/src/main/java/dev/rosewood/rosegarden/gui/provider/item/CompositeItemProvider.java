@@ -7,10 +7,35 @@ import org.bukkit.configuration.ConfigurationSection;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Represents a configured item that can be {@linkplain RoseItem#mergeWith(RoseItem) merged} with another item.<br>
+ * A regular {@linkplain ItemProvider item provider} can be used in code and is merged automatically.<br>
+ * This allows for item definitions to contain only properties that should be changed.<br>
+ * This is used by default in configs.<br>
+ * Usage:<br>
+ * <pre>
+ *     {@code
+ *     item:
+ *       type: diamond
+ *       requires-condition
+ *         condition: '%some_condition%'
+ *         pass:
+ *           item:
+ *             display-name: "&aPass"
+ *         fail:
+ *           item:
+ *             type: stone
+ *     }
+ * </pre>
+ * This creates diamond with a different name depending on the condition.<br>
+ * See {@linkplain dev.rosewood.rosegarden.gui.item.ItemSerializer ItemSerializer} for meta serializers.
+ */
 public class CompositeItemProvider extends AbstractItemProvider {
 
     private final AbstractItemProvider initialItem;
     private final List<AbstractItemProvider> providers;
+
+    // Config Constructors
 
     public CompositeItemProvider(String key, ConfigurationSection section) {
         super(key, section);

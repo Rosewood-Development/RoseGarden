@@ -11,6 +11,24 @@ import java.util.Optional;
 
 /**
  * An action that opens a new menu.
+ * Usage:<br>
+ * <pre>
+ *     {@code
+ *     trigger-type:
+ *       open-menu: some-menu
+ *     }
+ * </pre>
+ * OR<br>
+ * Usage:<br>
+ * <pre>
+ *     {@code
+ *     trigger-type:
+ *       open-menu:
+ *         menu: some-menu
+ *         page: 1
+ *         carry-context: true
+ *     }
+ * </pre>
  */
 public class OpenMenuAction extends AbstractAction {
 
@@ -46,7 +64,8 @@ public class OpenMenuAction extends AbstractAction {
         this.carryContext = carryContext;
     }
 
-    // Config Constructor
+    // Config Constructors
+
     public OpenMenuAction(ConfigurationSection section) {
         super(ID, section);
 
@@ -83,7 +102,7 @@ public class OpenMenuAction extends AbstractAction {
         if (!player.isPresent() || !plugin.isPresent() || this.menu == null)
             return;
 
-        plugin.get().getManager(AbstractGuiManager.class).open(this.menu, player.get(), this.page, this.carryContext ? context : null);
+        plugin.get().getManager(AbstractGuiManager.class).open(this.menu, player.get(), this.page, this.carryContext ? context : Context.empty());
     }
 
     public String getMenu() {

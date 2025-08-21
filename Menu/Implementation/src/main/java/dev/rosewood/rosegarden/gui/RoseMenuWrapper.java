@@ -3,21 +3,20 @@ package dev.rosewood.rosegarden.gui;
 import dev.rosewood.rosegarden.RosePlugin;
 import dev.rosewood.rosegarden.config.CommentedFileConfiguration;
 import dev.rosewood.rosegarden.gui.icon.Icon;
+import dev.rosewood.rosegarden.gui.icon.IconHolder;
 import dev.rosewood.rosegarden.gui.parameter.Context;
 import dev.rosewood.rosegarden.gui.parameter.Parameters;
 import dev.rosewood.rosegarden.gui.provider.Provider;
 import dev.rosewood.rosegarden.gui.provider.Providers;
 import dev.rosewood.rosegarden.gui.provider.fill.AbstractFillProvider;
 import dev.rosewood.rosegarden.gui.provider.slot.AbstractSlotProvider;
-import dev.rosewood.rosegarden.gui.icon.IconHolder;
-import org.bukkit.Bukkit;
-import org.bukkit.configuration.ConfigurationSection;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import org.bukkit.configuration.ConfigurationSection;
 
 /**
  * Handles menu pages and serialization.
@@ -42,17 +41,17 @@ public abstract class RoseMenuWrapper {
     }
 
     /**
-     * Creates a menu.
-     * Override this to add icons to your menu.
-     * This method is mainly for serializing, in-game functionality should be added as {@link Provider}s.
-     * Menus will be serialized to a config file in plugin/menus/menu-name.yml
-     * These menus can be edited by users.
+     * Creates a menu.<br>
+     * Override this to add icons to your menu.<br>
+     * This method is mainly for serializing, in-game functionality should be added as {@linkplain Provider providers}.<br>
+     * Menus will be serialized to a config file in plugin/menus/menu-name.yml<br>
+     * These menus can be edited by users.<br>
      */
     public abstract void create();
 
     /**
      * @param page The page to get, starting at 0.
-     * @return A {@link RoseMenu} containing the page.
+     * @return A {@linkplain RoseMenu} containing the page.
      */
     public RoseMenu getPage(int page) {
         return this.pages.get(page);
@@ -60,31 +59,35 @@ public abstract class RoseMenuWrapper {
 
     /**
      * Adds a page to the menu.
+     *
      * @param title The title of the page.
      * @param size The size of the page.
-     * @param pageConsumer A consumer holding the {@link RoseMenu} of the page.
+     * @param pageConsumer A consumer holding the {@linkplain RoseMenu} of the page.
      */
     public void addPage(String title, int size, Consumer<RoseMenu> pageConsumer) {
-        RoseMenu page = new RoseMenu(this, this.getId() + "-" + this.pages.size(), title, size, this.pages.size() + 1);
+        RoseMenu page = new RoseMenu(this, this.getId() + "-" + this.pages.size(),
+                title, size, this.pages.size() + 1);
         this.pages.add(page);
         pageConsumer.accept(page);
     }
 
     /**
      * Adds a page to the menu.
+     *
      * @param title The title of the page.
      * @param size The size of the page.
-     * @param pageConsumer A consumer holding the {@link RoseMenu} of the page.
+     * @param pageConsumer A consumer holding the {@linkplain RoseMenu} of the page.
      * @param tickSpeed Values greater than 0 will allow this menu to tick, allowing for things like animations.
      */
     public void addPage(String title, int size, Consumer<RoseMenu> pageConsumer, int tickSpeed) {
-        RoseMenu page = new RoseMenu(this, this.getId() + "-" + this.pages.size(), title, size, this.pages.size() + 1, tickSpeed);
+        RoseMenu page = new RoseMenu(this, this.getId() + "-" + this.pages.size(),
+                title, size, this.pages.size() + 1, tickSpeed);
         this.pages.add(page);
         pageConsumer.accept(page);
     }
 
     /**
-     * Creates a new {@link RoseMenuWrapper} directly from a given file.
+     * Creates a new {@linkplain RoseMenuWrapper} directly from a given file.
      * @param file The file containing menu information.
      */
     public static RoseMenuWrapper createFromFile(RosePlugin rosePlugin, File file, String id) {
@@ -129,7 +132,7 @@ public abstract class RoseMenuWrapper {
         this.pages.clear();
 
         // Load menu config values
-        Bukkit.getLogger().info("Loading menu: " + menuId + ".yml");
+        this.rosePlugin.getLogger().info("Loading menu: " + menuId + ".yml");
         this.loadPages(menuConfig);
     }
 
@@ -187,7 +190,11 @@ public abstract class RoseMenuWrapper {
         if (!section.contains("pages") || !section.isConfigurationSection("pages"))
             return;
 
-        for (String pageId : section.getConfigurationSection("pages").getKeys(false)) {
+        ConfigurationSection pagesSection = section.getConfigurationSection("pages");
+        if (pagesSection == null)
+            return;
+
+        for (String pageId : pagesSection.getKeys(false)) {
             String title = section.getString("pages." + pageId + ".title");
             int size = section.getInt("pages." + pageId + ".size");
             int tickSpeed = section.contains("pages." + pageId + ".tick-speed")
@@ -197,7 +204,8 @@ public abstract class RoseMenuWrapper {
                 if (!section.contains("pages." + pageId + ".icons"))
                     return;
 
-                ConfigurationSection iconsSection = section.getConfigurationSection("pages." + pageId + ".icons");
+                ConfigurationSection iconsSection =
+                        section.getConfigurationSection("pages." + pageId + ".icons");
                 if (iconsSection == null)
                     return;
 
@@ -224,8 +232,11 @@ public abstract class RoseMenuWrapper {
                 icon.setEditable(iconSection.getBoolean("editable"));
 
             if (iconSection.contains("edit-type")) {
-                EditType type = EditType.valueOf(iconSection.getString("edit-type").toUpperCase());
-                icon.setEditType(type);
+                String editTypeStr = iconSection.getString("edit-type");
+                if (editTypeStr != null) {
+                    EditType type = EditType.valueOf(editTypeStr.toUpperCase());
+                    icon.setEditType(type);
+                }
             }
 
             for (Providers.ProviderType<?> providerType : Providers.getRegistry().values()) {
@@ -235,9 +246,6 @@ public abstract class RoseMenuWrapper {
                 }
             }
 
-            Context context = Context.of(Parameters.MENU, page)
-                    .add(Parameters.ICON, icon);
-
             Optional<AbstractFillProvider> fillProvider = icon.getProvider(Providers.FILL);
             if (fillProvider.isPresent()) {
                 page.fill(fillProvider.get(), icon);
@@ -246,7 +254,7 @@ public abstract class RoseMenuWrapper {
             }
 
             Optional<AbstractSlotProvider> slotProvider = icon.getProvider(Providers.SLOT);
-            if (!slotProvider.isPresent())
+            if (slotProvider.isEmpty())
                 continue;
 
             page.addIcon(slotProvider.get(), icon);

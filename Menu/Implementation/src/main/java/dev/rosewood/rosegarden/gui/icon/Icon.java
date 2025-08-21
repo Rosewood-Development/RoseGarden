@@ -62,7 +62,7 @@ public class Icon {
      * @param providerType The {@link dev.rosewood.rosegarden.gui.provider.Providers.ProviderType} that this icon may hold.
      * @return The provider if it exists.
      */
-    public <T> Optional<T> getProvider(Providers.ProviderType<?> providerType) {
+    public <T> Optional<T> getProvider(Providers.ProviderType<? extends T> providerType) {
         return Optional.ofNullable((T) this.providers.get(providerType.getType()));
     }
 

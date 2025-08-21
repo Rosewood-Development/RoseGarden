@@ -8,11 +8,15 @@ import org.bukkit.configuration.ConfigurationSection;
 import java.util.Optional;
 
 /**
- * An action that closes the currently open menu.
+ * An action that closes the currently open menu.<br>
  *
- * Config:
- * trigger-type:
- *   close-menu: true
+ * Usage:<br>
+ * <pre>
+ *     {@code
+ *     trigger-type:
+ *       close-menu: true
+ *     }
+ * </pre>
  */
 public class CloseMenuAction extends AbstractAction {
 

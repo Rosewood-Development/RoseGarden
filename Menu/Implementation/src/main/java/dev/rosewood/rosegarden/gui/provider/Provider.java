@@ -9,8 +9,9 @@ import org.bukkit.configuration.ConfigurationSection;
 public interface Provider<T> {
 
     /**
-     * Serializes a {@link Provider} to a {@link ConfigurationSection}.
-     * @param section The {@link ConfigurationSection} to serialize to.
+     * Serializes a {@linkplain Provider provider} to a {@linkplain ConfigurationSection configuration section}.
+     *
+     * @param section The {@linkplain ConfigurationSection configuration section} to serialize to.
      */
     void write(ConfigurationSection section);
 

@@ -3,6 +3,7 @@ package dev.rosewood.rosegarden.gui;
 import dev.rosewood.rosegarden.RosePlugin;
 import dev.rosewood.rosegarden.gui.fill.Fill;
 import dev.rosewood.rosegarden.gui.icon.Icon;
+import dev.rosewood.rosegarden.gui.icon.IconHolder;
 import dev.rosewood.rosegarden.gui.item.Item;
 import dev.rosewood.rosegarden.gui.parameter.Context;
 import dev.rosewood.rosegarden.gui.parameter.Parameters;
@@ -13,15 +14,14 @@ import dev.rosewood.rosegarden.gui.provider.item.AbstractItemProvider;
 import dev.rosewood.rosegarden.gui.provider.slot.AbstractSlotProvider;
 import dev.rosewood.rosegarden.gui.provider.slot.SingleSlotProvider;
 import dev.rosewood.rosegarden.gui.provider.trigger.TriggerProvider;
-import dev.rosewood.rosegarden.gui.icon.IconHolder;
 import dev.rosewood.rosegarden.manager.AbstractGuiManager;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
 
 /**
  * A menu, or menu page, that stores icons.
@@ -57,6 +57,7 @@ public class RoseMenu extends Icon {
 
     /**
      * Opens this menu for the given player.
+     *
      * @param player The player to open the menu for.
      */
     public void open(Player player) {
@@ -65,8 +66,9 @@ public class RoseMenu extends Icon {
 
     /**
      * Opens this menu for the given player.
+     *
      * @param player The player to open the menu for.
-     * @param context {@link Context} to be passed to the menu when it is opened.
+     * @param context {@linkplain Context context} to be passed to the menu when it is opened.
      *                               Used for passing custom data to the menu.
      */
     public void open(Player player, Context context) {
@@ -76,7 +78,7 @@ public class RoseMenu extends Icon {
 
             Optional<TriggerProvider> tick = this.getProvider(Providers.TICK);
             tick.ifPresent(triggerProvider ->
-                    view.setTickActions(triggerProvider.get(Context.of(Parameters.MENU, this))));
+                    view.setTickActions(triggerProvider.get(context)));
         }
 
         this.playerViews.put(player, view);
@@ -84,10 +86,11 @@ public class RoseMenu extends Icon {
     }
 
     /**
-     * Adds an {@link Item} to a slot.
+     * Adds an {@linkplain Item item} to a slot.
+     *
      * @param slot The slot to store the item in.
-     * @param item The {@link Item} to be placed in the slot.
-     * @return The {@link Icon} that will be placed in the slot.
+     * @param item The {@linkplain Item item} to be placed in the slot.
+     * @return The {@linkplain Icon icon} that will be placed in the slot.
      */
     public Icon addIcon(int slot, Item item) {
         Icon icon = new Icon(item);
@@ -99,10 +102,11 @@ public class RoseMenu extends Icon {
     }
 
     /**
-     * Adds an {@link AbstractItemProvider} to a slot.
+     * Adds an {@linkplain AbstractItemProvider item provider} to a slot.
+     *
      * @param slot The slot to store the item in.
-     * @param item The {@link Item} to be placed in the slot.
-     * @return The {@link Icon} that will be placed in the slot.
+     * @param item The {@linkplain AbstractItemProvider item provider} to be placed in the slot.
+     * @return The {@linkplain Icon icon} that will be placed in the slot.
      */
     public Icon addIcon(int slot, AbstractItemProvider item) {
         Icon icon = new Icon(item);
@@ -114,10 +118,11 @@ public class RoseMenu extends Icon {
     }
 
     /**
-     * Adds a {@link Item} to an {@link AbstractSlotProvider}.
-     * @param slot The {@link AbstractSlotProvider} to store the item in.
-     * @param item The {@link Item} to be placed in the slot.
-     * @return The {@link Icon} that will be placed in the slot.
+     * Adds an {@linkplain Item item} to a {@linkplain AbstractSlotProvider slot provider}.
+     *
+     * @param slot The {@linkplain AbstractSlotProvider slot provider} to store the item in.
+     * @param item The {@linkplain Item item} to be placed in the slot.
+     * @return The {@linkplain Icon icon} that will be placed in the slot.
      */
     public Icon addIcon(AbstractSlotProvider slot, Item item) {
         Icon icon = new Icon(item);
@@ -129,10 +134,11 @@ public class RoseMenu extends Icon {
     }
 
     /**
-     * Adds a {@link AbstractSlotProvider} to an {@link AbstractSlotProvider}.
-     * @param slot The {@link AbstractSlotProvider} to store the item in.
-     * @param item The {@link AbstractSlotProvider} to be placed in the slot.
-     * @return The {@link Icon} that will be placed in the slot.
+     * Adds an {@linkplain AbstractItemProvider item provider} to a {@linkplain AbstractSlotProvider slot provider}.
+     *
+     * @param slot The {@linkplain AbstractSlotProvider slot provider} to store the item in.
+     * @param item The {@linkplain AbstractItemProvider item provider} to be placed in the slot.
+     * @return The {@linkplain Icon icon} that will be placed in the slot.
      */
     public Icon addIcon(AbstractSlotProvider slot, AbstractItemProvider item) {
         Icon icon = new Icon(item);
@@ -144,10 +150,11 @@ public class RoseMenu extends Icon {
     }
 
     /**
-     * Adds a {@link Icon} to an {@link AbstractSlotProvider}.
-     * @param slot The {@link AbstractSlotProvider} to store the item in.
-     * @param icon The {@link Icon} to be placed in the slot.
-     * @return The {@link Icon} that will be placed in the slot.
+     * Adds an {@linkplain Icon icon} to a {@linkplain AbstractSlotProvider slot provider}.
+     *
+     * @param slot The {@linkplain AbstractSlotProvider slot provider} to store the item in.
+     * @param icon The {@linkplain Icon icon} to be placed in the slot.
+     * @return The {@linkplain Icon icon} that will be placed in the slot.
      */
     public Icon addIcon(AbstractSlotProvider slot, Icon icon) {
         icon.addProvider(slot);
@@ -159,8 +166,10 @@ public class RoseMenu extends Icon {
 
     /**
      * Fills the menu with the given fill.
-     * @param fill The {@link AbstractFillProvider} that will be used.
-     * @return The {@link Icon} that will be placed in the slots.
+     *
+     * @param fill The {@linkplain Fill fill} to use as a pattern.
+     * @param item The {@linkplain Item item} to be placed in the slots.
+     * @return The {@linkplain Icon icon} that will be placed in the slots.
      */
     public Icon fill(Fill fill, Item item) {
         Icon icon = new Icon(item);
@@ -174,8 +183,10 @@ public class RoseMenu extends Icon {
 
     /**
      * Fills the menu with the given fill.
-     * @param fill The {@link AbstractFillProvider} that will be used.
-     * @return The {@link Icon} that will be placed in the slots.
+     *
+     * @param fill The {@linkplain Fill fill} to use as a pattern.
+     * @param item The {@linkplain AbstractItemProvider item provider} to be placed in the slots.
+     * @return The {@linkplain Icon icon} that will be placed in the slots.
      */
     public Icon fill(Fill fill, AbstractItemProvider item) {
         Icon icon = new Icon(item);
@@ -189,8 +200,11 @@ public class RoseMenu extends Icon {
 
     /**
      * Fills the menu with the given fill.
-     * @param fill The {@link AbstractFillProvider} that will be used.
-     * @return The {@link Icon} that will be placed in the slots.
+     *
+     * @param fill The {@linkplain Fill fill} to use as a pattern.
+     * @param item The {@linkplain Item item} to be placed in the slots.
+     * @param slots The {@linkplain AbstractSlotProvider slot provider} to fill.
+     * @return The {@linkplain Icon icon} that will be placed in the slots.
      */
     public Icon fill(Fill fill, Item item, AbstractSlotProvider slots) {
         Icon icon = new Icon(item);
@@ -205,8 +219,11 @@ public class RoseMenu extends Icon {
 
     /**
      * Fills the menu with the given fill.
-     * @param fill The {@link AbstractFillProvider} that will be used.
-     * @return The {@link Icon} that will be placed in the slots.
+     *
+     * @param fill The {@linkplain Fill fill} that will be used.
+     * @param item The {@linkplain AbstractItemProvider item provider} to be placed in the slots.
+     * @param slots The {@linkplain AbstractSlotProvider slot provider} to fill.
+     * @return The {@linkplain Icon icon} that will be placed in the slots.
      */
     public Icon fill(Fill fill, AbstractItemProvider item, AbstractSlotProvider slots) {
         Icon icon = new Icon(item);
@@ -221,9 +238,10 @@ public class RoseMenu extends Icon {
 
     /**
      * Fills the menu with the given icon.
-     * @param fill The {@link AbstractFillProvider} to use as a pattern.
-     * @param icon The {@link Icon} to be placed in the pattern.
-     * @return The {@link Icon} that will be placed in the slots.
+     *
+     * @param fill The {@linkplain AbstractFillProvider fill provider} to use as a pattern.
+     * @param icon The {@linkplain Icon icon} to be placed in the pattern.
+     * @return The {@linkplain Icon icon} that will be placed in the slots.
      */
     protected Icon fill(AbstractFillProvider fill, Icon icon) {
         icon.addProvider(fill);
@@ -235,7 +253,8 @@ public class RoseMenu extends Icon {
 
     /**
      * Closes the menu for the given player.
-     * @param player The {@link Player} whose menu should be closed.
+     *
+     * @param player The {@linkplain Player player} whose menu should be closed.
      */
     public void close(Player player) {
         MenuView view = this.playerViews.remove(player);
@@ -246,10 +265,11 @@ public class RoseMenu extends Icon {
     }
 
     /**
-     * Grab the {@link Icon} at the given slot for the given player.
-     * @param player The {@link Player} who has this menu open.
-     * @param slot The slot to get the {@link Icon} of.
-     * @return The {@link Icon} that was in the slot.
+     * Grab the {@linkplain Icon icon} at the given slot for the given player.
+     *
+     * @param player The {@linkplain Player player} who has this menu open.
+     * @param slot The slot to get the {@linkplain Icon icon} of.
+     * @return The {@linkplain Icon icon} that was in the slot.
      *          This may be null if there is no icon in the slot.
      */
     public Icon getIcon(Player player, int slot) {
@@ -261,8 +281,8 @@ public class RoseMenu extends Icon {
     }
 
     /**
-     * @param player The {@link Player} who has this menu open.
-     * @return The open inventory as a Bukkit {@link Inventory}.
+     * @param player The {@linkplain Player player} who has this menu open.
+     * @return The open inventory as a Bukkit {@linkplain Inventory inventory}.
      */
     public Inventory asInventory(Player player) {
         MenuView view = this.playerViews.get(player);

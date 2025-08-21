@@ -2,6 +2,15 @@ package dev.rosewood.rosegarden.gui.provider.slot;
 
 import org.bukkit.configuration.ConfigurationSection;
 
+/**
+ * Represents a single slot in an inventory.<br>
+ * Serializes as:<br>
+ * <pre>
+ *     {@code
+ *     slot: 0
+ *     }
+ * </pre>
+ */
 public class SingleSlotProvider extends AbstractSlotProvider {
 
     public static final String ID = "slot";

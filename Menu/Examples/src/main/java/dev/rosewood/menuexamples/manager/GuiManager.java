@@ -1,5 +1,6 @@
 package dev.rosewood.menuexamples.manager;
 
+import dev.rosewood.menuexamples.gui.ExampleMenu;
 import dev.rosewood.menuexamples.gui.model.Filter;
 import dev.rosewood.menuexamples.gui.ListMenu;
 import dev.rosewood.menuexamples.gui.model.Title;
@@ -42,7 +43,7 @@ public class GuiManager extends AbstractGuiManager {
 
     @Override
     public List<Function<RosePlugin, RoseMenuWrapper>> getMenus() {
-        return List.of(ListMenu::new);
+        return List.of(ListMenu::new, ExampleMenu::new);
     }
 
 }

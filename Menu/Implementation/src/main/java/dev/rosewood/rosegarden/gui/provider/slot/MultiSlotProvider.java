@@ -1,11 +1,21 @@
 package dev.rosewood.rosegarden.gui.provider.slot;
 
-import org.bukkit.configuration.ConfigurationSection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import org.bukkit.configuration.ConfigurationSection;
 
+/**
+ * Represents multiple slots in an inventory.<br>
+ * Serializes as:<br>
+ * <pre>
+ *     {@code
+ *     slots:
+ *       - 10-14
+ *     }
+ * </pre>
+ */
 public class MultiSlotProvider extends AbstractSlotProvider {
 
     public static final String ID = "slots";

@@ -10,16 +10,20 @@ import org.bukkit.configuration.ConfigurationSection;
 import java.util.List;
 
 /**
- * An action which runs other actions based on whether a {@link Condition} passes or fails.
+ * An action which runs other actions based on whether a {@linkplain Condition condition} passes or fails.<br>
  *
- * Config:
- * trigger-type:
- *   requires-condition:
- *     condition: "%some_condition%"
- *     pass:
- *       another-action: true
- *     fail:
- *       another-action: true
+ * Usage:<br>
+ * <pre>
+ *     {@code
+ *     trigger-type:
+ *       requires-condition:
+ *         condition: "%some_condition%"
+ *         pass:
+ *           another-action: true
+ *         fail:
+ *           another-action: true
+ *     }
+ * </pre>
  */
 public class ConditionalAction extends AbstractAction {
 

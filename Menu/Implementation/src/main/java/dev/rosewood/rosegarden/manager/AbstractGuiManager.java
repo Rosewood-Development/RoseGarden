@@ -2,19 +2,35 @@ package dev.rosewood.rosegarden.manager;
 
 import dev.rosewood.rosegarden.RosePlugin;
 import dev.rosewood.rosegarden.gui.EditType;
-import dev.rosewood.rosegarden.gui.icon.Icon;
 import dev.rosewood.rosegarden.gui.MenuView;
 import dev.rosewood.rosegarden.gui.RoseMenu;
 import dev.rosewood.rosegarden.gui.RoseMenuWrapper;
+import dev.rosewood.rosegarden.gui.icon.Icon;
 import dev.rosewood.rosegarden.gui.item.RoseItem;
 import dev.rosewood.rosegarden.gui.parameter.Context;
 import dev.rosewood.rosegarden.gui.parameter.Parameters;
 import dev.rosewood.rosegarden.gui.persistence.InventoryContainerType;
 import dev.rosewood.rosegarden.gui.provider.Providers;
 import dev.rosewood.rosegarden.gui.provider.item.AbstractItemProvider;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.JarURLConnection;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import java.util.stream.Stream;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
@@ -26,23 +42,9 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.JarURLConnection;
-import java.net.URL;
-import java.net.URLConnection;
-import java.nio.file.Files;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 
 public abstract class AbstractGuiManager extends Manager implements Listener {
 
@@ -62,8 +64,9 @@ public abstract class AbstractGuiManager extends Manager implements Listener {
 
     /**
      * Opens the given menu at page 1 for the player.
+     *
      * @param id The ID of the menu to open.
-     * @param player The {@link Player} who should see the menu.
+     * @param player The {@linkplain Player player} who should see the menu.
      */
     public void open(String id, Player player) {
         this.open(id.toLowerCase(), player, 1);
@@ -71,9 +74,10 @@ public abstract class AbstractGuiManager extends Manager implements Listener {
 
     /**
      * Opens the given menu at page 1 for the player.
+     *
      * @param id The ID of the menu to open.
-     * @param player The {@link Player} who should see the menu.
-     * @param context The {@link Context} to open the menu with, used for passing custom data.
+     * @param player The {@linkplain Player player} who should see the menu.
+     * @param context The {@linkplain Context context} to open the menu with, used for passing custom data.
      */
     public void open(String id, Player player, Context context) {
         this.open(id.toLowerCase(), player, 1, context);
@@ -81,8 +85,9 @@ public abstract class AbstractGuiManager extends Manager implements Listener {
 
     /**
      * Opens the given menu at the given page for the player.
+     *
      * @param id The ID of the menu to open.
-     * @param player The {@link Player} who should see the menu.
+     * @param player The {@linkplain Player player} who should see the menu.
      * @param page The page of the menu that should be opened. Pages start at index 1.
      */
     public void open(String id, Player player, int page) {
@@ -90,11 +95,12 @@ public abstract class AbstractGuiManager extends Manager implements Listener {
     }
 
     /**
-     * Opens the given menu at page 1 for the player.
+     * Opens the given menu at the given page for the player.
+     *
      * @param id The ID of the menu to open.
-     * @param player The {@link Player} who should see the menu.
+     * @param player The {@linkplain Player player} who should see the menu.
      * @param page The page of the menu that should be opened. Pages start at index 1.
-     * @param context The {@link Context} to open the menu with, used for passing custom data.
+     * @param context The {@linkplain Context context} to open the menu with, used for passing custom data.
      */
     public void open(String id, Player player, int page, Context context) {
         RoseMenuWrapper wrapper = this.menus.get(id.toLowerCase());
@@ -104,8 +110,9 @@ public abstract class AbstractGuiManager extends Manager implements Listener {
 
     /**
      * Opens the given menu at page 1 for the player.
+     *
      * @param wrapper The wrapper of the menu to open.
-     * @param player The {@link Player} who should see the menu.
+     * @param player The {@linkplain Player player} who should see the menu.
      */
     public void open(RoseMenuWrapper wrapper, Player player) {
         this.open(wrapper, player, 1);
@@ -113,9 +120,10 @@ public abstract class AbstractGuiManager extends Manager implements Listener {
 
     /**
      * Opens the given menu at page 1 for the player.
+     *
      * @param wrapper The wrapper of the menu to open.
-     * @param player The {@link Player} who should see the menu.
-     * @param context The {@link Context} to open the menu with, used for passing custom data.
+     * @param player The {@linkplain Player player} who should see the menu.
+     * @param context The {@linkplain Context context} to open the menu with, used for passing custom data.
      */
     public void open(RoseMenuWrapper wrapper, Player player, Context context) {
         this.open(wrapper, player, 1, context);
@@ -123,8 +131,9 @@ public abstract class AbstractGuiManager extends Manager implements Listener {
 
     /**
      * Opens the given menu at the given page for the player.
+     *
      * @param wrapper The wrapper of the menu to open.
-     * @param player The {@link Player} who should see the menu.
+     * @param player The {@linkplain Player player} who should see the menu.
      * @param page The page of the menu that should be opened. Pages start at index 1.
      */
     public void open(RoseMenuWrapper wrapper, Player player, int page) {
@@ -132,11 +141,12 @@ public abstract class AbstractGuiManager extends Manager implements Listener {
     }
 
     /**
-     * Opens the given menu at page 1 for the player.
+     * Opens the given menu at the given page for the player.
+     *
      * @param wrapper The wrapper of the menu to open.
-     * @param player The {@link Player} who should see the menu.
+     * @param player The {@linkplain Player player} who should see the menu.
      * @param page The page of the menu that should be opened. Pages start at index 1.
-     * @param context The {@link Context} to open the menu with, used for passing custom data.
+     * @param context The {@linkplain Context context} to open the menu with, used for passing custom data.
      */
     public void open(RoseMenuWrapper wrapper, Player player, int page, Context context) {
         RoseMenu menu = wrapper.getPage(page - 1);
@@ -148,6 +158,7 @@ public abstract class AbstractGuiManager extends Manager implements Listener {
 
     /**
      * Closes the menu for a player.
+     *
      * @param player The player to close the menu for.
      */
     public void close(Player player) {
@@ -156,8 +167,8 @@ public abstract class AbstractGuiManager extends Manager implements Listener {
     }
 
     /**
-     * Called before registering menus.
-     * Used for registering custom {@link Providers}, {@link dev.rosewood.rosegarden.gui.action.Actions}, etc.
+     * Called before registering menus.<br>
+     * Used for registering custom {@linkplain Providers providers}, {@linkplain dev.rosewood.rosegarden.gui.action.Actions actions}, etc.
      */
     protected abstract void setup();
 
@@ -186,7 +197,8 @@ public abstract class AbstractGuiManager extends Manager implements Listener {
             files.filter(Files::isRegularFile).forEach(path -> {
                 File file = path.toFile();
 
-                String parent = file.getParentFile().getName().equalsIgnoreCase("menus") ? "" : file.getParentFile().getName() + "/";
+                String parent = file.getParentFile().getName().equalsIgnoreCase("menus") ?
+                        "" : file.getParentFile().getName() + "/";
                 String id = (parent + file.getName().replace(".yml", "")).toLowerCase();
                 if (this.menus.containsKey(id))
                     return;
@@ -195,7 +207,8 @@ public abstract class AbstractGuiManager extends Manager implements Listener {
                 this.menus.put(id, menu);
             });
         } catch (IOException e) {
-            e.printStackTrace();
+            this.rosePlugin.getLogger()
+                    .warning("Error occurred while trying to load menu: " + e.getMessage());
         }
     }
 
@@ -225,7 +238,8 @@ public abstract class AbstractGuiManager extends Manager implements Listener {
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            this.rosePlugin.getLogger()
+                    .warning("Error occurred while trying to copy pre-made menu: " + e.getMessage());
         }
     }
 
@@ -235,7 +249,7 @@ public abstract class AbstractGuiManager extends Manager implements Listener {
     }
 
     /**
-     * @param player The {@link Player} to use.
+     * @param player The {@linkplain Player player} to use.
      * @return The menu that is open for this player.
      */
     public RoseMenu getOpenMenu(Player player) {
@@ -250,7 +264,7 @@ public abstract class AbstractGuiManager extends Manager implements Listener {
     }
 
     /**
-     * @return A list of {@link RoseMenuWrapper} menus to be used by this plugin.
+     * @return A list of {@linkplain RoseMenuWrapper menus} to be used by this plugin.
      */
     public abstract List<Function<RosePlugin, RoseMenuWrapper>> getMenus();
 
@@ -301,7 +315,8 @@ public abstract class AbstractGuiManager extends Manager implements Listener {
         Optional<AbstractItemProvider> itemProvider = icon.getProvider(Providers.ITEM);
         Context context = Context.of(Parameters.ICON, icon)
                 .add(Parameters.SLOT, event.getSlot())
-                .add(Parameters.ITEM, itemProvider.map(abstractItemProvider -> abstractItemProvider.get(Context.empty())).orElse(null))
+                .add(Parameters.ITEM, itemProvider.map(abstractItemProvider ->
+                        abstractItemProvider.get(Context.empty())).orElse(null))
                 .add(Parameters.MENU, menu)
                 .add(Parameters.VIEW, view)
                 .add(Parameters.PLAYER, player)
@@ -316,7 +331,10 @@ public abstract class AbstractGuiManager extends Manager implements Listener {
             if (!pdc.has(key))
                 pdc.set(key, this.inventoryContainerType, new HashMap<>());
 
-            RoseItem item = itemProvider.isPresent() ? new RoseItem(menu.asInventory(player).getItem(event.getSlot())) : RoseItem.empty();
+            Inventory bukkitInventory = menu.asInventory(player);
+            ItemStack currentStack = bukkitInventory.getItem(event.getSlot());
+            RoseItem item = itemProvider.isPresent() && currentStack != null ?
+                    new RoseItem(currentStack) : RoseItem.empty();
             Map<Integer, RoseItem> persistentItems = pdc.get(key, this.inventoryContainerType);
             if (persistentItems == null)
                 return;
@@ -376,7 +394,8 @@ public abstract class AbstractGuiManager extends Manager implements Listener {
         for (Icon icon : menu.getView(player).getActiveIcons().values()) {
             Optional<AbstractItemProvider> itemProvider = icon.getProvider(Providers.ITEM);
             context.add(Parameters.ICON, icon)
-                    .add(Parameters.ITEM, itemProvider.map(abstractItemProvider -> abstractItemProvider.get(Context.empty())).orElse(null));
+                    .add(Parameters.ITEM, itemProvider.map(abstractItemProvider ->
+                            abstractItemProvider.get(Context.empty())).orElse(null));
 
             icon.call(Providers.ON_OPEN.getKey(), context);
 
@@ -424,7 +443,8 @@ public abstract class AbstractGuiManager extends Manager implements Listener {
         for (Icon icon : menu.getView(player).getActiveIcons().values()) {
             Optional<AbstractItemProvider> itemProvider = icon.getProvider(Providers.ITEM);
             context.add(Parameters.ICON, icon)
-                    .add(Parameters.ITEM, itemProvider.map(abstractItemProvider -> abstractItemProvider.get(Context.empty())).orElse(null));
+                    .add(Parameters.ITEM, itemProvider.map(abstractItemProvider
+                            -> abstractItemProvider.get(Context.empty())).orElse(null));
 
             icon.call(Providers.ON_CLOSE.getKey(), context);
         }

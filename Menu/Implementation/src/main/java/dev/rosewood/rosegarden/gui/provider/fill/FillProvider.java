@@ -7,7 +7,7 @@ import dev.rosewood.rosegarden.gui.parameter.Context;
 import org.bukkit.configuration.ConfigurationSection;
 
 /**
- * A fill that fills the entire menu.
+ * A provider used for placing multiple items in slots at the same time.
  */
 public class FillProvider extends AbstractFillProvider {
 

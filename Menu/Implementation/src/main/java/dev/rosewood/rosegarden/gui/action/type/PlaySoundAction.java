@@ -9,7 +9,25 @@ import org.bukkit.entity.Player;
 import java.util.Optional;
 
 /**
- * An action that plays a sound to a player.
+ * An action that plays a sound to a player.<br>
+ * Usage:<br>
+ * <pre>
+ *     {@code
+ *     trigger-type:
+ *       play-sound: minecraft:block.note_block.pling
+ *     }
+ * </pre>
+ * OR<br>
+ * Usage:<br>
+ * <pre>
+ *     {@code
+ *     trigger-type:
+ *       play-sound:
+ *         sound: minecraft:block.note_block.pling
+ *         volume: 1.0
+ *         pitch: 1.0
+ *     }
+ * </pre>
  */
 public class PlaySoundAction extends AbstractAction {
 

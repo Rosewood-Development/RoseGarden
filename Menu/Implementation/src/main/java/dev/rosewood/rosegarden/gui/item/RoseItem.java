@@ -237,7 +237,7 @@ public class RoseItem implements Item {
     // Display Name
 
     public RoseItem setDisplayName(String name) {
-        this.meta.setDisplayName(name);
+        this.meta.setDisplayName(name.isEmpty() ? "&r" : name);
         return this;
     }
 
