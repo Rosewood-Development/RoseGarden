@@ -28,7 +28,8 @@ shadowJar {
     // Depend on the shadowJar version of Core to include api dependencies
     dependsOn(':Core:shadowJar')
 
-    relocate('dev.rosewood.rosegarden', 'dev.rosewood.menuexamples.lib.rosegarden')
+    // Commented out to allow remote debugging
+    //relocate('dev.rosewood.rosegarden', 'dev.rosewood.menuexamples.lib.rosegarden')
 
     exclude 'dev/rosewood/rosegarden/lib/bstats/**/*.class'
     exclude 'dev/rosewood/rosegarden/lib/hikaricp/**/*.class'

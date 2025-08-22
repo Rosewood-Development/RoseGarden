@@ -27,6 +27,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.jar.JarEntry;
@@ -42,9 +43,12 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
+import org.jetbrains.annotations.ApiStatus;
 
 public abstract class AbstractGuiManager extends Manager implements Listener {
 
@@ -67,9 +71,10 @@ public abstract class AbstractGuiManager extends Manager implements Listener {
      *
      * @param id The ID of the menu to open.
      * @param player The {@linkplain Player player} who should see the menu.
+     * @return The opened MenuView or null if a RoseMenuWrapper with the given ID was not found
      */
-    public void open(String id, Player player) {
-        this.open(id.toLowerCase(), player, 1);
+    public MenuView open(String id, Player player) {
+        return this.open(id.toLowerCase(), player, 1);
     }
 
     /**
@@ -78,9 +83,10 @@ public abstract class AbstractGuiManager extends Manager implements Listener {
      * @param id The ID of the menu to open.
      * @param player The {@linkplain Player player} who should see the menu.
      * @param context The {@linkplain Context context} to open the menu with, used for passing custom data.
+     * @return The opened MenuView or null if a RoseMenuWrapper with the given ID was not found
      */
-    public void open(String id, Player player, Context context) {
-        this.open(id.toLowerCase(), player, 1, context);
+    public MenuView open(String id, Player player, Context context) {
+        return this.open(id.toLowerCase(), player, 1, context);
     }
 
     /**
@@ -89,9 +95,10 @@ public abstract class AbstractGuiManager extends Manager implements Listener {
      * @param id The ID of the menu to open.
      * @param player The {@linkplain Player player} who should see the menu.
      * @param page The page of the menu that should be opened. Pages start at index 1.
+     * @return The opened MenuView or null if a RoseMenuWrapper with the given ID was not found
      */
-    public void open(String id, Player player, int page) {
-        this.open(id, player, page, Context.empty());
+    public MenuView open(String id, Player player, int page) {
+        return this.open(id, player, page, Context.empty());
     }
 
     /**
@@ -101,11 +108,13 @@ public abstract class AbstractGuiManager extends Manager implements Listener {
      * @param player The {@linkplain Player player} who should see the menu.
      * @param page The page of the menu that should be opened. Pages start at index 1.
      * @param context The {@linkplain Context context} to open the menu with, used for passing custom data.
+     * @return The opened MenuView or null if a RoseMenuWrapper with the given ID was not found
      */
-    public void open(String id, Player player, int page, Context context) {
+    public MenuView open(String id, Player player, int page, Context context) {
         RoseMenuWrapper wrapper = this.menus.get(id.toLowerCase());
         if (wrapper != null)
-            this.open(wrapper, player, page, context);
+            return this.open(wrapper, player, page, context);
+        return null;
     }
 
     /**
@@ -113,9 +122,10 @@ public abstract class AbstractGuiManager extends Manager implements Listener {
      *
      * @param wrapper The wrapper of the menu to open.
      * @param player The {@linkplain Player player} who should see the menu.
+     * @return The opened MenuView
      */
-    public void open(RoseMenuWrapper wrapper, Player player) {
-        this.open(wrapper, player, 1);
+    public MenuView open(RoseMenuWrapper wrapper, Player player) {
+        return this.open(wrapper, player, 1);
     }
 
     /**
@@ -124,9 +134,10 @@ public abstract class AbstractGuiManager extends Manager implements Listener {
      * @param wrapper The wrapper of the menu to open.
      * @param player The {@linkplain Player player} who should see the menu.
      * @param context The {@linkplain Context context} to open the menu with, used for passing custom data.
+     * @return The opened MenuView
      */
-    public void open(RoseMenuWrapper wrapper, Player player, Context context) {
-        this.open(wrapper, player, 1, context);
+    public MenuView open(RoseMenuWrapper wrapper, Player player, Context context) {
+        return this.open(wrapper, player, 1, context);
     }
 
     /**
@@ -135,9 +146,10 @@ public abstract class AbstractGuiManager extends Manager implements Listener {
      * @param wrapper The wrapper of the menu to open.
      * @param player The {@linkplain Player player} who should see the menu.
      * @param page The page of the menu that should be opened. Pages start at index 1.
+     * @return The opened MenuView
      */
-    public void open(RoseMenuWrapper wrapper, Player player, int page) {
-        this.open(wrapper, player, page, Context.empty());
+    public MenuView open(RoseMenuWrapper wrapper, Player player, int page) {
+        return this.open(wrapper, player, page, Context.empty());
     }
 
     /**
@@ -147,23 +159,43 @@ public abstract class AbstractGuiManager extends Manager implements Listener {
      * @param player The {@linkplain Player player} who should see the menu.
      * @param page The page of the menu that should be opened. Pages start at index 1.
      * @param context The {@linkplain Context context} to open the menu with, used for passing custom data.
+     * @return The opened MenuView
      */
-    public void open(RoseMenuWrapper wrapper, Player player, int page, Context context) {
+    public MenuView open(RoseMenuWrapper wrapper, Player player, int page, Context context) {
         RoseMenu menu = wrapper.getPage(page - 1);
         context.add(Parameters.MENU, menu);
 
+        // Close any existing menu
+        MenuView openView = this.getOpenView(player);
+        if (openView != null)
+            openView.close(true);
+
         this.openMenus.put(player, menu);
-        menu.open(player, context);
+        return menu.handleOpen(player, context);
     }
 
     /**
-     * Closes the menu for a player.
+     * Closes any open menu for a player.
      *
      * @param player The player to close the menu for.
      */
     public void close(Player player) {
-        player.closeInventory();
-        this.openMenus.remove(player);
+        MenuView openView = this.getOpenView(player);
+        if (openView != null)
+            openView.close();
+    }
+
+    /**
+     * Marks a specific menu as closed if the player has it open.
+     *
+     * @param menu The menu expected to be closed.
+     * @param player The player to close the menu for.
+     */
+    @ApiStatus.Internal
+    public void handleClose(RoseMenu menu, Player player) {
+        RoseMenu openMenu = this.openMenus.get(player);
+        if (Objects.equals(menu, openMenu))
+            this.openMenus.remove(player);
     }
 
     /**
@@ -250,17 +282,28 @@ public abstract class AbstractGuiManager extends Manager implements Listener {
 
     /**
      * @param player The {@linkplain Player player} to use.
-     * @return The menu that is open for this player.
+     * @return The menu that is open for this player, or null.
      */
     public RoseMenu getOpenMenu(Player player) {
         return this.openMenus.get(player);
     }
 
     /**
-     * @return The menus that are currently open by all players.
+     * @param player The {@linkplain Player player} to use.
+     * @return The menu view that is open for this player, or null.
+     */
+    public MenuView getOpenView(Player player) {
+        RoseMenu openMenu = this.getOpenMenu(player);
+        if (openMenu != null)
+            return openMenu.getView(player);
+        return null;
+    }
+
+    /**
+     * @return An unmodifiable map of the menus that are currently open by all players.
      */
     public Map<Player, RoseMenu> getOpenMenus() {
-        return this.openMenus;
+        return Collections.unmodifiableMap(this.openMenus);
     }
 
     /**
@@ -424,32 +467,19 @@ public abstract class AbstractGuiManager extends Manager implements Listener {
     @EventHandler
     public void onInventoryClose(InventoryCloseEvent event) {
         Player player = (Player) event.getPlayer();
+        MenuView openView = this.getOpenView(player);
+        if (openView != null && openView.getInventory().equals(event.getInventory()))
+            openView.close();
+    }
 
-        RoseMenu menu = this.getOpenMenu(player);
-        if (menu == null || menu.asInventory(player) == null)
-            return;
+    @EventHandler
+    public void onPlayerTeleport(PlayerQuitEvent event) {
+        this.close(event.getPlayer());
+    }
 
-        if (!menu.asInventory(player).equals(event.getInventory()))
-            return;
-
-        Context context = Context.of(Parameters.MENU, menu)
-                .add(Parameters.VIEW, menu.getView(player))
-                .add(Parameters.PLAYER, player)
-                .add(Parameters.PLUGIN, this.rosePlugin)
-                .addAll(menu.getView(player).getInitContext());
-
-        menu.call(Providers.ON_CLOSE.getKey(), context);
-
-        for (Icon icon : menu.getView(player).getActiveIcons().values()) {
-            Optional<AbstractItemProvider> itemProvider = icon.getProvider(Providers.ITEM);
-            context.add(Parameters.ICON, icon)
-                    .add(Parameters.ITEM, itemProvider.map(abstractItemProvider
-                            -> abstractItemProvider.get(Context.empty())).orElse(null));
-
-            icon.call(Providers.ON_CLOSE.getKey(), context);
-        }
-
-        menu.getView(player).close();
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        this.close(event.getPlayer());
     }
 
     private String getTrigger(ClickType clickType) {

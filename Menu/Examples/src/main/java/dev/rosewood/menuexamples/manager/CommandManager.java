@@ -1,8 +1,8 @@
 package dev.rosewood.menuexamples.manager;
 
 import dev.rosewood.menuexamples.command.MenuCommand;
+import dev.rosewood.menuexamples.command.ReloadMenusCommand;
 import dev.rosewood.rosegarden.RosePlugin;
-import dev.rosewood.rosegarden.command.ReloadCommand;
 import dev.rosewood.rosegarden.command.framework.BaseRoseCommand;
 import dev.rosewood.rosegarden.manager.AbstractCommandManager;
 import java.util.List;
@@ -16,7 +16,7 @@ public class CommandManager extends AbstractCommandManager {
 
     @Override
     public List<Function<RosePlugin, BaseRoseCommand>> getRootCommands() {
-        return List.of(MenuCommand::new, ReloadCommand::new);
+        return List.of(MenuCommand::new, ReloadMenusCommand::new);
     }
 
 }

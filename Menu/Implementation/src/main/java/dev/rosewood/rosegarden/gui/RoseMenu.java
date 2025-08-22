@@ -6,7 +6,6 @@ import dev.rosewood.rosegarden.gui.icon.Icon;
 import dev.rosewood.rosegarden.gui.icon.IconHolder;
 import dev.rosewood.rosegarden.gui.item.Item;
 import dev.rosewood.rosegarden.gui.parameter.Context;
-import dev.rosewood.rosegarden.gui.parameter.Parameters;
 import dev.rosewood.rosegarden.gui.provider.Providers;
 import dev.rosewood.rosegarden.gui.provider.fill.AbstractFillProvider;
 import dev.rosewood.rosegarden.gui.provider.fill.FillProvider;
@@ -22,6 +21,7 @@ import java.util.Map;
 import java.util.Optional;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
+import org.jetbrains.annotations.ApiStatus;
 
 /**
  * A menu, or menu page, that stores icons.
@@ -60,8 +60,8 @@ public class RoseMenu extends Icon {
      *
      * @param player The player to open the menu for.
      */
-    public void open(Player player) {
-        this.open(player, Context.empty());
+    public MenuView open(Player player) {
+        return this.open(player, Context.empty());
     }
 
     /**
@@ -70,8 +70,14 @@ public class RoseMenu extends Icon {
      * @param player The player to open the menu for.
      * @param context {@linkplain Context context} to be passed to the menu when it is opened.
      *                               Used for passing custom data to the menu.
+     * @return The opened MenuView
      */
-    public void open(Player player, Context context) {
+    public MenuView open(Player player, Context context) {
+        return this.rosePlugin.getManager(AbstractGuiManager.class).open(this.id, player, context);
+    }
+
+    @ApiStatus.Internal
+    public MenuView handleOpen(Player player, Context context) {
         MenuView view = new MenuView(this.rosePlugin, player, this, context);
         if (this.tickSpeed != 0) {
             view.setTicking(this.tickSpeed);
@@ -83,6 +89,7 @@ public class RoseMenu extends Icon {
 
         this.playerViews.put(player, view);
         view.open();
+        return view;
     }
 
     /**
@@ -252,16 +259,15 @@ public class RoseMenu extends Icon {
     }
 
     /**
-     * Closes the menu for the given player.
+     * Handles the menu closing for the given player.
      *
-     * @param player The {@linkplain Player player} whose menu should be closed.
+     * @param player The {@linkplain Player player} whose menu is being closed.
      */
     public void close(Player player) {
         MenuView view = this.playerViews.remove(player);
-        if (view.getTicker() != null)
-            view.getTicker().cancel();
-
-        this.rosePlugin.getManager(AbstractGuiManager.class).close(player);
+        if (view != null)
+            view.close();
+        this.rosePlugin.getManager(AbstractGuiManager.class).handleClose(this, player);
     }
 
     /**

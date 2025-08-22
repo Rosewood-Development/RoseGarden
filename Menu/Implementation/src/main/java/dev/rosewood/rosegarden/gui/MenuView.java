@@ -43,12 +43,13 @@ public class MenuView implements Tickable {
     private List<Action> tickActions;
     private MenuTicker ticker;
     private String title;
+    private boolean closed;
 
-    public MenuView(RosePlugin rosePlugin, Player player, RoseMenu menu) {
+    protected MenuView(RosePlugin rosePlugin, Player player, RoseMenu menu) {
         this(rosePlugin, player, menu, Context.empty());
     }
 
-    public MenuView(RosePlugin rosePlugin, Player player, RoseMenu menu, Context initContext) {
+    protected MenuView(RosePlugin rosePlugin, Player player, RoseMenu menu, Context initContext) {
         this.rosePlugin = rosePlugin;
         this.player = player;
         this.menu = menu;
@@ -217,18 +218,54 @@ public class MenuView implements Tickable {
         this.refreshItems();
     }
 
-    public void open() {
+    protected void open() {
+        if (this.closed)
+            throw new IllegalStateException("This MenuView is closed and cannot be reused");
         this.player.openInventory(this.inventory);
     }
 
     public void close() {
+        this.close(false);
+    }
+
+    /**
+     * Closes the menu for a player.
+     * @param transitioning If true, the menu will be forced closed. Set to false if transitioning to a different menu.
+     */
+    public void close(boolean transitioning) {
+        if (this.closed)
+            return;
+
+        this.closed = true;
         if (this.ticker != null)
             this.ticker.cancel();
+
+        Context context = Context.of(Parameters.MENU, this.menu)
+                .add(Parameters.VIEW, this)
+                .add(Parameters.PLAYER, this.player)
+                .add(Parameters.PLUGIN, this.rosePlugin)
+                .addAll(this.initContext);
+
+        this.menu.call(Providers.ON_CLOSE.getKey(), context);
+
+        for (Icon icon : this.activeIcons.values()) {
+            Optional<AbstractItemProvider> itemProvider = icon.getProvider(Providers.ITEM);
+            context.add(Parameters.ICON, icon)
+                    .add(Parameters.ITEM, itemProvider.map(abstractItemProvider
+                            -> abstractItemProvider.get(Context.empty())).orElse(null));
+
+            icon.call(Providers.ON_CLOSE.getKey(), context);
+        }
+
+        if (!transitioning && this.player.getOpenInventory().getTopInventory().equals(this.inventory))
+            this.player.closeInventory();
 
         this.menu.close(this.player);
     }
 
     public void setTicking(int speed) {
+        if (this.ticker != null)
+            this.ticker.cancel();
         this.ticker = new MenuTicker(this.rosePlugin, this, this.player, speed);
     }
 

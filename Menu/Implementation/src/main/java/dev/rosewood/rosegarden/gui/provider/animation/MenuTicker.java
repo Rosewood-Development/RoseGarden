@@ -36,7 +36,7 @@ public class MenuTicker extends BukkitRunnable {
                     .add(Parameters.VIEW, this.view)
                     .add(Parameters.PLAYER, this.player)
                     .add(Parameters.ICON, icon)
-                    .addAll(this.view.getInitContext());;
+                    .addAll(this.view.getInitContext());
 
             Optional<AbstractItemProvider> itemProvider = icon.getProvider(Providers.ITEM);
             RoseItem item = itemProvider.isPresent() ? itemProvider.get().get(context) : RoseItem.empty();

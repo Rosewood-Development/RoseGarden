@@ -4,10 +4,7 @@ import dev.rosewood.rosegarden.RosePlugin;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
-import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 
 public final class RoseGardenUtils {
@@ -23,8 +20,6 @@ public final class RoseGardenUtils {
 
     public static final String GRADIENT = "<g:#8A2387:#E94057:#F27121>";
     public static final String PREFIX = "&7[" + GRADIENT + "RoseGarden&7] ";
-
-    private static Logger logger;
 
     private RoseGardenUtils() {
 

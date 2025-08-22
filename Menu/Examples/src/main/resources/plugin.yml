@@ -9,3 +9,6 @@ permissions:
   menuexamples.menu:
     description: Allows opening a menu
     default: op
+  menuexamples.reload:
+    description: Allows reloading the plugin
+    default: op

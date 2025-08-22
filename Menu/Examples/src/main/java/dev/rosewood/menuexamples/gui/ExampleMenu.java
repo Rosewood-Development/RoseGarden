@@ -95,7 +95,6 @@ public class ExampleMenu extends RoseMenuWrapper {
             page.addIcon(50, nextPageItem)
                     .on(Providers.LEFT_CLICK, NextPageAction.of());
             page.addIcon(49, infoItem.copy().setLore("&7This page displays different fill types."));
-
         });
 
         this.addPage("&cTicking Menu! | Page 3", 54, (page) -> {
@@ -104,9 +103,9 @@ public class ExampleMenu extends RoseMenuWrapper {
                     .on(Providers.LEFT_CLICK, PreviousPageAction.of());
             page.addIcon(50, nextPageItem)
                     .on(Providers.LEFT_CLICK, NextPageAction.of());
-            page.addIcon(49, infoItem.copy().setLore("&7This page displays different fill types."));
+            page.addIcon(49, infoItem.copy().setLore("&7This page makes annoying sounds!"));
             page.on(Providers.TICK, PlaySoundAction.of(Sound.BLOCK_NOTE_BLOCK_PLING));
-
+            page.on(Providers.ON_CLOSE, PlaySoundAction.of(Sound.ENTITY_ENDER_DRAGON_DEATH));
         }, 10);
     }
 
