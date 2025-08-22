@@ -4,13 +4,13 @@ import dev.rosewood.rosegarden.gui.action.AbstractAction;
 import dev.rosewood.rosegarden.gui.parameter.Context;
 import dev.rosewood.rosegarden.gui.parameter.Parameters;
 import dev.rosewood.rosegarden.hook.PlaceholderAPIHook;
-import org.bukkit.Bukkit;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.entity.Player;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import org.bukkit.Bukkit;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Player;
 
 /**
  * An action that runs commands.<br>
@@ -112,7 +112,7 @@ public class CommandAction extends AbstractAction {
 
         // Run the player commands when activated, if the player is valid.
         if (!this.playerCommands.isEmpty()) {
-            if (!player.isPresent())
+            if (player.isEmpty())
                 return;
 
             this.playerCommands.forEach(cmd ->

@@ -4,8 +4,8 @@ import dev.rosewood.rosegarden.gui.MenuView;
 import dev.rosewood.rosegarden.gui.action.AbstractAction;
 import dev.rosewood.rosegarden.gui.parameter.Context;
 import dev.rosewood.rosegarden.gui.parameter.Parameters;
-import org.bukkit.configuration.ConfigurationSection;
 import java.util.Optional;
+import org.bukkit.configuration.ConfigurationSection;
 
 /**
  * An action that closes the currently open menu.<br>
@@ -45,7 +45,7 @@ public class CloseMenuAction extends AbstractAction {
     public void run(Context context) {
         // Close the menu for the player, if the view is present.
         Optional<MenuView> view = context.get(Parameters.VIEW);
-        if (!view.isPresent())
+        if (view.isEmpty())
             return;
 
         view.get().close();

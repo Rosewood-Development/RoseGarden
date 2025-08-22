@@ -6,8 +6,8 @@ import dev.rosewood.rosegarden.gui.condition.Condition;
 import dev.rosewood.rosegarden.gui.condition.ConditionParser;
 import dev.rosewood.rosegarden.gui.parameter.Context;
 import dev.rosewood.rosegarden.gui.provider.trigger.ConditionalTrigger;
-import org.bukkit.configuration.ConfigurationSection;
 import java.util.List;
+import org.bukkit.configuration.ConfigurationSection;
 
 /**
  * An action which runs other actions based on whether a {@linkplain Condition condition} passes or fails.<br>

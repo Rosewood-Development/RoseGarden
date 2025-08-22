@@ -3,7 +3,7 @@ package dev.rosewood.rosegarden.gui.action;
 import org.bukkit.configuration.ConfigurationSection;
 
 /**
- * An abstract class that should be extended to implement an {@link Action}.
+ * An abstract class that should be extended to implement an {@linkplain Action action}.
  */
 public abstract class AbstractAction implements Action {
 

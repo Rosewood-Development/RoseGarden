@@ -10,11 +10,11 @@ import dev.rosewood.rosegarden.gui.action.type.OpenMenuAction;
 import dev.rosewood.rosegarden.gui.action.type.PlaySoundAction;
 import dev.rosewood.rosegarden.gui.action.type.PreviousPageAction;
 import dev.rosewood.rosegarden.gui.action.type.RefreshAction;
-import org.bukkit.configuration.ConfigurationSection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
+import org.bukkit.configuration.ConfigurationSection;
 
 @SuppressWarnings({"unchecked"})
 public final class Actions {

@@ -143,11 +143,14 @@ public abstract class RoseMenuWrapper {
         if (!section.contains("pages")) {
             int index = 1;
             for (RoseMenu menu : this.pages) {
-                section.set("pages." + index + ".title", menu.getTitle());
-                section.set("pages." + index + ".size", menu.getSize());
+                ConfigurationSection pageSection = section.createSection("pages." + index);
+
+                pageSection.set("title", menu.getTitle());
+                pageSection.set("size", menu.getSize());
                 if (menu.getTickSpeed() != 0)
-                    section.set("pages." + index + ".tick-speed", menu.getTickSpeed());
-                this.writeIcons(section.createSection("pages." + index + ".icons"), menu);
+                    pageSection.set("tick-speed", menu.getTickSpeed());
+                this.writeIconData(pageSection, menu);
+                this.writeIcons(pageSection.createSection("icons"), menu);
 
                 modified.set(true);
 
@@ -164,22 +167,25 @@ public abstract class RoseMenuWrapper {
         for (IconHolder holder : page.getIcons()) {
             Icon icon = holder.getIcon();
             ConfigurationSection iconIndexSection = section.createSection(String.valueOf(index));
-
-            for (Provider<?> provider : icon.getProviders().values())
-                provider.write(iconIndexSection);
-
-            if (icon.isPersistent())
-                iconIndexSection.set("persistent", true);
-
-            if (icon.getEditType() != EditType.NONE) {
-                if (icon.getEditType() == EditType.REPLACE) {
-                    iconIndexSection.set("editable", true);
-                } else {
-                    iconIndexSection.set("edit-type", icon.getEditType().toString().toLowerCase());
-                }
-            }
+            this.writeIconData(iconIndexSection, icon);
 
             index++;
+        }
+    }
+
+    private void writeIconData(ConfigurationSection section, Icon icon) {
+        for (Provider<?> provider : icon.getProviders().values())
+            provider.write(section);
+
+        if (icon.isPersistent())
+            section.set("persistent", true);
+
+        if (icon.getEditType() != EditType.NONE) {
+            if (icon.getEditType() == EditType.REPLACE) {
+                section.set("editable", true);
+            } else {
+                section.set("edit-type", icon.getEditType().toString().toLowerCase());
+            }
         }
     }
 
@@ -195,12 +201,17 @@ public abstract class RoseMenuWrapper {
             return;
 
         for (String pageId : pagesSection.getKeys(false)) {
-            String title = section.getString("pages." + pageId + ".title");
-            int size = section.getInt("pages." + pageId + ".size");
-            int tickSpeed = section.contains("pages." + pageId + ".tick-speed")
-                    ? section.getInt("pages." + pageId + ".tick-speed") : 0;
+            ConfigurationSection pageSection = pagesSection.getConfigurationSection(pageId);
+            if (pageSection == null)
+                continue;
+
+            String title = pageSection.getString("title");
+            int size = pageSection.getInt("size");
+            int tickSpeed = pageSection.getInt("tick-speed", 0);
 
             this.addPage(title, size, (page) -> {
+                this.loadIconData(pageSection, page);
+
                 if (!section.contains("pages." + pageId + ".icons"))
                     return;
 
@@ -224,27 +235,7 @@ public abstract class RoseMenuWrapper {
                 continue;
 
             Icon icon = new Icon();
-
-            if (iconSection.contains("persistent") && iconSection.getBoolean("persistent"))
-                icon.markPersistent(true);
-
-            if (iconSection.contains("editable"))
-                icon.setEditable(iconSection.getBoolean("editable"));
-
-            if (iconSection.contains("edit-type")) {
-                String editTypeStr = iconSection.getString("edit-type");
-                if (editTypeStr != null) {
-                    EditType type = EditType.valueOf(editTypeStr.toUpperCase());
-                    icon.setEditType(type);
-                }
-            }
-
-            for (Providers.ProviderType<?> providerType : Providers.getRegistry().values()) {
-                if (iconSection.contains(providerType.getKey())) {
-                    Provider<?> provider = (Provider<?>) providerType.create(iconSection);
-                    icon.addProvider(provider);
-                }
-            }
+            this.loadIconData(iconSection, icon);
 
             Optional<AbstractFillProvider> fillProvider = icon.getProvider(Providers.FILL);
             if (fillProvider.isPresent()) {
@@ -258,6 +249,29 @@ public abstract class RoseMenuWrapper {
                 continue;
 
             page.addIcon(slotProvider.get(), icon);
+        }
+    }
+
+    private void loadIconData(ConfigurationSection section, Icon icon) {
+        if (section.contains("persistent") && section.getBoolean("persistent"))
+            icon.markPersistent(true);
+
+        if (section.contains("editable"))
+            icon.setEditable(section.getBoolean("editable"));
+
+        if (section.contains("edit-type")) {
+            String editTypeStr = section.getString("edit-type");
+            if (editTypeStr != null) {
+                EditType type = EditType.valueOf(editTypeStr.toUpperCase());
+                icon.setEditType(type);
+            }
+        }
+
+        for (Providers.ProviderType<?> providerType : Providers.getRegistry().values()) {
+            if (section.contains(providerType.getKey())) {
+                Provider<?> provider = (Provider<?>) providerType.create(section);
+                icon.addProvider(provider);
+            }
         }
     }
 
