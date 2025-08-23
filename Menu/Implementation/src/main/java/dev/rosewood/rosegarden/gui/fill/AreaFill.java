@@ -11,21 +11,17 @@ import dev.rosewood.rosegarden.gui.provider.item.AbstractItemProvider;
 import dev.rosewood.rosegarden.gui.provider.item.ItemProvider;
 import dev.rosewood.rosegarden.gui.provider.slot.AbstractSlotProvider;
 import dev.rosewood.rosegarden.gui.provider.slot.MultiSlotProvider;
-import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-public class MenuFill implements Fill {
+public class AreaFill implements Fill {
 
-    public static final String ID = "menu";
-    private int next;
+    public static final String ID = "area";
 
     @Override
     public AbstractItemProvider getItem(Context context, int slot) {
-        this.next++;
-
         Optional<Icon> icon = context.get(Parameters.ICON);
         if (icon.isEmpty())
             return new ItemProvider(RoseItem.empty());
@@ -47,7 +43,7 @@ public class MenuFill implements Fill {
                 List<Integer> slots = slotProvider.get().get(context);
                 Collections.sort(slots);
 
-                return MultiSlotProvider.range(slots.get(0), slots.get(slots.size() - 1) + next);
+                return MultiSlotProvider.range(slots.get(0), slots.get(slots.size() - 1));
             }
         }
 

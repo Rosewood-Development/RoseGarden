@@ -9,7 +9,7 @@ public class Fills {
 
     private static final Map<String, FillType<?>> REGISTRY = new HashMap<>();
 
-    public static final FillType<MenuFill> MENU = create("menu", MenuFill::new);
+    public static final FillType<AreaFill> AREA = create("area", AreaFill::new);
     public static final FillType<OutlineFill> OUTLINE = create("outline", OutlineFill::new);
     public static final FillType<CheckeredFill> CHECKERED = create("checkered", CheckeredFill::new);
 

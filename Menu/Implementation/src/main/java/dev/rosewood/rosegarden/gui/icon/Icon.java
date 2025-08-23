@@ -126,27 +126,6 @@ public class Icon {
     }
 
     /**
-     * NOT YET IMPLEMENTED
-     *
-     * Marks this icon as persistent.
-     * The state of this icon will be saved when a player interacts with it.
-     * The state of this icon will be loaded when the inventory is opened.
-     * @param persistent True if this icon should be persistent.
-     * @return This {@link Icon}.
-     */
-    public Icon markPersistent(boolean persistent) {
-        this.persistent = persistent;
-        return this;
-    }
-
-    /**
-     * @return Whether this icon is persistent.
-     */
-    public boolean isPersistent() {
-        return this.persistent != null && this.persistent;
-    }
-
-    /**
      * @return A map of all the providers that this icon holds.
      */
     public Map<String, Provider<?>> getProviders() {

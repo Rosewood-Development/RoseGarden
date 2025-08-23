@@ -57,7 +57,7 @@ public final class ItemSerializer {
     private static final Map<String, MetaSerializer> REGISTRY = new HashMap<>();
 
     public static final ItemMetaSerializer ITEM_META = new ItemMetaSerializer();
-    public static final ArmorMetaSerializer ARMOR_META = create(ArmorMetaSerializer.ARMOR, new ArmorMetaSerializer());
+    public static final ArmorMetaSerializer ARMOR_META = create(ArmorMetaSerializer.TRIM, new ArmorMetaSerializer());
     public static final AttributeModifierSerializer ATTRIBUTE_MODIFIER = create(AttributeModifierSerializer.ATTRIBUTES, new AttributeModifierSerializer());
     public static final AxolotlBucketMetaSerializer AXOLOTL_BUCKET_META = create(AxolotlBucketMetaSerializer.AXOLOTL_BUCKET, new AxolotlBucketMetaSerializer());
     public static final BannerMetaSerializer BANNER_META = create(BannerMetaSerializer.BANNER_PATTERNS, new BannerMetaSerializer());

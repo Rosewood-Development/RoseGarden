@@ -2,7 +2,7 @@ package dev.rosewood.rosegarden.gui.provider.fill;
 
 import dev.rosewood.rosegarden.gui.fill.Fill;
 import dev.rosewood.rosegarden.gui.fill.Fills;
-import dev.rosewood.rosegarden.gui.fill.MenuFill;
+import dev.rosewood.rosegarden.gui.fill.AreaFill;
 import dev.rosewood.rosegarden.gui.parameter.Context;
 import org.bukkit.configuration.ConfigurationSection;
 
@@ -29,7 +29,7 @@ public class FillProvider extends AbstractFillProvider {
         super(ID, section);
 
         if (section.isBoolean(ID) && section.getBoolean(ID)) {
-            this.fill = new MenuFill();
+            this.fill = new AreaFill();
             return;
         }
 

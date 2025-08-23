@@ -83,7 +83,7 @@ public class ItemMetaSerializer implements MetaSerializer {
 
         if (section.contains(DAMAGE) && section.isInt(DAMAGE)) {
             if (NMSUtil.getVersionNumber() <= 16) {
-                this.invalidateVersion(ENCHANTABILITY, "1.17");
+                this.invalidateVersion(DAMAGE, "1.17");
             } else {
                 item.setDamage(section.getInt(DAMAGE));
             }

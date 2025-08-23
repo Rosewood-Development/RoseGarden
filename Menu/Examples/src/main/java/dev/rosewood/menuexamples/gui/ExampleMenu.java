@@ -11,12 +11,11 @@ import dev.rosewood.rosegarden.gui.action.type.OpenMenuAction;
 import dev.rosewood.rosegarden.gui.action.type.PlaySoundAction;
 import dev.rosewood.rosegarden.gui.action.type.PreviousPageAction;
 import dev.rosewood.rosegarden.gui.fill.CheckeredFill;
-import dev.rosewood.rosegarden.gui.fill.MenuFill;
+import dev.rosewood.rosegarden.gui.fill.AreaFill;
 import dev.rosewood.rosegarden.gui.fill.OutlineFill;
 import dev.rosewood.rosegarden.gui.item.RoseItem;
 import dev.rosewood.rosegarden.gui.provider.Providers;
 import dev.rosewood.rosegarden.gui.provider.slot.MultiSlotProvider;
-import java.util.Arrays;
 import java.util.List;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -87,7 +86,7 @@ public class ExampleMenu extends RoseMenuWrapper {
         });
 
         this.addPage("&cExample | Page 2", 54, (page) -> {
-            page.fill(new MenuFill(), RoseItem.of(Material.RED_STAINED_GLASS_PANE, "&cArea Fill"), MultiSlotProvider.range(0, 26));
+            page.fill(new AreaFill(), RoseItem.of(Material.RED_STAINED_GLASS_PANE, "&cArea Fill"), MultiSlotProvider.range(0, 26));
             page.fill(new CheckeredFill(), RoseItem.of(Material.BLACK_STAINED_GLASS_PANE, "&aCheckered Fill"), MultiSlotProvider.range(27, 53));
             page.fill(new CheckeredFill(), RoseItem.of(Material.WHITE_STAINED_GLASS_PANE, "&bCheckered Fill"), MultiSlotProvider.range(28, 53));
             page.addIcon(48, previousPageItem)

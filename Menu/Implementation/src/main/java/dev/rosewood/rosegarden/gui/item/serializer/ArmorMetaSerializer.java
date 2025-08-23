@@ -13,37 +13,41 @@ import org.bukkit.inventory.meta.trim.TrimMaterial;
 import org.bukkit.inventory.meta.trim.TrimPattern;
 
 /**
+ * <pre>
+ *     {@code
  * item:
  *   type: netherite_chestplate
- *   armor:
- *     trim-material: gold
- *     trim-pattern: sentry
+ *   trim:
+ *     material: gold
+ *     pattern: sentry
+ *     }
+ * </pre>
  */
 @SuppressWarnings("deprecation")
 public class ArmorMetaSerializer implements MetaSerializer {
 
-    public static final String ARMOR = "armor";
-    public static final String TRIM_MATERIAL = ARMOR + ".trim-material";
-    public static final String TRIM_PATTERN = ARMOR + ".trim-pattern";
+    public static final String TRIM = "trim";
+    public static final String MATERIAL = TRIM + ".material";
+    public static final String PATTERN = TRIM + ".pattern";
 
     @Override
     public void read(RoseItem item, ConfigurationSection section) {
-        if (!section.contains(ARMOR) || !section.contains(TRIM_MATERIAL) || !section.contains(TRIM_PATTERN))
+        if (!section.contains(TRIM) || !section.contains(MATERIAL) || !section.contains(PATTERN))
             return;
 
         if (NMSUtil.getVersionNumber() < 19) {
-            this.invalidateVersion(ARMOR, "1.19");
+            this.invalidateVersion(TRIM, "1.19");
             return;
         }
 
-        if (!section.isString(TRIM_PATTERN) || !section.isString(TRIM_PATTERN))
+        if (!section.isString(PATTERN) || !section.isString(PATTERN))
             return;
 
-        TrimMaterial material = this.getMaterial(section.getString(TRIM_MATERIAL));
+        TrimMaterial material = this.getMaterial(section.getString(MATERIAL));
         if (material == null)
             return;
 
-        TrimPattern pattern = this.getPattern(section.getString(TRIM_PATTERN));
+        TrimPattern pattern = this.getPattern(section.getString(PATTERN));
         if (pattern == null)
             return;
 
@@ -56,18 +60,18 @@ public class ArmorMetaSerializer implements MetaSerializer {
             return;
 
         ArmorTrim trim = item.getArmorTrim();
-        section.set(TRIM_MATERIAL, trim.getMaterial().getKey().toString());
-        section.set(TRIM_PATTERN, trim.getPattern().getKey().toString());
+        section.set(MATERIAL, trim.getMaterial().getKey().toString());
+        section.set(PATTERN, trim.getPattern().getKey().toString());
     }
 
     private TrimMaterial getMaterial(String str) {
-        NamespacedKey key = ItemSerializer.getKey(str, ARMOR);
+        NamespacedKey key = ItemSerializer.getKey(str, TRIM);
         if (key == null)
             return null;
 
         TrimMaterial material = Registry.TRIM_MATERIAL.get(key);
         if (material == null) {
-            Bukkit.getLogger().warning("Invalid trim material: '" + str + "' for " + ARMOR + " item meta!");
+            Bukkit.getLogger().warning("Invalid trim material: '" + str + "' for " + TRIM + " item meta!");
             return null;
         }
 
@@ -75,13 +79,13 @@ public class ArmorMetaSerializer implements MetaSerializer {
     }
 
     private TrimPattern getPattern(String str) {
-        NamespacedKey key = ItemSerializer.getKey(str, ARMOR);
+        NamespacedKey key = ItemSerializer.getKey(str, TRIM);
         if (key == null)
             return null;
 
         TrimPattern pattern = Registry.TRIM_PATTERN.get(key);
         if (pattern == null) {
-            Bukkit.getLogger().warning("Invalid trim pattern: '" + str + "' for " + ARMOR + " item meta!");
+            Bukkit.getLogger().warning("Invalid trim pattern: '" + str + "' for " + TRIM + " item meta!");
             return null;
         }
 

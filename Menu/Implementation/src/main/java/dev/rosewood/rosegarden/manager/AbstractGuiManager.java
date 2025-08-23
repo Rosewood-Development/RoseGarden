@@ -9,7 +9,6 @@ import dev.rosewood.rosegarden.gui.icon.Icon;
 import dev.rosewood.rosegarden.gui.item.RoseItem;
 import dev.rosewood.rosegarden.gui.parameter.Context;
 import dev.rosewood.rosegarden.gui.parameter.Parameters;
-import dev.rosewood.rosegarden.gui.persistence.InventoryContainerType;
 import dev.rosewood.rosegarden.gui.provider.Providers;
 import dev.rosewood.rosegarden.gui.provider.item.AbstractItemProvider;
 import java.io.File;
@@ -54,14 +53,12 @@ public abstract class AbstractGuiManager extends Manager implements Listener {
 
     private final Map<String, RoseMenuWrapper> menus;
     private final Map<Player, RoseMenu> openMenus;
-    private final InventoryContainerType inventoryContainerType;
 
     public AbstractGuiManager(RosePlugin rosePlugin) {
         super(rosePlugin);
 
         this.menus = new HashMap<>();
         this.openMenus = new HashMap<>();
-        this.inventoryContainerType = new InventoryContainerType(rosePlugin);
 
         Bukkit.getPluginManager().registerEvents(this, rosePlugin);
     }
@@ -366,25 +363,6 @@ public abstract class AbstractGuiManager extends Manager implements Listener {
                 .add(Parameters.PLUGIN, this.rosePlugin)
                 .addAll(menu.getView(player).getInitContext());
         icon.call(trigger, context);
-
-        if (icon.isPersistent()) {
-            NamespacedKey key = new NamespacedKey(this.rosePlugin, menu.getId());
-            PersistentDataContainer pdc = player.getPersistentDataContainer();
-
-            if (!pdc.has(key))
-                pdc.set(key, this.inventoryContainerType, new HashMap<>());
-
-            Inventory bukkitInventory = menu.asInventory(player);
-            ItemStack currentStack = bukkitInventory.getItem(event.getSlot());
-            RoseItem item = itemProvider.isPresent() && currentStack != null ?
-                    new RoseItem(currentStack) : RoseItem.empty();
-            Map<Integer, RoseItem> persistentItems = pdc.get(key, this.inventoryContainerType);
-            if (persistentItems == null)
-                return;
-
-            persistentItems.put(event.getSlot(), item);
-            pdc.set(key, this.inventoryContainerType, persistentItems);
-        }
     }
 
     @EventHandler
@@ -441,26 +419,6 @@ public abstract class AbstractGuiManager extends Manager implements Listener {
                             abstractItemProvider.get(Context.empty())).orElse(null));
 
             icon.call(Providers.ON_OPEN.getKey(), context);
-
-            if (icon.isPersistent()) {
-                NamespacedKey key = new NamespacedKey(this.rosePlugin, menu.getId());
-                PersistentDataContainer pdc = player.getPersistentDataContainer();
-
-                if (!pdc.has(key))
-                    return;
-
-                Map<Integer, RoseItem> persistentItems = pdc.get(key, this.inventoryContainerType);
-                if (persistentItems == null)
-                    return;
-
-                for (int i : persistentItems.keySet()) {
-                    RoseItem item = persistentItems.get(i);
-                    if (item.isEmpty())
-                        continue;
-
-                    menu.asInventory(player).setItem(i, item.asItemStack());
-                }
-            }
         }
     }
 

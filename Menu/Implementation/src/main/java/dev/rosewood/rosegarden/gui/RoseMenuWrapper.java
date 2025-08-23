@@ -57,6 +57,10 @@ public abstract class RoseMenuWrapper {
         return this.pages.get(page);
     }
 
+    public List<RoseMenu> getPages() {
+        return this.pages;
+    }
+
     /**
      * Adds a page to the menu.
      *
@@ -177,9 +181,6 @@ public abstract class RoseMenuWrapper {
         for (Provider<?> provider : icon.getProviders().values())
             provider.write(section);
 
-        if (icon.isPersistent())
-            section.set("persistent", true);
-
         if (icon.getEditType() != EditType.NONE) {
             if (icon.getEditType() == EditType.REPLACE) {
                 section.set("editable", true);
@@ -253,9 +254,6 @@ public abstract class RoseMenuWrapper {
     }
 
     private void loadIconData(ConfigurationSection section, Icon icon) {
-        if (section.contains("persistent") && section.getBoolean("persistent"))
-            icon.markPersistent(true);
-
         if (section.contains("editable"))
             icon.setEditable(section.getBoolean("editable"));
 
