@@ -10,6 +10,7 @@ import dev.rosewood.rosegarden.gui.action.type.OpenMenuAction;
 import dev.rosewood.rosegarden.gui.action.type.PlaySoundAction;
 import dev.rosewood.rosegarden.gui.action.type.PreviousPageAction;
 import dev.rosewood.rosegarden.gui.action.type.RefreshAction;
+import dev.rosewood.rosegarden.gui.action.type.SetItemAction;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -31,6 +32,7 @@ public final class Actions {
     public static final ActionType<ModifyItemAction> MODIFY_ITEM = create(ModifyItemAction.ID, ModifyItemAction::new);
     public static final ActionType<NextPageAction> NEXT_PAGE = create(NextPageAction.ID, NextPageAction::new);
     public static final ActionType<PreviousPageAction> PREVIOUS_PAGE = create(PreviousPageAction.ID, PreviousPageAction::new);
+    public static final ActionType<SetItemAction> SET_ITEM = create(SetItemAction.ID, SetItemAction::new);
 
     private Actions() {
 

@@ -153,7 +153,7 @@ public abstract class RoseMenuWrapper {
                 pageSection.set("size", menu.getSize());
                 if (menu.getTickSpeed() != 0)
                     pageSection.set("tick-speed", menu.getTickSpeed());
-                this.writeIconData(pageSection, menu);
+                writeIconData(pageSection, menu);
                 this.writeIcons(pageSection.createSection("icons"), menu);
 
                 modified.set(true);
@@ -171,13 +171,13 @@ public abstract class RoseMenuWrapper {
         for (IconHolder holder : page.getIcons()) {
             Icon icon = holder.getIcon();
             ConfigurationSection iconIndexSection = section.createSection(String.valueOf(index));
-            this.writeIconData(iconIndexSection, icon);
+            writeIconData(iconIndexSection, icon);
 
             index++;
         }
     }
 
-    private void writeIconData(ConfigurationSection section, Icon icon) {
+    public static void writeIconData(ConfigurationSection section, Icon icon) {
         for (Provider<?> provider : icon.getProviders().values())
             provider.write(section);
 
@@ -211,7 +211,7 @@ public abstract class RoseMenuWrapper {
             int tickSpeed = pageSection.getInt("tick-speed", 0);
 
             this.addPage(title, size, (page) -> {
-                this.loadIconData(pageSection, page);
+                loadIconData(pageSection, page);
 
                 if (!section.contains("pages." + pageId + ".icons"))
                     return;
@@ -236,7 +236,7 @@ public abstract class RoseMenuWrapper {
                 continue;
 
             Icon icon = new Icon();
-            this.loadIconData(iconSection, icon);
+            loadIconData(iconSection, icon);
 
             Optional<AbstractFillProvider> fillProvider = icon.getProvider(Providers.FILL);
             if (fillProvider.isPresent()) {
@@ -253,7 +253,7 @@ public abstract class RoseMenuWrapper {
         }
     }
 
-    private void loadIconData(ConfigurationSection section, Icon icon) {
+    public static void loadIconData(ConfigurationSection section, Icon icon) {
         if (section.contains("editable"))
             icon.setEditable(section.getBoolean("editable"));
 

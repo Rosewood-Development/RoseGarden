@@ -21,17 +21,14 @@ public class Icon {
 
     private final Map<String, Provider<?>> providers;
     private EditType editType;
-    private Boolean persistent;
 
     public Icon() {
         this.providers = new HashMap<>();
         this.editType = EditType.NONE;
-        this.persistent = null;
     }
 
     public Icon(Icon icon) {
         this.editType = icon.editType;
-        this.persistent = icon.persistent;
         this.providers = new HashMap<>(icon.providers);
     }
 
