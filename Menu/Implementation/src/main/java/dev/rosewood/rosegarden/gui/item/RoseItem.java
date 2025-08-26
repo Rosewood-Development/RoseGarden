@@ -1,8 +1,10 @@
 package dev.rosewood.rosegarden.gui.item;
 
 import com.google.common.collect.Multimap;
+import dev.rosewood.rosegarden.RosePlugin;
 import dev.rosewood.rosegarden.gui.parameter.Context;
 import dev.rosewood.rosegarden.hook.PlaceholderAPIHook;
+import dev.rosewood.rosegarden.manager.AbstractLocaleManager;
 import dev.rosewood.rosegarden.utils.HexUtils;
 import dev.rosewood.rosegarden.utils.NMSUtil;
 import dev.rosewood.rosegarden.utils.SkullUtils;
@@ -153,25 +155,30 @@ public class RoseItem implements Item {
         return HexUtils.colorify(PlaceholderAPIHook.applyPlaceholders(player, placeholders.apply(str)));
     }
 
+    private String getLocalizedText(String text) {
+        AbstractLocaleManager localeManager = RosePlugin.instance().getManager(AbstractLocaleManager.class);
+        return localeManager.hasLocaleMessage(text) ? localeManager.getLocaleMessage(text) : text;
+    }
+
     public ItemStack applyPlaceholders(OfflinePlayer player) {
         StringPlaceholders placeholders = this.placeholders.build();
 
         if (this.hasDisplayName())
-            this.setDisplayName(this.applyPlaceholders(player, placeholders, this.getDisplayName()));
+            this.setDisplayName(this.applyPlaceholders(player, placeholders, this.getLocalizedText(this.getDisplayName())));
 
         if (this.hasLore()) {
             List<String> lore = new ArrayList<>();
             for (String s : this.getLore())
-                lore.add(this.applyPlaceholders(player, placeholders, s));
+                lore.add(this.applyPlaceholders(player, placeholders, this.getLocalizedText(s)));
 
             this.setLore(lore);
         }
 
         if (this.hasItemName())
-            this.setItemName(this.applyPlaceholders(player, placeholders, this.getItemName()));
+            this.setItemName(this.applyPlaceholders(player, placeholders, this.getLocalizedText(this.getItemName())));
 
         if (this.hasLocalizedName())
-            this.setLocalizedName(this.applyPlaceholders(player, placeholders, this.getLocalizedName()));
+            this.setLocalizedName(this.applyPlaceholders(player, placeholders, this.getLocalizedText(this.getLocalizedName())));
 
         if (this.hasSkullOwner())
             this.setSkullOwner(PlaceholderAPIHook.applyPlaceholders(player, placeholders.apply(this.getSkullOwner())));

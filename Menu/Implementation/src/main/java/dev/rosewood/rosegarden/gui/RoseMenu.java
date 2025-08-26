@@ -1,6 +1,7 @@
 package dev.rosewood.rosegarden.gui;
 
 import dev.rosewood.rosegarden.RosePlugin;
+import dev.rosewood.rosegarden.gui.fill.AreaFill;
 import dev.rosewood.rosegarden.gui.fill.Fill;
 import dev.rosewood.rosegarden.gui.icon.Icon;
 import dev.rosewood.rosegarden.gui.icon.IconHolder;
@@ -169,6 +170,16 @@ public class RoseMenu extends Icon {
 
         this.icons.add(holder);
         return icon;
+    }
+
+    /**
+     * Automatically fills the menu with an {@linkplain AreaFill}.
+     *
+     * @param item The {@linkplain Item item} to be placed in the slots.
+     * @return The {@linkplain Icon icon} that will be placed in the slots.
+     */
+    public Icon fill(Item item) {
+        return this.fill(new AreaFill(), item);
     }
 
     /**

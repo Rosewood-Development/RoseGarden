@@ -15,6 +15,7 @@ import dev.rosewood.rosegarden.gui.provider.fill.AbstractFillProvider;
 import dev.rosewood.rosegarden.gui.provider.item.AbstractItemProvider;
 import dev.rosewood.rosegarden.gui.provider.slot.AbstractSlotProvider;
 import dev.rosewood.rosegarden.hook.PlaceholderAPIHook;
+import dev.rosewood.rosegarden.manager.AbstractLocaleManager;
 import dev.rosewood.rosegarden.utils.HexUtils;
 import dev.rosewood.rosegarden.utils.StringPlaceholders;
 import java.util.ArrayList;
@@ -57,7 +58,15 @@ public class MenuView implements Tickable {
         this.tickActions = new ArrayList<>();
         this.initContext = initContext;
 
-        this.title = HexUtils.colorify(PlaceholderAPIHook.applyPlaceholders(player, menu.getTitle()));
+        AbstractLocaleManager localeManager = rosePlugin.getManager(AbstractLocaleManager.class);
+        String rawTitle = localeManager.hasLocaleMessage(menu.getTitle()) ?
+                localeManager.getLocaleMessage(menu.getTitle())
+                : menu.getTitle();
+        Optional<StringPlaceholders> placeholders = this.initContext.get(Parameters.PLACEHOLDERS);
+        if (placeholders.isPresent())
+            rawTitle = placeholders.get().apply(rawTitle);
+
+        this.title = HexUtils.colorify(PlaceholderAPIHook.applyPlaceholders(player, rawTitle));
         if (menu.getSize() == 5) {
             this.inventory = Bukkit.createInventory(null, InventoryType.HOPPER, this.title);
         }
@@ -142,7 +151,10 @@ public class MenuView implements Tickable {
      */
     public void refreshTitle() {
         if (this.player.getOpenInventory().getTopInventory() == this.inventory) {
-            String title = HexUtils.colorify(PlaceholderAPIHook.applyPlaceholders(this.player, this.title));
+            AbstractLocaleManager localeManager = this.rosePlugin.getManager(AbstractLocaleManager.class);
+            String rawTitle = localeManager.hasLocaleMessage(menu.getTitle()) ? localeManager.getLocaleMessage(menu.getTitle())
+                    : menu.getTitle();
+            String title = HexUtils.colorify(PlaceholderAPIHook.applyPlaceholders(this.player, rawTitle));
             this.player.getOpenInventory().setTitle(title);
         }
     }
@@ -207,6 +219,28 @@ public class MenuView implements Tickable {
                     this.inventory.setItem(slot, null);
                 }
             }
+        }
+    }
+
+    public void refresh(Context context, int slot) {
+        Icon icon = this.activeIcons.get(slot);
+        if (icon == null)
+            return;
+
+        Optional<AbstractItemProvider> itemProvider = icon.getProvider(Providers.ITEM);
+        if (itemProvider.isPresent()) {
+            RoseItem item = itemProvider.get().get(context);
+            ItemStack currentStack = this.inventory.getItem(slot);
+            if (item.isEmpty() && currentStack != null)
+                item = new RoseItem(currentStack).mergeWith(item);
+
+            Optional<StringPlaceholders> placeholders = context.get(Parameters.PLACEHOLDERS);
+            if (!item.isEmpty() && placeholders.isPresent())
+                item.addPlaceholders(placeholders.get());
+
+            this.inventory.setItem(slot, item.isEmpty() ? null : item.applyPlaceholders(this.player));
+        } else {
+            this.inventory.setItem(slot, null);
         }
     }
 

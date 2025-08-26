@@ -198,6 +198,34 @@ public abstract class AbstractLocaleManager extends Manager {
         return (String) value;
     }
 
+    @SuppressWarnings("unchecked")
+    @NotNull
+    protected List<String> getLocaleStrings(String key) {
+        Object value = this.loadedLocale.getLocaleValues().get(key);
+        if (value instanceof String) {
+            return new ArrayList<>(Collections.singletonList((String) value));
+        } else if (value instanceof List) {
+            return (List<String>) value;
+        }
+
+        value = this.defaultLocale.getLocaleValues().get(key);
+        if (value instanceof String) {
+            return new ArrayList<>(Collections.singletonList((String) value));
+        } else if (value instanceof List) {
+            return (List<String>) value;
+        }
+
+        return Collections.singletonList(this.getErrorMessage(key));
+    }
+
+    /**
+     * @param messageKey The key of the message to get
+     * @return True if the locale message exists in the locale file
+     */
+    public boolean hasLocaleMessage(String messageKey) {
+        return this.loadedLocale.getLocaleValues().containsKey(messageKey);
+    }
+
     /**
      * Gets a locale message
      *
