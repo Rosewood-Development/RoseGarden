@@ -67,9 +67,8 @@ public class MenuView implements Tickable {
             rawTitle = placeholders.get().apply(rawTitle);
 
         this.title = HexUtils.colorify(PlaceholderAPIHook.applyPlaceholders(player, rawTitle));
-        if (menu.getSize() == 5) {
+        if (menu.getSize() == 5)
             this.inventory = Bukkit.createInventory(null, InventoryType.HOPPER, this.title);
-        }
         else
             this.inventory = Bukkit.createInventory(null, menu.getSize(), this.title);
 
@@ -162,7 +161,8 @@ public class MenuView implements Tickable {
     /**
      * Refreshes the items in the menu.<br>
      * This updates any changes applied to the items.<br>
-     * To complete reset the menu, use {@linkplain MenuView#init()}.
+     * To completely reset the menu, use {@linkplain MenuView#init()}.<br>
+     * To refresh one slot, use {@linkplain MenuView#refresh(Context, int)}.
      */
     private void refreshItems() {
         Context context = Context.of(Parameters.PLUGIN, this.rosePlugin)
@@ -222,6 +222,11 @@ public class MenuView implements Tickable {
         }
     }
 
+    /**
+     * Refreshes one slot in the menu.
+     * @param context The {@linkplain Context context} to pass to the item.
+     * @param slot The slot to refresh.
+     */
     public void refresh(Context context, int slot) {
         Icon icon = this.activeIcons.get(slot);
         if (icon == null)

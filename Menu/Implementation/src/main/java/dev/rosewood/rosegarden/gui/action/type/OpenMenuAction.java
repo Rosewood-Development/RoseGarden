@@ -5,9 +5,9 @@ import dev.rosewood.rosegarden.gui.action.AbstractAction;
 import dev.rosewood.rosegarden.gui.parameter.Context;
 import dev.rosewood.rosegarden.gui.parameter.Parameters;
 import dev.rosewood.rosegarden.manager.AbstractGuiManager;
+import java.util.Optional;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
-import java.util.Optional;
 
 /**
  * An action that opens a new menu.
@@ -15,7 +15,9 @@ import java.util.Optional;
  * <pre>
  *     {@code
  *     trigger-type:
- *       open-menu: some-menu
+ *       0:
+ *         type: open_menu
+ *         menu: some_menu
  *     }
  * </pre>
  * OR<br>
@@ -24,15 +26,20 @@ import java.util.Optional;
  *     {@code
  *     trigger-type:
  *       open-menu:
- *         menu: some-menu
- *         page: 1
- *         carry-context: true
+ *         0:
+ *           type: open_menu
+ *           menu: some_menu
+ *           page: 1
+ *           carry-context: true
  *     }
  * </pre>
  */
 public class OpenMenuAction extends AbstractAction {
 
-    public static final String ID = "open-menu";
+    public static final String ID = "open_menu";
+    public static final String MENU = "menu";
+    public static final String PAGE = "page";
+    public static final String CARRY_CONTEXT = "carry-context";
 
     protected final String menu;
     protected final int page;
@@ -69,29 +76,20 @@ public class OpenMenuAction extends AbstractAction {
     public OpenMenuAction(ConfigurationSection section) {
         super(ID, section);
 
-        if (section.isConfigurationSection(ID)) {
-            this.menu = section.getString(ID + ".menu");
-            this.page = section.getInt(ID + ".page", 1);
-            this.carryContext = section.getBoolean(ID + ".carry-context", false);
-        } else {
-            this.menu = section.getString(ID);
-            this.page = 1;
-            this.carryContext = false;
-        }
+        this.menu = section.getString(MENU);
+        this.page = section.getInt(PAGE, 1);
+        this.carryContext = section.getBoolean(CARRY_CONTEXT, false);
     }
 
     @Override
     public void write(ConfigurationSection section) {
-        if (this.page != 1) {
-            if (this.menu != null)
-                section.set(ID + ".menu", this.menu);
+        section.set(MENU, this.menu);
 
-            section.set(ID + ".page", page);
-            if (this.carryContext)
-                section.set(ID + ".carry-context", true);
-        } else {
-            section.set(ID, this.menu);
-        }
+        if (this.page != 1)
+            section.set(PAGE, this.page);
+
+        if (this.carryContext)
+            section.set(CARRY_CONTEXT, true);
     }
 
     @Override
@@ -99,10 +97,11 @@ public class OpenMenuAction extends AbstractAction {
         // Open the new menu if everything is valid.
         Optional<Player> player = context.get(Parameters.PLAYER);
         Optional<RosePlugin> plugin = context.get(Parameters.PLUGIN);
-        if (!player.isPresent() || !plugin.isPresent() || this.menu == null)
+        if (player.isEmpty() || plugin.isEmpty() || this.menu == null)
             return;
 
-        plugin.get().getManager(AbstractGuiManager.class).open(this.menu, player.get(), this.page, this.carryContext ? context : Context.empty());
+        plugin.get().getManager(AbstractGuiManager.class)
+                .open(this.menu, player.get(), this.page, this.carryContext ? context : Context.empty());
     }
 
     public String getMenu() {

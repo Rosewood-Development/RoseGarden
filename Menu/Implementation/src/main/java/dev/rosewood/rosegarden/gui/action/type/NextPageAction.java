@@ -17,13 +17,14 @@ import org.bukkit.entity.Player;
  * <pre>
  *     {@code
  *     trigger-type:
- *       next-page: true
+ *       0:
+ *         type: next_page
  *     }
  * </pre>
  */
 public class NextPageAction extends AbstractAction {
 
-    public static final String ID = "next-page";
+    public static final String ID = "next_page";
 
     // Code Constructors
 
@@ -38,16 +39,11 @@ public class NextPageAction extends AbstractAction {
     }
 
     @Override
-    public void write(ConfigurationSection section) {
-        section.set(ID, true);
-    }
-
-    @Override
     public void run(Context context) {
         Optional<Player> player = context.get(Parameters.PLAYER);
         Optional<RosePlugin> plugin = context.get(Parameters.PLUGIN);
         Optional<RoseMenu> menu = context.get(Parameters.MENU);
-        if (!menu.isPresent() || !plugin.isPresent() || !player.isPresent())
+        if (menu.isEmpty() || plugin.isEmpty() || player.isEmpty())
             return;
 
         int currentPage = menu.get().getPageIndex();

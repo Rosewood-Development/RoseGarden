@@ -4,8 +4,8 @@ import dev.rosewood.rosegarden.gui.MenuView;
 import dev.rosewood.rosegarden.gui.action.AbstractAction;
 import dev.rosewood.rosegarden.gui.parameter.Context;
 import dev.rosewood.rosegarden.gui.parameter.Parameters;
-import org.bukkit.configuration.ConfigurationSection;
 import java.util.Optional;
+import org.bukkit.configuration.ConfigurationSection;
 
 /**
  * An action that refreshes the open menu.
@@ -14,7 +14,8 @@ import java.util.Optional;
  * <pre>
  *     {@code
  *     trigger-type:
- *       refresh: true
+ *       0:
+ *         type: refresh
  *     }
  * </pre>
  */
@@ -34,15 +35,10 @@ public class RefreshAction extends AbstractAction {
     }
 
     @Override
-    public void write(ConfigurationSection section) {
-        section.set(ID, true);
-    }
-
-    @Override
     public void run(Context context) {
         // Refresh the menu if it is valid.
         Optional<MenuView> view = context.get(Parameters.VIEW);
-        if (!view.isPresent())
+        if (view.isEmpty())
             return;
 
         view.get().refresh();

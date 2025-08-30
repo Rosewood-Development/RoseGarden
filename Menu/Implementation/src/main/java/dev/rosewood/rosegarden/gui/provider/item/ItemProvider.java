@@ -36,13 +36,14 @@ public class ItemProvider extends AbstractItemProvider {
         super(key, section);
 
         if (section.contains(key))
-            this.item = (context) -> RoseItem.deserialize(section.getConfigurationSection(key));
+            this.item = (context) -> RoseItem.deserialize(section.getConfigurationSection("item"));
     }
 
     @Override
     public void write(ConfigurationSection section) {
+        super.write(section);
         RoseItem item = this.item.get(Context.empty());
-        item.serialize(section.createSection(this.getKey()));
+        item.serialize(section.getConfigurationSection("item"));
     }
 
     @Override

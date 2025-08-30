@@ -6,7 +6,6 @@ import dev.rosewood.rosegarden.gui.MenuView;
 import dev.rosewood.rosegarden.gui.RoseMenu;
 import dev.rosewood.rosegarden.gui.RoseMenuWrapper;
 import dev.rosewood.rosegarden.gui.icon.Icon;
-import dev.rosewood.rosegarden.gui.item.RoseItem;
 import dev.rosewood.rosegarden.gui.parameter.Context;
 import dev.rosewood.rosegarden.gui.parameter.Parameters;
 import dev.rosewood.rosegarden.gui.provider.Providers;
@@ -33,7 +32,6 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.stream.Stream;
 import org.bukkit.Bukkit;
-import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -43,10 +41,6 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.event.player.PlayerTeleportEvent;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.persistence.PersistentDataContainer;
 import org.jetbrains.annotations.ApiStatus;
 
 public abstract class AbstractGuiManager extends Manager implements Listener {
@@ -160,6 +154,9 @@ public abstract class AbstractGuiManager extends Manager implements Listener {
      */
     public MenuView open(RoseMenuWrapper wrapper, Player player, int page, Context context) {
         RoseMenu menu = wrapper.getPage(page - 1);
+        if (menu == null)
+            return null;
+
         context.add(Parameters.MENU, menu);
 
         // Close any existing menu

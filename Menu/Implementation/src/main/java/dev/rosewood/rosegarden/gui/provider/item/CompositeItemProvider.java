@@ -15,16 +15,20 @@ import java.util.List;
  * Usage:<br>
  * <pre>
  *     {@code
- *     item:
- *       type: diamond
- *       requires-condition
- *         condition: '%some_condition%'
- *         pass:
- *           item:
- *             display-name: "&aPass"
- *         fail:
- *           item:
- *             type: stone
+ *          item:
+ *            type: conditional
+ *            conditions:
+ *              '0':
+ *                conditions:
+ *                  - '%player_has_permission_test.perm%'
+ *                  true:
+ *                    item:
+ *                      type: item
+ *                      item: diamond
+ *                  false:
+ *                    item:
+ *                      type: item
+ *                      item: coal
  *     }
  * </pre>
  * This creates diamond with a different name depending on the condition.<br>
@@ -51,7 +55,11 @@ public class CompositeItemProvider extends AbstractItemProvider {
             if (providerType.getKey().equalsIgnoreCase(this.getKey()) || !providerType.getType().equalsIgnoreCase(Providers.ITEM.getType()))
                 continue;
 
-            if (itemSection.contains(providerType.getKey())) {
+            String type = itemSection.getString("type");
+            if (type == null)
+                return;
+
+            if (type.equals(providerType.getKey())) {
                 AbstractItemProvider provider = (AbstractItemProvider) providerType.create(itemSection);
                 this.providers.add(provider);
             }

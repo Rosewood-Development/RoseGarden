@@ -5,9 +5,9 @@ import dev.rosewood.rosegarden.gui.parameter.Context;
 import dev.rosewood.rosegarden.gui.parameter.Parameters;
 import dev.rosewood.rosegarden.hook.PlaceholderAPIHook;
 import dev.rosewood.rosegarden.utils.HexUtils;
+import java.util.Optional;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
-import java.util.Optional;
 
 /**
  * An action that sends a message to the player.<br>
@@ -15,7 +15,9 @@ import java.util.Optional;
  * <pre>
  *     {@code
  *     trigger-type:
- *       message: "&esome message"
+ *       0:
+ *         type: message
+ *         message: "&esome message"
  *     }
  * </pre>
  */
@@ -52,7 +54,7 @@ public class MessageAction extends AbstractAction {
     public void run(Context context) {
         // Send the message if the player is valid.
         Optional<Player> player = context.get(Parameters.PLAYER);
-        if (!player.isPresent() || this.message == null)
+        if (player.isEmpty() || this.message == null)
             return;
 
         String formattedMessage = HexUtils.colorify(this.message);

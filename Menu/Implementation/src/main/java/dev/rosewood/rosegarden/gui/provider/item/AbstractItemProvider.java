@@ -6,6 +6,8 @@ import org.bukkit.configuration.ConfigurationSection;
 
 public abstract class AbstractItemProvider extends AbstractProvider<RoseItem> {
 
+    public static final String ITEM = "item";
+
     private final String key;
 
     public AbstractItemProvider(String key, ConfigurationSection section) {
@@ -15,8 +17,13 @@ public abstract class AbstractItemProvider extends AbstractProvider<RoseItem> {
     }
 
     @Override
+    public void write(ConfigurationSection section) {
+        section.set(ITEM + ".type", this.key);
+    }
+
+    @Override
     public String getType() {
-        return "item";
+        return ITEM;
     }
 
     @Override

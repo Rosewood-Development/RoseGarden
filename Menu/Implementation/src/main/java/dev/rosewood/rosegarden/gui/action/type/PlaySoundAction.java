@@ -3,10 +3,10 @@ package dev.rosewood.rosegarden.gui.action.type;
 import dev.rosewood.rosegarden.gui.action.AbstractAction;
 import dev.rosewood.rosegarden.gui.parameter.Context;
 import dev.rosewood.rosegarden.gui.parameter.Parameters;
+import java.util.Optional;
 import org.bukkit.Sound;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
-import java.util.Optional;
 
 /**
  * An action that plays a sound to a player.<br>
@@ -14,7 +14,9 @@ import java.util.Optional;
  * <pre>
  *     {@code
  *     trigger-type:
- *       play-sound: minecraft:block.note_block.pling
+ *       0:
+ *         type: play_sound
+ *         sound: minecraft:block.note_block.pling
  *     }
  * </pre>
  * OR<br>
@@ -22,7 +24,8 @@ import java.util.Optional;
  * <pre>
  *     {@code
  *     trigger-type:
- *       play-sound:
+ *       0:
+ *         type: play_sound
  *         sound: minecraft:block.note_block.pling
  *         volume: 1.0
  *         pitch: 1.0
@@ -31,7 +34,10 @@ import java.util.Optional;
  */
 public class PlaySoundAction extends AbstractAction {
 
-    public static final String ID = "play-sound";
+    public static final String ID = "play_sound";
+    public static final String SOUND = "sound";
+    public static final String VOLUME = "volume";
+    public static final String PITCH = "pitch";
 
     protected final String sound;
     protected final float volume;
@@ -60,15 +66,9 @@ public class PlaySoundAction extends AbstractAction {
     public PlaySoundAction(ConfigurationSection section) {
         super(ID, section);
 
-        if (section.isConfigurationSection(ID)) {
-            this.sound = section.getString(ID + ".sound");
-            this.volume = (float) (section.contains(ID + ".volume") ? section.getDouble(ID + ".volume") : 1.0);
-            this.pitch = (float) (section.contains(ID + ".pitch") ? section.getDouble(ID + ".pitch") : 1.0);
-        } else {
-            this.sound = section.contains(ID) ? section.getString(ID) : null;
-            this.volume = 1.0F;
-            this.pitch = 1.0F;
-        }
+        this.sound = section.getString(SOUND);
+        this.volume = (float) section.getDouble(VOLUME, 1.0);
+        this.pitch = (float) section.getDouble(PITCH, 1.0);
     }
 
     @Override
@@ -76,22 +76,19 @@ public class PlaySoundAction extends AbstractAction {
         if (this.sound == null)
             return;
 
-        if (this.volume != 1.0 || this.pitch != 1.0) {
-            section.set(ID + ".sound", this.sound);
-            if (this.volume != 1.0)
-                section.set(ID + ".volume", this.volume);
+        section.set(SOUND, this.sound);
 
-            if (this.pitch != 1.0)
-                section.set(ID + ".pitch", this.pitch);
-        } else {
-            section.set(ID, this.sound);
-        }
+        if (this.volume != 1.0)
+            section.set(VOLUME, this.volume);
+
+        if (this.pitch != 1.0)
+            section.set(PITCH, this.pitch);
     }
 
     @Override
     public void run(Context context) {
         Optional<Player> player = context.get(Parameters.PLAYER);
-        if (!player.isPresent() || this.sound == null)
+        if (player.isEmpty() || this.sound == null)
             return;
 
         player.get().playSound(player.get(), this.sound, this.volume, this.pitch);

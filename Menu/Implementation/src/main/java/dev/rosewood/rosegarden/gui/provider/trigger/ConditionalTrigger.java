@@ -27,8 +27,13 @@ public class ConditionalTrigger extends TriggerProvider {
 
     @Override
     public void write(ConfigurationSection section) {
-        for (Action action : this.actions)
-            action.write(section);
+        for (int i = 0; i < this.actions.size(); i++) {
+            Action action = this.actions.get(i);
+            ConfigurationSection idSection = section.createSection(String.valueOf(i));
+
+            idSection.set("type", action.getId());
+            action.write(idSection);
+        }
     }
 
 }

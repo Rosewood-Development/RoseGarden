@@ -4,8 +4,6 @@ import dev.rosewood.rosegarden.RosePlugin;
 import dev.rosewood.rosegarden.config.CommentedFileConfiguration;
 import dev.rosewood.rosegarden.gui.icon.Icon;
 import dev.rosewood.rosegarden.gui.icon.IconHolder;
-import dev.rosewood.rosegarden.gui.parameter.Context;
-import dev.rosewood.rosegarden.gui.parameter.Parameters;
 import dev.rosewood.rosegarden.gui.provider.Provider;
 import dev.rosewood.rosegarden.gui.provider.Providers;
 import dev.rosewood.rosegarden.gui.provider.fill.AbstractFillProvider;
@@ -54,9 +52,15 @@ public abstract class RoseMenuWrapper {
      * @return A {@linkplain RoseMenu} containing the page.
      */
     public RoseMenu getPage(int page) {
+        if (this.pages.size() <= page)
+            return null;
+
         return this.pages.get(page);
     }
 
+    /**
+     * @return A list of all pages in this menu.
+     */
     public List<RoseMenu> getPages() {
         return this.pages;
     }
@@ -153,6 +157,7 @@ public abstract class RoseMenuWrapper {
                 pageSection.set("size", menu.getSize());
                 if (menu.getTickSpeed() != 0)
                     pageSection.set("tick-speed", menu.getTickSpeed());
+
                 writeIconData(pageSection, menu);
                 this.writeIcons(pageSection.createSection("icons"), menu);
 

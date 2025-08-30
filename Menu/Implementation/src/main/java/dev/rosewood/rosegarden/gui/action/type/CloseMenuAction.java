@@ -14,14 +14,15 @@ import org.bukkit.configuration.ConfigurationSection;
  * <pre>
  *     {@code
  *     trigger-type:
- *       close-menu: true
+ *       0:
+ *         type: close_menu
  *     }
  * </pre>
  */
 public class CloseMenuAction extends AbstractAction {
 
     // Unique ID of the action.
-    public static final String ID = "close-menu";
+    public static final String ID = "close_menu";
 
     // Code Constructors
 
@@ -33,12 +34,6 @@ public class CloseMenuAction extends AbstractAction {
 
     public CloseMenuAction(ConfigurationSection section) {
         super(ID, section);
-    }
-
-    // Serialize the action.
-    @Override
-    public void write(ConfigurationSection section) {
-        section.set(ID, true);
     }
 
     @Override

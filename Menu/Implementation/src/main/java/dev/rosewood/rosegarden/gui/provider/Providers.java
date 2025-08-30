@@ -2,7 +2,6 @@ package dev.rosewood.rosegarden.gui.provider;
 
 import dev.rosewood.rosegarden.gui.provider.animation.FlickerItemProvider;
 import dev.rosewood.rosegarden.gui.provider.fill.FillProvider;
-import dev.rosewood.rosegarden.gui.provider.item.AbstractItemProvider;
 import dev.rosewood.rosegarden.gui.provider.item.CompositeItemProvider;
 import dev.rosewood.rosegarden.gui.provider.item.ConditionalItemProvider;
 import dev.rosewood.rosegarden.gui.provider.item.ItemProvider;
@@ -22,15 +21,15 @@ public final class Providers {
     private static final Map<String, ProviderType<?>> REGISTRY = new HashMap<>();
 
     public static final ProviderType<ItemProvider> ITEM = create(ItemProvider.ID, ItemProvider.ID, CompositeItemProvider::new);
-    public static final ProviderType<ItemProvider> REQUIRES_CONDITION = create(ConditionalItemProvider.ID, ItemProvider.ID, ConditionalItemProvider::new);
+    public static final ProviderType<ItemProvider> CONDITIONAL = create(ConditionalItemProvider.ID, ItemProvider.ID, ConditionalItemProvider::new);
     public static final ProviderType<ItemProvider> FLICKER = create(FlickerItemProvider.ID, ItemProvider.ID, FlickerItemProvider::new);
     public static final ProviderType<SingleSlotProvider> SLOT = create(SingleSlotProvider.ID, SingleSlotProvider.ID, SingleSlotProvider::new);
     public static final ProviderType<MultiSlotProvider> SLOTS = create(MultiSlotProvider.ID, SingleSlotProvider.ID, MultiSlotProvider::new);
     public static final ProviderType<FillProvider> FILL = create(FillProvider.ID, "fill", FillProvider::new);
     public static final ProviderType<TriggerProvider> RIGHT_CLICK = createClickedTrigger("right-click", "right-click", TriggerProvider::new, ClickType.RIGHT);
     public static final ProviderType<TriggerProvider> LEFT_CLICK = createClickedTrigger("left-click", "left-click", TriggerProvider::new, ClickType.LEFT);
-    public static final ProviderType<TriggerProvider> ON_OPEN = create("on-open", "on-open", TriggerProvider::new);
-    public static final ProviderType<TriggerProvider> ON_CLOSE = create("on-close", "on-close", TriggerProvider::new);
+    public static final ProviderType<TriggerProvider> ON_OPEN = create("open", "open", TriggerProvider::new);
+    public static final ProviderType<TriggerProvider> ON_CLOSE = create("close", "close", TriggerProvider::new);
     public static final ProviderType<TriggerProvider> TICK = create("tick", "tick", TriggerProvider::new);
 
     private Providers() {

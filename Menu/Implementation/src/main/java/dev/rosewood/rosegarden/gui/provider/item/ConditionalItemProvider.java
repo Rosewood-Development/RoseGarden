@@ -6,6 +6,8 @@ import dev.rosewood.rosegarden.gui.item.Item;
 import dev.rosewood.rosegarden.gui.item.RoseItem;
 import dev.rosewood.rosegarden.gui.parameter.Context;
 import dev.rosewood.rosegarden.gui.parameter.Parameters;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import org.bukkit.configuration.ConfigurationSection;
 
@@ -29,22 +31,16 @@ import org.bukkit.configuration.ConfigurationSection;
  */
 public class ConditionalItemProvider extends AbstractItemProvider {
 
-    public static final String ID = "requires-condition";
+    public static final String ID = "conditional";
 
-    protected final String conditionStr;
-    protected final Condition condition;
-    protected final AbstractItemProvider passItem;
-    protected final AbstractItemProvider failItem;
+    protected final List<ConditionalItem> conditionalItems;
 
     // Code Constructors
 
-    public ConditionalItemProvider(String condition, Item passItem, Item failItem) {
+    public ConditionalItemProvider(ConditionalItem... conditionalItems) {
         super(ID, null);
 
-        this.conditionStr = condition;
-        this.condition = ConditionParser.parse(this.conditionStr);
-        this.passItem = new ItemProvider(passItem);
-        this.failItem = new ItemProvider(failItem);
+        this.conditionalItems = List.of(conditionalItems);
     }
 
     // Config Constructors
@@ -52,31 +48,98 @@ public class ConditionalItemProvider extends AbstractItemProvider {
     public ConditionalItemProvider(String key, ConfigurationSection section) {
         super(key, section);
 
-        this.conditionStr = section.getString(key + ".condition");
-        this.condition = this.conditionStr != null ? ConditionParser.parse(this.conditionStr) : null;
-        this.passItem = new CompositeItemProvider(key + ".pass", section);
-        this.failItem = new CompositeItemProvider(key + ".fail", section);
+        this.conditionalItems = new ArrayList<>();
+        ConfigurationSection conditionsSection = section.getConfigurationSection("conditions");
+        if (conditionsSection == null)
+            return;
+
+        for (String id : conditionsSection.getKeys(false)) {
+            ConfigurationSection idSection = conditionsSection.getConfigurationSection(id);
+            if (idSection == null)
+                continue;
+
+            List<String> conditions = idSection.contains("conditions") ?
+                    idSection.getStringList("conditions") : new ArrayList<>();
+            RoseItem rootItem = RoseItem.deserialize(idSection);
+            RoseItem trueItem = idSection.contains("true") ?
+                    RoseItem.deserialize(idSection.getConfigurationSection("true.item")) : RoseItem.empty();
+            RoseItem falseItem = idSection.contains("false") ?
+                    RoseItem.deserialize(idSection.getConfigurationSection("false.item")) : RoseItem.empty();
+
+            this.conditionalItems.add(new ConditionalItem(conditions, rootItem, trueItem, falseItem));
+        }
     }
 
     @Override
     public void write(ConfigurationSection section) {
-        section.set(this.getKey() + ".condition", this.conditionStr);
-        this.passItem.write(section.createSection(this.getKey() + ".pass"));
-        this.failItem.write(section.createSection(this.getKey() + ".fail"));
+        super.write(section);
+        ConfigurationSection conditionsSection = section.createSection("item.conditions");
+        for (int i = 0; i < this.conditionalItems.size(); i++) {
+            ConditionalItem item = this.conditionalItems.get(i);
+            ConfigurationSection idSection = conditionsSection.createSection(String.valueOf(i));
+            idSection.set("conditions", item.stringConditions);
+
+            ConfigurationSection trueSection = idSection.createSection("true");
+            item.trueItem.write(trueSection);
+
+            ConfigurationSection falseSection = idSection.createSection("false");
+            item.falseItem.write(falseSection);
+        }
     }
 
     @Override
     public RoseItem get(Context context) {
         Optional<RoseItem> item = context.get(Parameters.ITEM);
+        RoseItem originalItem = item.orElse(RoseItem.empty());
 
-        return item.orElse(RoseItem.empty()).mergeWith(this.condition.check(context) ? this.passItem.get(context)
-                : this.failItem.get(context));
+        for (ConditionalItem conditionalItem : this.conditionalItems) {
+            originalItem.mergeWith(conditionalItem.rootItem.get(context));
+
+            boolean success = true;
+            for (Condition condition : conditionalItem.conditions) {
+                if (!condition.check(context)) {
+                    success = false;
+                    break;
+                }
+            }
+
+            originalItem.mergeWith(success ? conditionalItem.trueItem.get(context) : conditionalItem.falseItem.get(context));
+
+        }
+
+        return originalItem;
+    }
+
+    public ConditionalItemProvider and(Item trueItem, Item falseItem, String... conditions) {
+        this.conditionalItems.add(new ConditionalItem(List.of(conditions), RoseItem.empty(), trueItem, falseItem));
+        return this;
     }
 
     // Static Constructors
 
-    public static ConditionalItemProvider of(String condition, Item passItem, Item failItem) {
-        return new ConditionalItemProvider(condition, passItem, failItem);
+    public static ConditionalItemProvider of(Item trueItem, Item falseItem, String... conditions) {
+        return new ConditionalItemProvider(new ConditionalItem(List.of(conditions), RoseItem.empty(), trueItem, falseItem));
+    }
+
+    protected static class ConditionalItem {
+
+        protected final List<Condition> conditions;
+        protected final List<String> stringConditions;
+        protected final AbstractItemProvider rootItem;
+        protected final AbstractItemProvider trueItem;
+        protected final AbstractItemProvider falseItem;
+
+        public ConditionalItem(List<String> conditions, Item rootItem, Item trueItem, Item falseItem) {
+            this.stringConditions = conditions;
+            this.rootItem = new ItemProvider(rootItem);
+            this.trueItem = new ItemProvider(trueItem);
+            this.falseItem = new ItemProvider(falseItem);
+
+            this.conditions = new ArrayList<>();
+            for (String condition : conditions)
+                this.conditions.add(ConditionParser.parse(condition));
+        }
+
     }
 
 }

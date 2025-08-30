@@ -113,7 +113,7 @@ public final class ItemSerializer {
      */
     public static RoseItem deserialize(ConfigurationSection section) {
         RoseItem item;
-        String typeStr = section.getString("type");
+        String typeStr = section.getString("item");
         if (typeStr == null) {
             item = RoseItem.empty();
         } else {
@@ -141,7 +141,7 @@ public final class ItemSerializer {
      */
     public static void serialize(RoseItem item, ConfigurationSection section) {
         if (!item.isEmpty())
-            section.set("type", item.getType().toString().toLowerCase());
+            section.set("item", item.getType().toString().toLowerCase());
 
         if (item.getAmount() > 1)
             section.set("amount", item.getAmount());

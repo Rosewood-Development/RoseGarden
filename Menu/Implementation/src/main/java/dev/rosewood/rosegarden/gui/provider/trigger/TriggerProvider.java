@@ -39,12 +39,21 @@ public class TriggerProvider extends AbstractProvider<List<Action>> {
         this.actions = new ArrayList<>();
         if (section.isConfigurationSection(key)) {
             ConfigurationSection triggerSection = section.getConfigurationSection(key);
-            for (String actionId : triggerSection.getKeys(false)) {
+            if (triggerSection == null)
+                return;
+
+            for (String id : triggerSection.getKeys(false)) {
+                ConfigurationSection idSection = triggerSection.getConfigurationSection(id);
+                if (idSection == null)
+                    continue;
+
+                String actionId = idSection.getString("type");
+
                 Actions.ActionType<?> actionType = Actions.getRegistry().get(actionId);
                 if (actionType == null)
                     continue;
 
-                Action action = (Action) actionType.create(triggerSection);
+                Action action = (Action) actionType.create(idSection);
                 this.actions.add(action);
             }
         }
@@ -67,8 +76,14 @@ public class TriggerProvider extends AbstractProvider<List<Action>> {
     @Override
     public void write(ConfigurationSection section) {
         ConfigurationSection triggerSection = section.createSection(this.trigger);
-        for (Action action : this.actions)
-            action.write(triggerSection);
+
+        for (int i = 0; i < this.actions.size(); i++) {
+            Action action = this.actions.get(i);
+            ConfigurationSection idSection = triggerSection.createSection(String.valueOf(i));
+
+            idSection.set("type", action.getId());
+            action.write(idSection);
+        }
     }
 
     @Override

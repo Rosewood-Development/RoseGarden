@@ -4,9 +4,6 @@ import dev.rosewood.rosegarden.gui.action.AbstractAction;
 import dev.rosewood.rosegarden.gui.parameter.Context;
 import dev.rosewood.rosegarden.gui.parameter.Parameters;
 import dev.rosewood.rosegarden.hook.PlaceholderAPIHook;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
@@ -19,8 +16,9 @@ import org.bukkit.entity.Player;
  * <pre>
  *     {@code
  *     trigger-type:
- *       commands:
- *         - command
+ *       0:
+ *         type: command
+ *         server-command: command
  *     }
  * </pre>
  * OR<br>
@@ -28,36 +26,27 @@ import org.bukkit.entity.Player;
  * <pre>
  *     {@code
  *     trigger-type:
- *       commands:
- *         player:
- *           - command
- *         server:
- *           - command
+ *       0:
+ *         type: command
+ *         player-command: command
  *     }
  * </pre>
  */
 public class CommandAction extends AbstractAction {
 
     // Unique ID of the action.
-    public static final String ID = "commands";
+    public static final String ID = "command";
 
-    protected final List<String> playerCommands;
-    protected final List<String> consoleCommands;
+    protected final String command;
+    protected final boolean playerCommand;
 
     // Code Constructors
 
-    public CommandAction(String... commands) {
+    public CommandAction(boolean player, String command) {
         super(ID);
 
-        this.playerCommands = new ArrayList<>();
-        this.consoleCommands = Arrays.asList(commands);
-    }
-
-    public CommandAction(List<String> playerCommands, List<String> consoleCommands) {
-        super(ID);
-
-        this.playerCommands = playerCommands;
-        this.consoleCommands = consoleCommands;
+        this.command = command;
+        this.playerCommand = player;
     }
 
     // Config Constructors
@@ -65,77 +54,45 @@ public class CommandAction extends AbstractAction {
     public CommandAction(ConfigurationSection section) {
         super(ID, section);
 
-        if (section.isConfigurationSection(ID)) {
-            // Grab a list of player and/or console commands.
-            this.playerCommands = section.contains(ID + ".player") ?
-                    section.getStringList(ID + ".player") :
-                    new ArrayList<>();
-            this.consoleCommands = section.contains(ID + ".console") ?
-                    section.getStringList(ID + ".console") :
-                    new ArrayList<>();
-        } else if (section.isList(ID)) {
-            // If the section is a list, use those as console commands.
-            this.playerCommands = new ArrayList<>();
-            this.consoleCommands = section.getStringList(ID);
-        }  else {
-            // Initialise lists anyway if we fail to grab any data.
-            this.playerCommands = new ArrayList<>();
-            this.consoleCommands = new ArrayList<>();
+        if (section.contains("player-command")) {
+            this.playerCommand = true;
+            this.command = section.getString("player-command");
+        } else {
+            this.playerCommand = false;
+            this.command = section.getString("server-command");
         }
     }
 
     // Serialize the action.
     @Override
     public void write(ConfigurationSection section) {
-        // If there are player commands, write them to the file.
-        if (!this.playerCommands.isEmpty())
-            section.set(ID + ".player", this.playerCommands);
-
-        // If there are console commands, write them to a file.
-        // Put them in a section if there are player commands too.
-        if (!this.consoleCommands.isEmpty()) {
-            if (!this.playerCommands.isEmpty())
-                section.set(ID + ".console", this.consoleCommands);
-            else
-                section.set(ID, this.consoleCommands);
-        }
+        section.set((this.playerCommand ? "player-command" : "server-command"), this.command);
     }
 
     @Override
     public void run(Context context) {
         Optional<Player> player = context.get(Parameters.PLAYER);
 
-        // Run the console commands when activated.
-        if (!this.consoleCommands.isEmpty())
-            this.consoleCommands.forEach(cmd ->
-                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), PlaceholderAPIHook.applyPlaceholders(player.orElse(null), cmd)));
-
-        // Run the player commands when activated, if the player is valid.
-        if (!this.playerCommands.isEmpty()) {
-            if (player.isEmpty())
-                return;
-
-            this.playerCommands.forEach(cmd ->
-                    player.get().performCommand(PlaceholderAPIHook.applyPlaceholders(player.get(), cmd)));
+        String command = PlaceholderAPIHook.applyPlaceholders(player.orElse(null), this.command);
+        if (this.playerCommand) {
+            player.ifPresent(value -> value.performCommand(command));
+        } else {
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
         }
     }
 
-    public List<String> getPlayerCommands() {
-        return this.playerCommands;
+    public String getCommand() {
+        return this.command;
     }
 
-    public List<String> getConsoleCommands() {
-        return this.consoleCommands;
+    public boolean isPlayerCommand() {
+        return this.playerCommand;
     }
 
     // Static Constructors
 
-    public static CommandAction of(String... commands) {
-        return new CommandAction(commands);
-    }
-
-    public static CommandAction of(List<String> playerCommands, List<String> consoleCommands) {
-        return new CommandAction(playerCommands, consoleCommands);
+    public static CommandAction of(boolean player, String command) {
+        return new CommandAction(player, command);
     }
 
 }
