@@ -60,6 +60,19 @@ public class TriggerProvider extends AbstractProvider<List<Action>> {
     }
 
     @Override
+    public void write(ConfigurationSection section) {
+        ConfigurationSection triggerSection = section.createSection(this.trigger);
+
+        for (int i = 0; i < this.actions.size(); i++) {
+            Action action = this.actions.get(i);
+            ConfigurationSection idSection = triggerSection.createSection(String.valueOf(i));
+
+            idSection.set("type", action.getId());
+            action.write(idSection);
+        }
+    }
+
+    @Override
     public List<Action> get(Context context) {
         return this.actions;
     }
@@ -74,25 +87,12 @@ public class TriggerProvider extends AbstractProvider<List<Action>> {
     }
 
     @Override
-    public void write(ConfigurationSection section) {
-        ConfigurationSection triggerSection = section.createSection(this.trigger);
-
-        for (int i = 0; i < this.actions.size(); i++) {
-            Action action = this.actions.get(i);
-            ConfigurationSection idSection = triggerSection.createSection(String.valueOf(i));
-
-            idSection.set("type", action.getId());
-            action.write(idSection);
-        }
-    }
-
-    @Override
-    public String getType() {
+    public String getGroup() {
         return this.trigger;
     }
 
     @Override
-    public String getKey() {
+    public String getId() {
         return this.trigger;
     }
 

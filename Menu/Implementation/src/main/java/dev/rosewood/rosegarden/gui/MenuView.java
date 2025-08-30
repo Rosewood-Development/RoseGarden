@@ -285,7 +285,7 @@ public class MenuView implements Tickable {
                 .add(Parameters.PLUGIN, this.rosePlugin)
                 .addAll(this.initContext);
 
-        this.menu.call(Providers.ON_CLOSE.getKey(), context);
+        this.menu.call(Providers.ON_CLOSE.getId(), context);
 
         for (Icon icon : this.activeIcons.values()) {
             Optional<AbstractItemProvider> itemProvider = icon.getProvider(Providers.ITEM);
@@ -293,7 +293,7 @@ public class MenuView implements Tickable {
                     .add(Parameters.ITEM, itemProvider.map(abstractItemProvider
                             -> abstractItemProvider.get(Context.empty())).orElse(null));
 
-            icon.call(Providers.ON_CLOSE.getKey(), context);
+            icon.call(Providers.ON_CLOSE.getId(), context);
         }
 
         if (!transitioning && this.player.getOpenInventory().getTopInventory().equals(this.inventory))

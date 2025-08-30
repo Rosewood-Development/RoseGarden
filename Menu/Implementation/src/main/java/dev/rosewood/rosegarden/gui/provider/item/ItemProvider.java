@@ -11,7 +11,8 @@ import org.bukkit.configuration.ConfigurationSection;
  * <pre>
  *     {@code
  *     item:
- *       type: stone
+ *       type: item
+ *       item: stone
  *     }
  * </pre>
  * See {@linkplain dev.rosewood.rosegarden.gui.item.ItemSerializer ItemSerializer} for meta serializers.
@@ -35,15 +36,15 @@ public class ItemProvider extends AbstractItemProvider {
     public ItemProvider(String key, ConfigurationSection section) {
         super(key, section);
 
-        if (section.contains(key))
-            this.item = (context) -> RoseItem.deserialize(section.getConfigurationSection("item"));
+        this.item = RoseItem.deserialize(section.getConfigurationSection(ID));
     }
 
     @Override
     public void write(ConfigurationSection section) {
         super.write(section);
+
         RoseItem item = this.item.get(Context.empty());
-        item.serialize(section.getConfigurationSection("item"));
+        item.serialize(section.getConfigurationSection(ID));
     }
 
     @Override

@@ -24,11 +24,11 @@ public interface Provider<T> {
      * @return The type of this provider.
      *          Only one of each provider type is allowed per icon.
      */
-    String getType();
+    String getGroup();
 
     /**
      * @return The configuration key for this provider.
      */
-    String getKey();
+    String getId();
 
 }

@@ -407,7 +407,7 @@ public abstract class AbstractGuiManager extends Manager implements Listener {
                 .add(Parameters.PLUGIN, this.rosePlugin)
                 .addAll(menu.getView(player).getInitContext());
 
-        menu.call(Providers.ON_OPEN.getKey(), context);
+        menu.call(Providers.ON_OPEN.getId(), context);
 
         for (Icon icon : menu.getView(player).getActiveIcons().values()) {
             Optional<AbstractItemProvider> itemProvider = icon.getProvider(Providers.ITEM);
@@ -415,7 +415,7 @@ public abstract class AbstractGuiManager extends Manager implements Listener {
                     .add(Parameters.ITEM, itemProvider.map(abstractItemProvider ->
                             abstractItemProvider.get(Context.empty())).orElse(null));
 
-            icon.call(Providers.ON_OPEN.getKey(), context);
+            icon.call(Providers.ON_OPEN.getId(), context);
         }
     }
 
@@ -440,7 +440,7 @@ public abstract class AbstractGuiManager extends Manager implements Listener {
     private String getTrigger(ClickType clickType) {
         for (Providers.ProviderType<?> providerType : Providers.getRegistry().values()) {
             if (providerType.getClickType() == clickType)
-                return providerType.getKey();
+                return providerType.getId();
         }
 
         return null;

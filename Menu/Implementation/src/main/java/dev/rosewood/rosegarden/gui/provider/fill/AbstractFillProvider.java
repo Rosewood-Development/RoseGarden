@@ -15,12 +15,12 @@ public abstract class AbstractFillProvider extends AbstractProvider<Fill> {
     }
 
     @Override
-    public String getType() {
+    public String getGroup() {
         return "fill";
     }
 
     @Override
-    public String getKey() {
+    public String getId() {
         return this.key;
     }
 

@@ -8,7 +8,6 @@ import dev.rosewood.rosegarden.gui.item.RoseItem;
 import dev.rosewood.rosegarden.gui.parameter.Context;
 import dev.rosewood.rosegarden.gui.parameter.Parameters;
 import dev.rosewood.rosegarden.gui.provider.item.AbstractItemProvider;
-import dev.rosewood.rosegarden.gui.provider.item.CompositeItemProvider;
 import dev.rosewood.rosegarden.gui.provider.item.ItemProvider;
 import java.util.Optional;
 import org.bukkit.configuration.ConfigurationSection;
@@ -20,9 +19,9 @@ import org.bukkit.configuration.ConfigurationSection;
 *     {@code
 *     trigger-type:
 *       '0':
- *         modify-item:
- *           item:
- *             property: value
+ *         type: modify-item:
+ *         item:
+ *           property: value
 *     }
 * </pre>
  */
@@ -58,7 +57,8 @@ public class ModifyItemAction extends AbstractAction {
     public ModifyItemAction(ConfigurationSection section) {
         super(ID, section);
 
-        this.modifiedItem = new CompositeItemProvider(ITEM, section);
+        this.modifiedItem = AbstractItemProvider.deserialize(section);
+
     }
 
     @Override

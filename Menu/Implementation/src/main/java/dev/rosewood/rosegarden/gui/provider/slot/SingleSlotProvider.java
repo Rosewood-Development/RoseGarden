@@ -28,12 +28,12 @@ public class SingleSlotProvider extends AbstractSlotProvider {
     public SingleSlotProvider(String key, ConfigurationSection section) {
         super(key, section);
 
-        this.slots.add(section.getInt(this.getKey()));
+        this.slots.add(section.getInt(this.getId()));
     }
 
     @Override
     public void write(ConfigurationSection section) {
-        section.set(this.getKey(), this.slots.get(0));
+        section.set(this.getId(), this.slots.get(0));
     }
 
     // Static Constructors

@@ -2,7 +2,6 @@ package dev.rosewood.rosegarden.gui.provider;
 
 import dev.rosewood.rosegarden.gui.provider.animation.FlickerItemProvider;
 import dev.rosewood.rosegarden.gui.provider.fill.FillProvider;
-import dev.rosewood.rosegarden.gui.provider.item.CompositeItemProvider;
 import dev.rosewood.rosegarden.gui.provider.item.ConditionalItemProvider;
 import dev.rosewood.rosegarden.gui.provider.item.ItemProvider;
 import dev.rosewood.rosegarden.gui.provider.slot.MultiSlotProvider;
@@ -20,8 +19,8 @@ public final class Providers {
 
     private static final Map<String, ProviderType<?>> REGISTRY = new HashMap<>();
 
-    public static final ProviderType<ItemProvider> ITEM = create(ItemProvider.ID, ItemProvider.ID, CompositeItemProvider::new);
-    public static final ProviderType<ItemProvider> CONDITIONAL = create(ConditionalItemProvider.ID, ItemProvider.ID, ConditionalItemProvider::new);
+    public static final ProviderType<ItemProvider> ITEM = create(ItemProvider.ID, ItemProvider.ID, ItemProvider::new);
+    public static final ProviderType<ItemProvider> CONDITIONAL_ITEM = create(ConditionalItemProvider.ID, ItemProvider.ID, ConditionalItemProvider::new);
     public static final ProviderType<ItemProvider> FLICKER = create(FlickerItemProvider.ID, ItemProvider.ID, FlickerItemProvider::new);
     public static final ProviderType<SingleSlotProvider> SLOT = create(SingleSlotProvider.ID, SingleSlotProvider.ID, SingleSlotProvider::new);
     public static final ProviderType<MultiSlotProvider> SLOTS = create(MultiSlotProvider.ID, SingleSlotProvider.ID, MultiSlotProvider::new);
@@ -39,15 +38,15 @@ public final class Providers {
     /**
      * Creates and registers a new {@linkplain ProviderType provider type} which can be attached to an {@linkplain dev.rosewood.rosegarden.gui.icon.Icon icon}.
      *
-     * @param name The id of the provider, used directly in menu configuration files.
-     * @param type The type of provider, used for overwriting any existing providers so that an icon can not have multiple providers of the same type.
+     * @param id The id of the provider, used directly in menu configuration files.
+     * @param group The group of provider, used for overwriting any existing providers so that an icon can not have multiple providers of the same group.
      * @param function The constructor of a {@linkplain AbstractProvider provider}.
      * @return The created {@linkplain ProviderType provider type}.
      * @param <T> The class extending {@linkplain AbstractProvider}.
      */
-    public static <T> ProviderType<T> create(String name, String type, BiFunction<String, ConfigurationSection, Provider<?>> function) {
-        ProviderType<T> providerType = new ProviderType<>(name, type, function,null);
-        REGISTRY.put(name, providerType);
+    public static <T> ProviderType<T> create(String id, String group, BiFunction<String, ConfigurationSection, Provider<?>> function) {
+        ProviderType<T> providerType = new ProviderType<>(id, group, function,null);
+        REGISTRY.put(id, providerType);
         return providerType;
     }
 
@@ -56,16 +55,16 @@ public final class Providers {
      * with a {@linkplain ClickType click type},
      * which can be attached to an {@linkplain dev.rosewood.rosegarden.gui.icon.Icon icon}.
      *
-     * @param name The id of the provider, used directly in menu configuration files.
-     * @param type The type of provider, used for overwriting any existing providers so that an icon can not have multiple providers of the same type.
+     * @param id The id of the provider, used directly in menu configuration files.
+     * @param group The group of provider, used for overwriting any existing providers so that an icon can not have multiple providers of the same group.
      * @param function The constructor of a {@linkplain AbstractProvider provider}.
      * @param click The {@linkplain ClickType click type} to use.
      * @return The created {@linkplain ProviderType provider type}.
      * @param <T> The class extending {@linkplain AbstractProvider}.
      */
-    public static <T> ProviderType<T> createClickedTrigger(String name, String type, BiFunction<String, ConfigurationSection, Provider<?>> function, ClickType click) {
-        ProviderType<T> providerType = new ProviderType<>(name, type, function, click);
-        REGISTRY.put(name, providerType);
+    public static <T> ProviderType<T> createClickedTrigger(String id, String group, BiFunction<String, ConfigurationSection, Provider<?>> function, ClickType click) {
+        ProviderType<T> providerType = new ProviderType<>(id, group, function, click);
+        REGISTRY.put(id, providerType);
         return providerType;
     }
 
@@ -75,28 +74,28 @@ public final class Providers {
 
     public static class ProviderType<T> {
 
-        private final String key;
-        private final String type;
+        private final String id;
+        private final String group;
         private final BiFunction<String, ConfigurationSection, ? extends Provider<?>> function;
         private final ClickType clickType;
 
-        public ProviderType(String key, String type, BiFunction<String, ConfigurationSection, ? extends Provider<?>> function, ClickType clickType) {
-            this.key = key;
-            this.type = type;
+        public ProviderType(String id, String group, BiFunction<String, ConfigurationSection, ? extends Provider<?>> function, ClickType clickType) {
+            this.id = id;
+            this.group = group;
             this.function = function;
             this.clickType = clickType;
         }
 
         public T create(ConfigurationSection section) {
-            return (T) this.function.apply(this.key, section);
+            return (T) this.function.apply(this.id, section);
         }
 
-        public String getKey() {
-            return this.key;
+        public String getId() {
+            return this.id;
         }
 
-        public String getType() {
-            return this.type;
+        public String getGroup() {
+            return this.group;
         }
 
         public ClickType getClickType() {

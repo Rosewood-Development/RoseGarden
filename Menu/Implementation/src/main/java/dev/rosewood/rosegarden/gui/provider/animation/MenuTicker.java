@@ -46,8 +46,8 @@ public class MenuTicker extends BukkitRunnable {
                 if (provider instanceof Tickable)
                     ((Tickable) provider).run(context);
 
-                if (provider.getKey().equalsIgnoreCase(Providers.TICK.getKey()))
-                    icon.call(Providers.TICK.getKey(), context);
+                if (provider.getId().equalsIgnoreCase(Providers.TICK.getId()))
+                    icon.call(Providers.TICK.getId(), context);
             }
         }
 

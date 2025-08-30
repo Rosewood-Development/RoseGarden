@@ -24,12 +24,12 @@ public abstract class AbstractSlotProvider extends AbstractProvider<List<Integer
     }
 
     @Override
-    public String getType() {
+    public String getGroup() {
         return "slot";
     }
 
     @Override
-    public String getKey() {
+    public String getId() {
         return this.key;
     }
 

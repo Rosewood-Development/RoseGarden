@@ -35,14 +35,14 @@ public class Icon {
     public Icon(Provider<?> provider) {
         this();
 
-        this.providers.put(provider.getType(), provider);
+        this.providers.put(provider.getGroup(), provider);
     }
 
     public Icon(Item item) {
         this();
 
         ItemProvider provider = new ItemProvider(item);
-        this.providers.put(provider.getType(), provider);
+        this.providers.put(provider.getGroup(), provider);
     }
 
     /**
@@ -51,7 +51,7 @@ public class Icon {
      * @return This {@link Icon}.
      */
     public Icon addProvider(Provider<?> provider) {
-        this.providers.put(provider.getType(), provider);
+        this.providers.put(provider.getGroup(), provider);
         return this;
     }
 
@@ -60,7 +60,7 @@ public class Icon {
      * @return The provider if it exists.
      */
     public <T> Optional<T> getProvider(Providers.ProviderType<? extends T> providerType) {
-        return Optional.ofNullable((T) this.providers.get(providerType.getType()));
+        return Optional.ofNullable((T) this.providers.get(providerType.getGroup()));
     }
 
     /**
@@ -87,7 +87,7 @@ public class Icon {
         if (current.isPresent()) {
             current.get().add(action);
         } else {
-            this.providers.put(trigger.getType(), new TriggerProvider(trigger.getKey(), action));
+            this.providers.put(trigger.getGroup(), new TriggerProvider(trigger.getId(), action));
         }
 
         return this;

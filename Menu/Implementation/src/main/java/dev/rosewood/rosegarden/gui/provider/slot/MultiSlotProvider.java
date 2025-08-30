@@ -39,7 +39,7 @@ public class MultiSlotProvider extends AbstractSlotProvider {
     public MultiSlotProvider(String key, ConfigurationSection section) {
         super(key, section);
 
-        List<String> slots = section.getStringList(this.getKey());
+        List<String> slots = section.getStringList(this.getId());
         for (String slot : slots)
             this.add(slot);
     }
@@ -110,7 +110,7 @@ public class MultiSlotProvider extends AbstractSlotProvider {
             slotsAsStrings.add(start + "-" + end);
         }
 
-        section.set(this.getKey(), slotsAsStrings);
+        section.set(this.getId(), slotsAsStrings);
     }
 
     // Static Constructors

@@ -271,7 +271,13 @@ public abstract class RoseMenuWrapper {
         }
 
         for (Providers.ProviderType<?> providerType : Providers.getRegistry().values()) {
-            if (section.contains(providerType.getKey())) {
+            // If the provider is typed, grab based on the type, check if the type is the same, as well as the id.
+            if (section.contains(providerType.getGroup() + ".type")) {
+                if (providerType.getId().equalsIgnoreCase(section.getString(providerType.getGroup() + ".type"))) {
+                    Provider<?> provider = (Provider<?>) providerType.create(section);
+                    icon.addProvider(provider);
+                }
+            } else if (section.contains(providerType.getId())) {
                 Provider<?> provider = (Provider<?>) providerType.create(section);
                 icon.addProvider(provider);
             }

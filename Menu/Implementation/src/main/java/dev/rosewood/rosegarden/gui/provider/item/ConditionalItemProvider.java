@@ -49,7 +49,7 @@ public class ConditionalItemProvider extends AbstractItemProvider {
         super(key, section);
 
         this.conditionalItems = new ArrayList<>();
-        ConfigurationSection conditionsSection = section.getConfigurationSection("conditions");
+        ConfigurationSection conditionsSection = section.getConfigurationSection(ITEM + ".conditions");
         if (conditionsSection == null)
             return;
 
@@ -73,6 +73,7 @@ public class ConditionalItemProvider extends AbstractItemProvider {
     @Override
     public void write(ConfigurationSection section) {
         super.write(section);
+
         ConfigurationSection conditionsSection = section.createSection("item.conditions");
         for (int i = 0; i < this.conditionalItems.size(); i++) {
             ConditionalItem item = this.conditionalItems.get(i);
@@ -121,7 +122,7 @@ public class ConditionalItemProvider extends AbstractItemProvider {
         return new ConditionalItemProvider(new ConditionalItem(List.of(conditions), RoseItem.empty(), trueItem, falseItem));
     }
 
-    protected static class ConditionalItem {
+    public static class ConditionalItem {
 
         protected final List<Condition> conditions;
         protected final List<String> stringConditions;
