@@ -95,7 +95,7 @@ public final class SettingSerializers {
     public static final SettingSerializer<Material> MATERIAL = ofEnum(Material.class);
     public static final SettingSerializer<List<Material>> MATERIAL_LIST = ofList(MATERIAL);
 
-    public static final SettingSerializer<ConfigurationSection> SECTION = new SettingSerializer<ConfigurationSection>(ConfigurationSection.class, CustomPersistentDataType.SECTION) {
+    public static final SettingSerializer<ConfigurationSection> SECTION = new SettingSerializer<ConfigurationSection>(ConfigurationSection.class, null) {
         public void write(ConfigurationSection config, String key, ConfigurationSection value, String... comments) {
             if (config instanceof CommentedConfigurationSection) {
                 ((CommentedConfigurationSection) config).addPathedComments(key, comments);
@@ -110,7 +110,7 @@ public final class SettingSerializers {
         public ConfigurationSection read(ConfigurationSection config, String key) { return config.getConfigurationSection(key); }
     };
 
-    public static final SettingSerializer<World> WORLD = new BaseSettingSerializer<World>(World.class, World::getName, Bukkit::getWorld) {
+    public static final SettingSerializer<World> WORLD = new SettingSerializer<World>(World.class, CustomPersistentDataType.WORLD, World::getName, Bukkit::getWorld) {
         public void write(ConfigurationSection config, String key, World value, String... comments) { setWithComments(config, key, value, comments); }
         public World read(ConfigurationSection config, String key) {
             String worldName = config.getString(key);
@@ -118,7 +118,7 @@ public final class SettingSerializers {
         }
     };
 
-    public static final SettingSerializer<UUID> UUID = new BaseSettingSerializer<UUID>(UUID.class, java.util.UUID::toString, java.util.UUID::fromString) {
+    public static final SettingSerializer<UUID> UUID = new SettingSerializer<UUID>(UUID.class, CustomPersistentDataType.UUID, java.util.UUID::toString, java.util.UUID::fromString) {
         public void write(ConfigurationSection config, String key, UUID value, String... comments) { setWithComments(config, key, value, comments); }
         public UUID read(ConfigurationSection config, String key) {
             String uuid = config.getString(key);
