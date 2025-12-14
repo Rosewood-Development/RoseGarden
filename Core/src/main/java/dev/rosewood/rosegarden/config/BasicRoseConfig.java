@@ -1,5 +1,6 @@
 package dev.rosewood.rosegarden.config;
 
+import dev.rosewood.rosegarden.codec.yaml.YamlCodecType;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -32,7 +33,7 @@ class BasicRoseConfig implements RoseConfig {
             return (T) this.settingsValueCache.get(setting);
 
         try {
-            T value = setting.getSerializer().read(this.getBaseConfig(), setting);
+            T value = setting.getSerializer().read(YamlCodecType.INSTANCE, this.getBaseConfig(), setting);
             this.settingsValueCache.put(setting, value);
             return value;
         } catch (Exception e) {
@@ -43,7 +44,7 @@ class BasicRoseConfig implements RoseConfig {
 
     @Override
     public <T> void set(RoseSetting<T> setting, T value) {
-        setting.getSerializer().write(this.getBaseConfig(), setting, value);
+        setting.getSerializer().write(YamlCodecType.INSTANCE, this.getBaseConfig(), setting, value);
         this.settingsValueCache.put(setting, value);
     }
 

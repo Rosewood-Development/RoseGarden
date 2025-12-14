@@ -19,6 +19,19 @@ import org.bukkit.persistence.PersistentDataType;
 
 public final class CustomPersistentDataType {
 
+    public static final PersistentDataType<Byte, Boolean> BOOLEAN = new PersistentDataType<Byte, Boolean>() {
+        public Class<Byte> getPrimitiveType() { return Byte.class; }
+        public Class<Boolean> getComplexType() { return Boolean.class; }
+
+        public Byte toPrimitive(Boolean complex, PersistentDataAdapterContext context) {
+            return (byte) (complex ? 1 : 0);
+        }
+
+        public Boolean fromPrimitive(Byte primitive, PersistentDataAdapterContext context) {
+            return primitive != 0;
+        }
+    };
+
     public static final PersistentDataType<byte[], UUID> UUID = new PersistentDataType<byte[], UUID>() {
 
         public Class<byte[]> getPrimitiveType() { return byte[].class; }
@@ -40,7 +53,7 @@ public final class CustomPersistentDataType {
 
     };
 
-    public static final PersistentDataType<String, Character> CHARACTER = new PersistentDataType<String, Character>() {
+    public static final PersistentDataType<String, Character> CHAR = new PersistentDataType<String, Character>() {
 
         public Class<String> getPrimitiveType() { return String.class; }
         public Class<Character> getComplexType() { return Character.class; }

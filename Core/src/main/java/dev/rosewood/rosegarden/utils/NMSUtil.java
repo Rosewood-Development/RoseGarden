@@ -6,13 +6,19 @@ public final class NMSUtil {
 
     private static final int VERSION_NUMBER;
     private static final int MINOR_VERSION_NUMBER;
+    private static final int PATCH_VERSION_NUMBER;
     private static final boolean IS_PAPER;
     private static final boolean IS_FOLIA;
     static {
         String bukkitVersion = Bukkit.getBukkitVersion();
         String[] parts = bukkitVersion.split("-")[0].split("\\.");
-        VERSION_NUMBER = Integer.parseInt(parts[1]);
-        MINOR_VERSION_NUMBER = parts.length >= 3 ? Integer.parseInt(parts[2]) : 0;
+        int part1 = Integer.parseInt(parts[0]);
+        int part2 = Integer.parseInt(parts[1]);
+        int part3 = parts.length > 2 ? Integer.parseInt(parts[2]) : 0;
+        boolean yearBasedVersioning = part1 > 1;
+        VERSION_NUMBER = yearBasedVersioning ? part1 : part2;
+        MINOR_VERSION_NUMBER = yearBasedVersioning ? part2 : parts.length >= 3 ? part2 : 0;
+        PATCH_VERSION_NUMBER = yearBasedVersioning ? part3 : 0;
         IS_PAPER = ClassUtils.checkClass("com.destroystokyo.paper.PaperConfig");
         IS_FOLIA = ClassUtils.checkClass("io.papermc.paper.threadedregions.RegionizedServer");
     }
@@ -33,6 +39,13 @@ public final class NMSUtil {
      */
     public static int getMinorVersionNumber() {
         return MINOR_VERSION_NUMBER;
+    }
+
+    /**
+     * @return the server version patch release number, will be 0 for non-year based versioning
+     */
+    public static int getPatchVersionNumber() {
+        return PATCH_VERSION_NUMBER;
     }
 
     /**

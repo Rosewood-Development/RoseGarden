@@ -1,5 +1,6 @@
 package dev.rosewood.rosegarden.config;
 
+import dev.rosewood.rosegarden.codec.record.Functions;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiFunction;

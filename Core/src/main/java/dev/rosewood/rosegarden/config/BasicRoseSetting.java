@@ -1,5 +1,6 @@
 package dev.rosewood.rosegarden.config;
 
+import dev.rosewood.rosegarden.codec.yaml.YamlCodecType;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -28,7 +29,7 @@ class BasicRoseSetting<T> implements RoseSetting<T> {
 
         try {
             T defaultValue = this.defaultValueSupplier.get();
-            this.serializer.write(config, this.key, defaultValue, this.comments);
+            this.serializer.write(YamlCodecType.INSTANCE, config, this.key, defaultValue, this.comments);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -41,7 +42,7 @@ class BasicRoseSetting<T> implements RoseSetting<T> {
 
         try {
             T defaultValue = this.defaultValueSupplier.get();
-            this.serializer.writeWithDefault(config, this.key, defaultValue, this.comments);
+            this.serializer.writeWithDefault(YamlCodecType.INSTANCE, config, this.key, defaultValue, this.comments);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -54,7 +55,7 @@ class BasicRoseSetting<T> implements RoseSetting<T> {
 
         this.defaultValueSupplier = () -> {
             try {
-                return this.serializer.read(config, this.key);
+                return this.serializer.read(YamlCodecType.INSTANCE, config, this.key);
             } catch (Exception e) {
                 e.printStackTrace();
                 return null;
@@ -68,7 +69,7 @@ class BasicRoseSetting<T> implements RoseSetting<T> {
             return null;
 
         try {
-            return this.serializer.read(config, this.key);
+            return this.serializer.read(YamlCodecType.INSTANCE, config, this.key);
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -81,7 +82,7 @@ class BasicRoseSetting<T> implements RoseSetting<T> {
             return true;
 
         try {
-            return this.serializer.readIsValid(config, this.key);
+            return this.serializer.readIsValid(YamlCodecType.INSTANCE, config, this.key);
         } catch (Exception e) {
             e.printStackTrace();
             return false;

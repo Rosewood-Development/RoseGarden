@@ -1,5 +1,7 @@
 package dev.rosewood.rosegarden;
 
+import dev.rosewood.rosegarden.codec.MapSettingCodecRegistry;
+import dev.rosewood.rosegarden.codec.SettingCodecRegistry;
 import dev.rosewood.rosegarden.command.framework.RoseCommandWrapper;
 import dev.rosewood.rosegarden.command.rwd.RwdCommand;
 import dev.rosewood.rosegarden.config.RoseConfig;
@@ -74,6 +76,11 @@ public abstract class RosePlugin extends JavaPlugin {
      */
     private RoseConfig roseConfig;
 
+    /**
+     * The codec registry
+     */
+    private final SettingCodecRegistry codecRegistry;
+
     private boolean firstInitialization = true;
     private boolean firstToRegister = false;
     private boolean snapshot = false;
@@ -98,6 +105,8 @@ public abstract class RosePlugin extends JavaPlugin {
 
         this.managers = new ConcurrentHashMap<>();
         this.managerInitializationStack = new ConcurrentLinkedDeque<>();
+
+        this.codecRegistry = new MapSettingCodecRegistry();
 
         instance = this;
     }
@@ -343,6 +352,10 @@ public abstract class RosePlugin extends JavaPlugin {
                     .build();
         }
         return this.roseConfig;
+    }
+
+    public final SettingCodecRegistry getCodecRegistry() {
+        return this.codecRegistry;
     }
 
     /**

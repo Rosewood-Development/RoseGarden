@@ -1,5 +1,6 @@
 package dev.rosewood.rosegarden.config;
 
+import dev.rosewood.rosegarden.codec.record.Functions;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -21,7 +22,7 @@ public interface RecordFieldGroups {
     final class Group2<O, T1, T2> {
         private final SettingField<O, T1> t1;
         private final SettingField<O, T2> t2;
-        
+
         public Group2(SettingField<O, T1> t1,
                       SettingField<O, T2> t2) {
             this.t1 = t1;
@@ -58,7 +59,7 @@ public interface RecordFieldGroups {
         private final SettingField<O, T2> t2;
         private final SettingField<O, T3> t3;
         private final SettingField<O, T4> t4;
-        
+
         public Group4(SettingField<O, T1> t1,
                       SettingField<O, T2> t2,
                       SettingField<O, T3> t3,

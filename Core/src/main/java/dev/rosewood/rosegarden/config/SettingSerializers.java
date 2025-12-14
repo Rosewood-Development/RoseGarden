@@ -58,7 +58,7 @@ public final class SettingSerializers {
         public Float read(ConfigurationSection config, String key) { return getOrNull(config, key, (x, y) -> (float) x.getDouble(y)); }
     };
 
-    public static final SettingSerializer<Character> CHAR = new SettingSerializer<Character>(Character.class, CustomPersistentDataType.CHARACTER, Object::toString, x -> x.charAt(0)) {
+    public static final SettingSerializer<Character> CHAR = new SettingSerializer<Character>(Character.class, CustomPersistentDataType.CHAR, Object::toString, x -> x.charAt(0)) {
         public void write(ConfigurationSection config, String key, Character value, String... comments) { setWithComments(config, key, value, comments); }
         public Character read(ConfigurationSection config, String key) {
             String value = config.getString(key);
