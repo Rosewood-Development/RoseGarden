@@ -10,27 +10,7 @@ public interface RoseConfig {
 
     <T> T get(RoseSetting<T> setting);
 
-    default <T> T get(String key, SettingSerializer<T> serializer) {
-        return this.get(key, serializer, (T) null);
-    }
-
-    default <T> T get(String key, SettingSerializer<T> serializer, T defaultValue) {
-        return this.get(RoseSetting.ofValue(key, serializer, defaultValue));
-    }
-
-    default <T> T get(String key, SettingSerializer<T> serializer, Supplier<T> defaultValueSupplier) {
-        return this.get(RoseSetting.of(key, serializer, defaultValueSupplier));
-    }
-
     <T> void set(RoseSetting<T> setting, T value);
-
-    default <T> void set(String key, SettingSerializer<T> serializer, T value) {
-        this.set(RoseSetting.ofValue(key, serializer, value), value);
-    }
-
-    default <T> void set(String key, SettingSerializer<T> serializer, Supplier<T> valueSupplier) {
-        this.set(RoseSetting.of(key, serializer, valueSupplier), valueSupplier.get());
-    }
 
     File getFile();
 

@@ -2,6 +2,8 @@ package dev.rosewood.rosegarden;
 
 import dev.rosewood.rosegarden.codec.MapSettingCodecRegistry;
 import dev.rosewood.rosegarden.codec.SettingCodecRegistry;
+import dev.rosewood.rosegarden.codec.pdc.PdcCodecs;
+import dev.rosewood.rosegarden.codec.yaml.YamlCodecs;
 import dev.rosewood.rosegarden.command.framework.RoseCommandWrapper;
 import dev.rosewood.rosegarden.command.rwd.RwdCommand;
 import dev.rosewood.rosegarden.config.RoseConfig;
@@ -107,6 +109,13 @@ public abstract class RosePlugin extends JavaPlugin {
         this.managerInitializationStack = new ConcurrentLinkedDeque<>();
 
         this.codecRegistry = new MapSettingCodecRegistry();
+
+        YamlCodecs.registerDefaults(this.codecRegistry);
+
+        try {
+            Class.forName("org.bukkit.persistence.PersistentDataContainer");
+            PdcCodecs.registerDefaults(this.codecRegistry);
+        } catch (ClassNotFoundException ignored) { }
 
         instance = this;
     }

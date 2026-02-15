@@ -4,12 +4,17 @@ import org.bukkit.Bukkit;
 
 public final class NMSUtil {
 
-    private static final int VERSION_NUMBER;
-    private static final int MINOR_VERSION_NUMBER;
-    private static final int PATCH_VERSION_NUMBER;
-    private static final boolean IS_PAPER;
-    private static final boolean IS_FOLIA;
+    private static int VERSION_NUMBER;
+    private static int MINOR_VERSION_NUMBER;
+    private static int PATCH_VERSION_NUMBER;
+    private static boolean IS_PAPER;
+    private static boolean IS_FOLIA;
+
     static {
+        initialize();
+    }
+
+    static void initialize() {
         String bukkitVersion = Bukkit.getBukkitVersion();
         String[] parts = bukkitVersion.split("-")[0].split("\\.");
         int part1 = Integer.parseInt(parts[0]);
@@ -17,7 +22,7 @@ public final class NMSUtil {
         int part3 = parts.length > 2 ? Integer.parseInt(parts[2]) : 0;
         boolean yearBasedVersioning = part1 > 1;
         VERSION_NUMBER = yearBasedVersioning ? part1 : part2;
-        MINOR_VERSION_NUMBER = yearBasedVersioning ? part2 : parts.length >= 3 ? part2 : 0;
+        MINOR_VERSION_NUMBER = yearBasedVersioning ? part2 : parts.length >= 3 ? part3 : 0;
         PATCH_VERSION_NUMBER = yearBasedVersioning ? part3 : 0;
         IS_PAPER = ClassUtils.checkClass("com.destroystokyo.paper.PaperConfig");
         IS_FOLIA = ClassUtils.checkClass("io.papermc.paper.threadedregions.RegionizedServer");

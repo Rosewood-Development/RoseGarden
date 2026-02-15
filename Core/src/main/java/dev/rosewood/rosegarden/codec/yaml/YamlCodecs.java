@@ -1,11 +1,12 @@
 package dev.rosewood.rosegarden.codec.yaml;
 
 import dev.rosewood.rosegarden.RosePlugin;
+import dev.rosewood.rosegarden.codec.SettingCodec;
+import dev.rosewood.rosegarden.codec.SettingCodecRegistry;
+import dev.rosewood.rosegarden.codec.SettingType;
+import dev.rosewood.rosegarden.codec.record.RecordCodecBuilder;
+import dev.rosewood.rosegarden.codec.record.RecordField;
 import dev.rosewood.rosegarden.config.CommentedConfigurationSection;
-import dev.rosewood.rosegarden.config.RecordSettingSerializerBuilder;
-import dev.rosewood.rosegarden.config.SettingField;
-import dev.rosewood.rosegarden.config.SettingSerializer;
-import dev.rosewood.rosegarden.config.SettingSerializers;
 import dev.rosewood.rosegarden.utils.NMSUtil;
 import java.util.Arrays;
 import java.util.List;
@@ -29,50 +30,50 @@ public final class YamlCodecs {
     }
 
     //region Primitive Codecs
-    public static final YamlCodec<Boolean> BOOLEAN = register(new YamlCodec<Boolean>(Boolean.class, Object::toString, Boolean::parseBoolean) {
-        public void encode(ConfigurationSection container, String key, Boolean value, String... comments) { setWithComments(container, key, value, comments); }
+    public static final YamlCodec<Boolean> BOOLEAN = new YamlCodec<Boolean>(Boolean.class, Object::toString, Boolean::parseBoolean) {
+        public void encode(ConfigurationSection container, String key, Boolean value, boolean appendDefault, String... comments) { setWithComments(this, container, key, value, appendDefault, comments); }
         public Boolean decode(ConfigurationSection container, String key) { return getOrNull(container, key, ConfigurationSection::getBoolean); }
-    });
+    };
 
-    public static final YamlCodec<Integer> INTEGER = register(new YamlCodec<Integer>(Integer.class, Object::toString, Integer::parseInt) {
-        public void encode(ConfigurationSection container, String key, Integer value, String... comments) { setWithComments(container, key, value, comments); }
+    public static final YamlCodec<Integer> INTEGER = new YamlCodec<Integer>(Integer.class, Object::toString, Integer::parseInt) {
+        public void encode(ConfigurationSection container, String key, Integer value, boolean appendDefault, String... comments) { setWithComments(this, container, key, value, appendDefault, comments); }
         public Integer decode(ConfigurationSection container, String key) { return getOrNull(container, key, ConfigurationSection::getInt); }
-    });
+    };
 
-    public static final YamlCodec<Long> LONG = register(new YamlCodec<Long>(Long.class, Object::toString, Long::parseLong) {
-        public void encode(ConfigurationSection container, String key, Long value, String... comments) { setWithComments(container, key, value, comments); }
+    public static final YamlCodec<Long> LONG = new YamlCodec<Long>(Long.class, Object::toString, Long::parseLong) {
+        public void encode(ConfigurationSection container, String key, Long value, boolean appendDefault,String... comments) { setWithComments(this, container, key, value, appendDefault, comments); }
         public Long decode(ConfigurationSection container, String key) { return getOrNull(container, key, ConfigurationSection::getLong); }
-    });
+    };
 
-    public static final YamlCodec<Short> SHORT = register(new YamlCodec<Short>(Short.class, Object::toString, Short::parseShort) {
-        public void encode(ConfigurationSection container, String key, Short value, String... comments) { setWithComments(container, key, value, comments); }
+    public static final YamlCodec<Short> SHORT = new YamlCodec<Short>(Short.class, Object::toString, Short::parseShort) {
+        public void encode(ConfigurationSection container, String key, Short value, boolean appendDefault,String... comments) { setWithComments(this, container, key, value, appendDefault, comments); }
         public Short decode(ConfigurationSection container, String key) { return getOrNull(container, key, (x, y) -> (short) x.getInt(y)); }
-    });
+    };
 
-    public static final YamlCodec<Byte> BYTE = register(new YamlCodec<Byte>(Byte.class, Object::toString, Byte::parseByte) {
-        public void encode(ConfigurationSection container, String key, Byte value, String... comments) { setWithComments(container, key, value, comments); }
+    public static final YamlCodec<Byte> BYTE = new YamlCodec<Byte>(Byte.class, Object::toString, Byte::parseByte) {
+        public void encode(ConfigurationSection container, String key, Byte value, boolean appendDefault,String... comments) { setWithComments(this, container, key, value, appendDefault, comments); }
         public Byte decode(ConfigurationSection container, String key) { return getOrNull(container, key, (x, y) -> (byte) x.getInt(y)); }
-    });
+    };
 
-    public static final YamlCodec<Double> DOUBLE = register(new YamlCodec<Double>(Double.class, Object::toString, Double::parseDouble) {
-        public void encode(ConfigurationSection container, String key, Double value, String... comments) { setWithComments(container, key, value, comments); }
+    public static final YamlCodec<Double> DOUBLE = new YamlCodec<Double>(Double.class, Object::toString, Double::parseDouble) {
+        public void encode(ConfigurationSection container, String key, Double value, boolean appendDefault,String... comments) { setWithComments(this, container, key, value, appendDefault, comments); }
         public Double decode(ConfigurationSection container, String key) { return getOrNull(container, key, ConfigurationSection::getDouble); }
-    });
+    };
 
-    public static final YamlCodec<Float> FLOAT = register(new YamlCodec<Float>(Float.class, Object::toString, Float::parseFloat) {
-        public void encode(ConfigurationSection container, String key, Float value, String... comments) { setWithComments(container, key, value, comments); }
+    public static final YamlCodec<Float> FLOAT = new YamlCodec<Float>(Float.class, Object::toString, Float::parseFloat) {
+        public void encode(ConfigurationSection container, String key, Float value, boolean appendDefault,String... comments) { setWithComments(this, container, key, value, appendDefault, comments); }
         public Float decode(ConfigurationSection container, String key) { return getOrNull(container, key, (x, y) -> (float) x.getDouble(y)); }
-    });
+    };
 
-    public static final YamlCodec<Character> CHAR = register(new YamlCodec<Character>(Character.class, Object::toString, x -> x.charAt(0)) {
-        public void encode(ConfigurationSection container, String key, Character value, String... comments) { setWithComments(container, key, value, comments); }
+    public static final YamlCodec<Character> CHAR = new YamlCodec<Character>(Character.class, Object::toString, x -> x.charAt(0)) {
+        public void encode(ConfigurationSection container, String key, Character value, boolean appendDefault,String... comments) { setWithComments(this, container, key, value, appendDefault, comments); }
         public Character decode(ConfigurationSection container, String key) {
             String value = container.getString(key);
             if (value == null || value.isEmpty())
                 return ' ';
             return value.charAt(0);
         }
-    });
+    };
 
     private static <T> T getOrNull(ConfigurationSection section, String key, BiFunction<ConfigurationSection, String, T> function) {
         if (!section.contains(key))
@@ -82,28 +83,28 @@ public final class YamlCodecs {
     //endregion
 
     //region Primitive List Codecs
-    public static final YamlCodec<List<Boolean>> BOOLEAN_LIST = register(ofList(BOOLEAN));
-    public static final YamlCodec<List<Integer>> INTEGER_LIST = register(ofList(INTEGER));
-    public static final YamlCodec<List<Long>> LONG_LIST = register(ofList(LONG));
-    public static final YamlCodec<List<Short>> SHORT_LIST = register(ofList(SHORT));
-    public static final YamlCodec<List<Byte>> BYTE_LIST = register(ofList(BYTE));
-    public static final YamlCodec<List<Double>> DOUBLE_LIST = register(ofList(DOUBLE));
-    public static final YamlCodec<List<Float>> FLOAT_LIST = register(ofList(FLOAT));
-    public static final YamlCodec<List<Character>> CHAR_LIST = register(ofList(CHAR));
+    public static final YamlCodec<List<Boolean>> BOOLEAN_LIST = ofList(new SettingType<List<Boolean>>() {}, BOOLEAN);
+    public static final YamlCodec<List<Integer>> INTEGER_LIST = ofList(new SettingType<List<Integer>>() {}, INTEGER);
+    public static final YamlCodec<List<Long>> LONG_LIST = ofList(new SettingType<List<Long>>() {}, LONG);
+    public static final YamlCodec<List<Short>> SHORT_LIST = ofList(new SettingType<List<Short>>() {}, SHORT);
+    public static final YamlCodec<List<Byte>> BYTE_LIST = ofList(new SettingType<List<Byte>>() {}, BYTE);
+    public static final YamlCodec<List<Double>> DOUBLE_LIST = ofList(new SettingType<List<Double>>() {}, DOUBLE);
+    public static final YamlCodec<List<Float>> FLOAT_LIST = ofList(new SettingType<List<Float>>() {}, FLOAT);
+    public static final YamlCodec<List<Character>> CHAR_LIST = ofList(new SettingType<List<Character>>() {}, CHAR);
     //endregion
 
     //region Other Codecs
-    public static final YamlCodec<String> STRING = register(new YamlCodec<String>(String.class, Function.identity(), Function.identity()) {
-        public void encode(ConfigurationSection container, String key, String value, String... comments) { setWithComments(container, key, value, comments); }
+    public static final YamlCodec<String> STRING = new YamlCodec<String>(String.class, Function.identity(), Function.identity()) {
+        public void encode(ConfigurationSection container, String key, String value, boolean appendDefault,String... comments) { setWithComments(this, container, key, value, appendDefault, comments); }
         public String decode(ConfigurationSection container, String key) { return container.getString(key); }
-    });
-    public static final YamlCodec<List<String>> STRING_LIST = register(ofList(STRING));
+    };
+    public static final YamlCodec<List<String>> STRING_LIST = ofList(new SettingType<List<String>>() {}, STRING);
 
-    public static final YamlCodec<Material> MATERIAL = register(ofEnum(Material.class));
-    public static final YamlCodec<List<Material>> MATERIAL_LIST = register(ofList(MATERIAL));
+    public static final YamlCodec<Material> MATERIAL = ofEnum(Material.class);
+    public static final YamlCodec<List<Material>> MATERIAL_LIST = ofList(new SettingType<List<Material>>() {}, MATERIAL);
 
-    public static final YamlCodec<ConfigurationSection> SECTION = register(new YamlCodec<ConfigurationSection>(ConfigurationSection.class) {
-        public void encode(ConfigurationSection container, String key, ConfigurationSection value, String... comments) {
+    public static final YamlCodec<ConfigurationSection> SECTION = new YamlCodec<ConfigurationSection>(ConfigurationSection.class) {
+        public void encode(ConfigurationSection container, String key, ConfigurationSection value, boolean appendDefault,String... comments) {
             if (container instanceof CommentedConfigurationSection) {
                 ((CommentedConfigurationSection) container).addPathedComments(key, comments);
             } else {
@@ -115,39 +116,39 @@ public final class YamlCodecs {
             }
         }
         public ConfigurationSection decode(ConfigurationSection container, String key) { return container.getConfigurationSection(key); }
-    });
+    };
 
-    public static final YamlCodec<World> WORLD = register(new YamlCodec<World>(World.class, World::getName, Bukkit::getWorld) {
-        public void encode(ConfigurationSection container, String key, World value, String... comments) { setWithComments(container, key, value, comments); }
+    public static final YamlCodec<World> WORLD = new YamlCodec<World>(World.class, World::getName, Bukkit::getWorld) {
+        public void encode(ConfigurationSection container, String key, World value, boolean appendDefault,String... comments) { setWithComments(this, container, key, value, appendDefault, comments); }
         public World decode(ConfigurationSection container, String key) {
             String worldName = container.getString(key);
             return worldName != null ? Bukkit.getWorld(worldName) : null;
         }
-    });
+    };
 
-    public static final YamlCodec<UUID> UUID = register(new YamlCodec<UUID>(UUID.class, java.util.UUID::toString, java.util.UUID::fromString) {
-        public void encode(ConfigurationSection container, String key, UUID value, String... comments) { setWithComments(container, key, value, comments); }
+    public static final YamlCodec<UUID> UUID = new YamlCodec<UUID>(UUID.class, java.util.UUID::toString, java.util.UUID::fromString) {
+        public void encode(ConfigurationSection container, String key, UUID value, boolean appendDefault,String... comments) { setWithComments(this, container, key, value, appendDefault, comments); }
         public UUID decode(ConfigurationSection container, String key) {
             String uuid = container.getString(key);
             return uuid != null ? java.util.UUID.fromString(uuid) : null;
         }
-    });
+    };
     //endregion
 
-    //region Record Codecs TODO: REPLACED WITH NEW SYSTEM
-    public static final SettingSerializer<Location> LOCATION = ofRecord(Location.class, instance -> instance.group(
-            SettingField.of("world", SettingSerializers.WORLD, Location::getWorld),
-            SettingField.of("x", SettingSerializers.DOUBLE, Location::getX),
-            SettingField.of("y", SettingSerializers.DOUBLE, Location::getY),
-            SettingField.of("z", SettingSerializers.DOUBLE, Location::getZ),
-            SettingField.of("yaw", SettingSerializers.FLOAT, Location::getYaw),
-            SettingField.of("pitch", SettingSerializers.FLOAT, Location::getPitch)
+    //region Record Codecs
+    public static final SettingCodec<ConfigurationSection, Location> LOCATION = ofRecord(Location.class, instance -> instance.group(
+            RecordField.of("world", WORLD, Location::getWorld),
+            RecordField.of("x", DOUBLE, Location::getX),
+            RecordField.of("y", DOUBLE, Location::getY),
+            RecordField.of("z", DOUBLE, Location::getZ),
+            RecordField.of("yaw", FLOAT, Location::getYaw),
+            RecordField.of("pitch", FLOAT, Location::getPitch)
     ).apply(instance, Location::new));
 
-    public static final SettingSerializer<Vector> VECTOR = ofRecord(Vector.class, instance -> instance.group(
-            SettingField.of("x", SettingSerializers.DOUBLE, Vector::getX),
-            SettingField.of("y", SettingSerializers.DOUBLE, Vector::getY),
-            SettingField.of("z", SettingSerializers.DOUBLE, Vector::getZ)
+    public static final SettingCodec<ConfigurationSection, Vector> VECTOR = ofRecord(Vector.class, instance -> instance.group(
+            RecordField.of("x", DOUBLE, Vector::getX),
+            RecordField.of("y", DOUBLE, Vector::getY),
+            RecordField.of("z", DOUBLE, Vector::getZ)
     ).apply(instance, Vector::new));
     //endregion
 
@@ -160,35 +161,32 @@ public final class YamlCodecs {
         return YamlCodecFactories.ofKeyed(keyedClass, valueOfFunction);
     }
 
-    public static <T> YamlCodec<T[]> ofArray(YamlCodec<T> serializer) {
-        return YamlCodecFactories.ofArray(serializer);
+    public static <T> YamlCodec<T[]> ofArray(SettingType<T[]> settingType, YamlCodec<T> serializer) {
+        return YamlCodecFactories.ofArray(settingType, serializer);
     }
 
-    public static <T> YamlCodec<List<T>> ofList(YamlCodec<T> serializer) {
-        return YamlCodecFactories.ofList(serializer);
+    public static <T> YamlCodec<List<T>> ofList(SettingType<List<T>> settingType, YamlCodec<T> serializer) {
+        return YamlCodecFactories.ofList(settingType, serializer);
     }
 
-    public static <K, V> YamlCodec<Map<K, V>> ofMap(YamlCodec<K> keySerializer, YamlCodec<V> valueSerializer) {
-        return YamlCodecFactories.ofMap(keySerializer, valueSerializer);
+    public static <K, V> YamlCodec<Map<K, V>> ofMap(SettingType<Map<K, V>> settingType, YamlCodec<K> keySerializer, YamlCodec<V> valueSerializer) {
+        return YamlCodecFactories.ofMap(settingType, keySerializer, valueSerializer);
     }
     //endregion
 
     //region Record Codecs
-    public static <O> SettingSerializer<O> ofRecord(Class<O> clazz, Function<RecordSettingSerializerBuilder<O>, RecordSettingSerializerBuilder.Built<O>> builder) {
-        return RecordSettingSerializerBuilder.create(clazz, builder);
+    public static <O> SettingCodec<ConfigurationSection, O> ofRecord(Class<O> clazz, Function<RecordCodecBuilder<ConfigurationSection, O>, SettingCodec<ConfigurationSection, O>> builder) {
+        return RecordCodecBuilder.create(YamlCodecType.INSTANCE, clazz, builder);
     }
 
-    public static <T, M> YamlCodec<T> ofFieldMapped(Class<T> type, String fieldKey, YamlCodec<M> fieldSerializer, Map<M, YamlCodec<? extends T>> mapper) {
+    public static <T, M> YamlCodec<T> ofFieldMapped(Class<T> type, String fieldKey, SettingCodec<ConfigurationSection, M> fieldSerializer, Map<M, SettingCodec<ConfigurationSection, ? extends T>> mapper) {
         return YamlCodecFactories.ofFieldMapped(type, fieldKey, fieldSerializer, mapper);
     }
     //endregion
 
-    public static <T> YamlCodec<T> register(YamlCodec<T> codec) {
-        RosePlugin.instance().getCodecRegistry().register(YamlCodecType.INSTANCE, codec);
-        return codec;
-    }
+    public static <T> void setWithComments(SettingCodec<?, T> codec, ConfigurationSection section, String key, T value, boolean appendDefault, String[] comments) {
+        comments = appendDefault ? appendDefaultComment(codec, value, comments) : comments;
 
-    private static void setWithComments(ConfigurationSection section, String key, Object value, String[] comments) {
         if (section instanceof CommentedConfigurationSection) {
             ((CommentedConfigurationSection) section).set(key, value, comments);
         } else {
@@ -196,6 +194,56 @@ public final class YamlCodecs {
             if (NMSUtil.getVersionNumber() > 18 || (NMSUtil.getVersionNumber() == 18 && NMSUtil.getMinorVersionNumber() >= 1))
                 section.setComments(key, Arrays.asList(comments));
         }
+    }
+
+    private static <T> String[] appendDefaultComment(SettingCodec<?, T> codec, T value, String[] comments) {
+        String defaultComment = codec.createDefaultComment(value);
+        if (defaultComment == null)
+            return comments;
+
+        String[] newComments = new String[comments.length + 1];
+        System.arraycopy(comments, 0, newComments, 0, comments.length);
+        newComments[comments.length] = defaultComment;
+        return newComments;
+    }
+
+    public static <C extends SettingCodec<ConfigurationSection, T>, T> C register(C codec) {
+        RosePlugin.instance().getCodecRegistry().register(YamlCodecType.INSTANCE, codec);
+        return codec;
+    }
+
+    public static void registerDefaults(SettingCodecRegistry codecRegistry) {
+        codecRegistry.register(YamlCodecType.INSTANCE, Arrays.asList(
+                BOOLEAN,
+                INTEGER,
+                LONG,
+                SHORT,
+                BYTE,
+                DOUBLE,
+                FLOAT,
+                CHAR,
+
+                BOOLEAN_LIST,
+                INTEGER_LIST,
+                LONG_LIST,
+                SHORT_LIST,
+                BYTE_LIST,
+                DOUBLE_LIST,
+                FLOAT_LIST,
+                CHAR_LIST,
+
+                STRING,
+                STRING_LIST,
+
+                MATERIAL,
+                MATERIAL_LIST,
+
+                SECTION,
+                WORLD,
+                UUID,
+                LOCATION,
+                VECTOR
+        ));
     }
 
 }

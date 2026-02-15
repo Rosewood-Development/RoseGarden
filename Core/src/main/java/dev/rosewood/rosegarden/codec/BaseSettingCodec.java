@@ -19,7 +19,7 @@ public abstract class BaseSettingCodec<C, T> implements SettingCodec<C, T> {
     }
 
     public BaseSettingCodec(Class<T> type, Function<T, String> encodeStringFunction, Function<String, T> decodeStringFunction) {
-        this(new SettingType<T>() { }, encodeStringFunction, decodeStringFunction);
+        this(new SettingType<T>(type) { }, encodeStringFunction, decodeStringFunction);
     }
 
     public BaseSettingCodec(Class<T> type) {

@@ -1,38 +1,43 @@
 package dev.rosewood.rosegarden.utils;
 
+import java.lang.reflect.Field;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class NMSUtilTest {
 
-    private static Server server;
-
-    @BeforeAll
-    public static void setup() {
-        Server server = mock(Server.class);
-        if (Bukkit.getServer() == null)
-            Bukkit.setServer(server);
-    }
-
     @Test
     public void testOldVersioning() {
-        when(server.getBukkitVersion()).thenReturn("1.21.5-R0.1-SNAPSHOT");
-        assertEquals(21, NMSUtil.getVersionNumber());
-        assertEquals(5, NMSUtil.getMinorVersionNumber());
-        assertEquals(0, NMSUtil.getPatchVersionNumber());
+        testVersion("1.21.5-R0.1-SNAPSHOT", 21, 5, 0);
     }
 
     @Test
     public void testYearBasedVersioning() {
-        when(server.getBukkitVersion()).thenReturn("26.1.2-R0.1-SNAPSHOT");
-        assertEquals(26, NMSUtil.getVersionNumber());
-        assertEquals(1, NMSUtil.getMinorVersionNumber());
-        assertEquals(2, NMSUtil.getPatchVersionNumber());
+        testVersion("26.1.2-R0.1-SNAPSHOT", 26, 1, 2);
+    }
+
+    private static void testVersion(String version, int major, int minor, int patch) {
+        Server server = mock();
+        when(server.getBukkitVersion()).thenReturn(version);
+
+        try {
+            Field serverField = Bukkit.class.getDeclaredField("server");
+            serverField.setAccessible(true);
+            serverField.set(null, server);
+        } catch (ReflectiveOperationException e) {
+            fail(e);
+        }
+
+        NMSUtil.initialize();
+
+        assertEquals(major, NMSUtil.getVersionNumber());
+        assertEquals(minor, NMSUtil.getMinorVersionNumber());
+        assertEquals(patch, NMSUtil.getPatchVersionNumber());
     }
 
 }

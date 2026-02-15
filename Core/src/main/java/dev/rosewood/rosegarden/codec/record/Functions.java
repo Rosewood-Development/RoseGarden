@@ -1,4 +1,4 @@
-package dev.rosewood.rosegarden.config;
+package dev.rosewood.rosegarden.codec.record;
 
 public interface Functions {
 

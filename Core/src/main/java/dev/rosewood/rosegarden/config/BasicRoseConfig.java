@@ -33,7 +33,7 @@ class BasicRoseConfig implements RoseConfig {
             return (T) this.settingsValueCache.get(setting);
 
         try {
-            T value = setting.getSerializer().read(YamlCodecType.INSTANCE, this.getBaseConfig(), setting);
+            T value = setting.getSettingSerializer().read(YamlCodecType.INSTANCE, this.getBaseConfig(), setting.getKey());
             this.settingsValueCache.put(setting, value);
             return value;
         } catch (Exception e) {
@@ -44,7 +44,7 @@ class BasicRoseConfig implements RoseConfig {
 
     @Override
     public <T> void set(RoseSetting<T> setting, T value) {
-        setting.getSerializer().write(YamlCodecType.INSTANCE, this.getBaseConfig(), setting, value);
+        setting.getSettingSerializer().write(YamlCodecType.INSTANCE, this.getBaseConfig(), setting.getKey(), value, true, setting.getComments());
         this.settingsValueCache.put(setting, value);
     }
 

@@ -28,14 +28,4 @@ public abstract class YamlCodec<T> extends BaseSettingCodec<ConfigurationSection
         return ConfigurationSection.class;
     }
 
-    @Override
-    public boolean isPresent(ConfigurationSection container, String key) {
-        return container.contains(key);
-    }
-
-    @Override
-    public boolean isValid(ConfigurationSection container, String key) {
-        return this.isPresent(container, key);
-    }
-
 }

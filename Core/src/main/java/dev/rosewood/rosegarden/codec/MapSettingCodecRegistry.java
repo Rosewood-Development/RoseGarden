@@ -13,7 +13,12 @@ public class MapSettingCodecRegistry implements SettingCodecRegistry {
     }
 
     @Override
-    public <C, T> void register(CodecType<C> codecType, SettingCodec<C, T> codec) {
+    public <C> void register(CodecType<C> codecType, Iterable<SettingCodec<C, ?>> codecs) {
+        for (SettingCodec<C, ?> codec : codecs)
+            this.registerCodec(codecType, codec);
+    }
+
+    private <C> void registerCodec(CodecType<C> codecType, SettingCodec<C, ?> codec) {
         RegistryKey key = new RegistryKey(codecType, codec.getSettingType());
         if (this.codecMap.containsKey(key))
             throw new IllegalArgumentException(codecType.toString() + " already registered for type " + codec.getSettingType().getType().getTypeName());

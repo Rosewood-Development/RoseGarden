@@ -1,6 +1,7 @@
 package dev.rosewood.rosegarden.config;
 
 import dev.rosewood.rosegarden.RosePlugin;
+import dev.rosewood.rosegarden.codec.SettingType;
 import java.util.function.Supplier;
 
 class BackedRoseSetting<T> extends BasicRoseSetting<T> {
@@ -8,8 +9,14 @@ class BackedRoseSetting<T> extends BasicRoseSetting<T> {
     private final RosePlugin backing;
     private T value;
 
-    protected BackedRoseSetting(RosePlugin backing, SettingSerializer<T> serializer, String key, Supplier<T> defaultValueSupplier, String... comments) {
-        super(serializer, key, defaultValueSupplier, false, comments);
+    protected BackedRoseSetting(RosePlugin backing, SettingType<T> settingType, String key, Supplier<T> defaultValueSupplier, String... comments) {
+        super(settingType, key, defaultValueSupplier, false, comments);
+        this.backing = backing;
+        this.value = null;
+    }
+
+    protected BackedRoseSetting(RosePlugin backing, Class<T> settingType, String key, Supplier<T> defaultValueSupplier, String... comments) {
+        super(settingType, key, defaultValueSupplier, false, comments);
         this.backing = backing;
         this.value = null;
     }

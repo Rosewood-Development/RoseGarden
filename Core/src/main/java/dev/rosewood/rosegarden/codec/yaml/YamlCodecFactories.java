@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
 import org.bukkit.Keyed;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
-import static dev.rosewood.rosegarden.config.SettingSerializers.setWithComments;
 
 public final class YamlCodecFactories {
 
@@ -31,26 +30,25 @@ public final class YamlCodecFactories {
 
     private static <T> YamlCodec<T> wrap(SettingCodec<ConfigurationSection, T> codec) {
         return new YamlCodec<T>(codec.getSettingType()) {
-            public void encode(ConfigurationSection container, String key, T value, String... comments) { codec.encode(container, key, value, comments); }
+            public void encode(ConfigurationSection container, String key, T value, boolean appendDefault, String... comments) { codec.encode(container, key, value, comments); }
             public T decode(ConfigurationSection container, String key) { return codec.decode(container, key); }
             public String encodeString(T value) { return codec.encodeString(value); }
             public T decodeString(String value) { return codec.decodeString(value); }
             public boolean supportsStringEncoding() { return codec.supportsStringEncoding(); }
-            public boolean isValid(ConfigurationSection container, String key) { return codec.isValid(container, key); }
-            public boolean isPresent(ConfigurationSection container, String key) { return codec.isPresent(container, key); }
+            public boolean verify(ConfigurationSection container, String key) { return codec.verify(container, key); }
         };
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> YamlCodec<T[]> ofArray(YamlCodec<T> elementCodec) {
+    public static <T> YamlCodec<T[]> ofArray(SettingType<T[]> settingType, YamlCodec<T> elementCodec) {
         if (!(elementCodec.getSettingType().getType() instanceof Class<?>))
             throw new IllegalArgumentException("Array element codec must be for a basic type");
         Class<T> elementType = (Class<T>) elementCodec.getSettingType().getType();
 
-        return new YamlCodec<T[]>(new SettingType<T[]>() {}) {
-            public void encode(ConfigurationSection config, String key, T[] value, String... comments) {
+        return new YamlCodec<T[]>(settingType) {
+            public void encode(ConfigurationSection config, String key, T[] value, boolean appendDefault, String... comments) {
                 if (elementCodec.supportsStringEncoding()) {
-                    setWithComments(config, key, Arrays.stream(value).map(x -> x == null ? "" : elementCodec.encodeString(x)).collect(Collectors.toList()), comments);
+                    YamlCodecs.setWithComments(YamlCodecs.STRING_LIST, config, key, Arrays.stream(value).map(x -> x == null ? "" : elementCodec.encodeString(x)).collect(Collectors.toList()), appendDefault, comments);
                 } else {
                     ConfigurationSection section = getOrCreateSection(config, key, comments);
                     int index = 0;
@@ -64,7 +62,7 @@ public final class YamlCodecFactories {
                 }
             }
             public T[] decode(ConfigurationSection config, String key) {
-                if (!this.isValid(config, key))
+                if (!this.verify(config, key))
                     return null;
                 if (elementCodec.supportsStringEncoding()) {
                     List<String> contents = config.getStringList(key);
@@ -118,11 +116,11 @@ public final class YamlCodecFactories {
         };
     }
 
-    public static <T> YamlCodec<List<T>> ofList(YamlCodec<T> elementCodec) {
-        return new YamlCodec<List<T>>(new SettingType<List<T>>() {}) {
-            public void encode(ConfigurationSection config, String key, List<T> value, String... comments) {
+    public static <T> YamlCodec<List<T>> ofList(SettingType<List<T>> settingType, YamlCodec<T> elementCodec) {
+        return new YamlCodec<List<T>>(settingType) {
+            public void encode(ConfigurationSection config, String key, List<T> value, boolean appendDefault, String... comments) {
                 if (elementCodec.supportsStringEncoding()) {
-                    setWithComments(config, key, value.stream().map(elementCodec::encodeString).collect(Collectors.toList()), comments);
+                    YamlCodecs.setWithComments(YamlCodecs.STRING_LIST, config, key, value.stream().map(elementCodec::encodeString).collect(Collectors.toList()), appendDefault, comments);
                 } else {
                     ConfigurationSection section = getOrCreateSection(config, key, comments);
                     int index = 0;
@@ -131,7 +129,7 @@ public final class YamlCodecFactories {
                 }
             }
             public List<T> decode(ConfigurationSection container, String key) {
-                if (!this.isValid(container, key))
+                if (!this.verify(container, key))
                     return null;
                 if (elementCodec.supportsStringEncoding())
                     return container.getStringList(key).stream().map(elementCodec::decodeString).collect(Collectors.toList());
@@ -174,9 +172,9 @@ public final class YamlCodecFactories {
         };
     }
 
-    public static <K, V> YamlCodec<Map<K, V>> ofMap(YamlCodec<K> keyElementCodec, YamlCodec<V> valueElementCodec) {
-        return new YamlCodec<Map<K, V>>(new SettingType<Map<K, V>>() {}) {
-            public void encode(ConfigurationSection config, String key, Map<K, V> value, String... comments) {
+    public static <K, V> YamlCodec<Map<K, V>> ofMap(SettingType<Map<K, V>> settingType, YamlCodec<K> keyElementCodec, YamlCodec<V> valueElementCodec) {
+        return new YamlCodec<Map<K, V>>(settingType) {
+            public void encode(ConfigurationSection config, String key, Map<K, V> value, boolean appendDefault, String... comments) {
                 ConfigurationSection section = getOrCreateSection(config, key, comments);
                 if (keyElementCodec.supportsStringEncoding() && valueElementCodec.supportsStringEncoding()) {
                     for (Map.Entry<K, V> entry : value.entrySet())
@@ -191,7 +189,7 @@ public final class YamlCodecFactories {
                 }
             }
             public Map<K, V> decode(ConfigurationSection config, String key) {
-                if (!this.isValid(config, key))
+                if (!this.verify(config, key))
                     return null;
                 Map<K, V> map = new HashMap<>();
                 ConfigurationSection section = config.getConfigurationSection(key);
@@ -220,34 +218,48 @@ public final class YamlCodecFactories {
         };
     }
 
-    public static <T, M> YamlCodec<T> ofFieldMapped(Class<T> type, String fieldKey, YamlCodec<M> fieldCodec, Map<M, YamlCodec<? extends T>> mapper) {
+    public static <T, M> YamlCodec<T> ofFieldMapped(Class<T> type, String fieldKey, SettingCodec<ConfigurationSection, M> fieldCodec, Map<M, SettingCodec<ConfigurationSection, ? extends T>> mapper) {
         return new YamlCodec<T>(type) {
             @Override
-            public void encode(ConfigurationSection container, String key, T value, String... comments) {
-                YamlCodec<T> codec = this.mapField(fieldCodec.decode(container, fieldKey));
+            public void encode(ConfigurationSection container, String key, T value, boolean appendDefault, String... comments) {
+                M keyValue = this.decodeField(container, key, fieldKey);
+                SettingCodec<ConfigurationSection, T> codec = this.mapField(keyValue);
                 if (codec != null)
-                    codec.encode(container, key, value, comments);
+                    codec.encode(container, key, value, appendDefault, comments);
             }
 
             @Override
             public T decode(ConfigurationSection container, String key) {
-                YamlCodec<T> codec = this.mapField(fieldCodec.decode(container, fieldKey));
+                M keyValue = this.decodeField(container, key, fieldKey);
+                SettingCodec<ConfigurationSection, T> codec = this.mapField(keyValue);
                 return codec != null ? codec.decode(container, key) : null;
             }
 
             @Override
-            public boolean isValid(ConfigurationSection container, String key) {
-                YamlCodec<T> codec = this.mapField(fieldCodec.decode(container, fieldKey));
-                return codec != null && codec.isValid(container, key);
+            public boolean verify(ConfigurationSection container, String key) {
+                M keyValue = this.decodeField(container, key, fieldKey);
+                SettingCodec<ConfigurationSection, T> codec = this.mapField(keyValue);
+                return codec != null && codec.verify(container, key);
+            }
+
+            private M decodeField(ConfigurationSection container, String key, String fieldKey) {
+                String nestedKey = key + "." + fieldKey;
+                M keyValue = fieldCodec.decode(container, nestedKey);
+                if (keyValue != null)
+                    return keyValue;
+                if (!key.contains("."))
+                    return null;
+                String subKey = key.substring(0, key.lastIndexOf(".")) + "." + fieldKey;
+                return fieldCodec.decode(container, subKey);
             }
 
             @SuppressWarnings("unchecked") // always maps to subtypes since it extends T, catching just in case
-            private YamlCodec<T> mapField(M value) {
+            private SettingCodec<ConfigurationSection, T> mapField(M value) {
                 if (value == null)
                     return null;
                 try {
-                    YamlCodec<? extends T> codec = mapper.get(value);
-                    return (YamlCodec<T>) codec;
+                    SettingCodec<ConfigurationSection, ? extends T> codec = mapper.get(value);
+                    return (SettingCodec<ConfigurationSection, T>) codec;
                 } catch (Exception e) {
                     e.printStackTrace();
                     return null;

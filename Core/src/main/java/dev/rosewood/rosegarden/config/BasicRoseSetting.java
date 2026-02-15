@@ -1,5 +1,6 @@
 package dev.rosewood.rosegarden.config;
 
+import dev.rosewood.rosegarden.codec.SettingType;
 import dev.rosewood.rosegarden.codec.yaml.YamlCodecType;
 import java.util.Arrays;
 import java.util.Objects;
@@ -14,8 +15,16 @@ class BasicRoseSetting<T> implements RoseSetting<T> {
     protected final String[] comments;
     private final boolean hidden;
 
-    protected BasicRoseSetting(SettingSerializer<T> serializer, String key, Supplier<T> defaultValueSupplier, boolean hidden, String... comments) {
-        this.serializer = serializer;
+    protected BasicRoseSetting(SettingType<T> settingType, String key, Supplier<T> defaultValueSupplier, boolean hidden, String... comments) {
+        this.serializer = new SettingSerializer<>(settingType);
+        this.key = key;
+        this.defaultValueSupplier = defaultValueSupplier;
+        this.hidden = hidden;
+        this.comments = comments;
+    }
+
+    protected BasicRoseSetting(Class<T> settingType, String key, Supplier<T> defaultValueSupplier, boolean hidden, String... comments) {
+        this.serializer = new SettingSerializer<>(settingType);
         this.key = key;
         this.defaultValueSupplier = defaultValueSupplier;
         this.hidden = hidden;
@@ -29,7 +38,7 @@ class BasicRoseSetting<T> implements RoseSetting<T> {
 
         try {
             T defaultValue = this.defaultValueSupplier.get();
-            this.serializer.write(YamlCodecType.INSTANCE, config, this.key, defaultValue, this.comments);
+            this.serializer.write(YamlCodecType.INSTANCE, config, this.key, defaultValue, false, this.comments);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -42,25 +51,10 @@ class BasicRoseSetting<T> implements RoseSetting<T> {
 
         try {
             T defaultValue = this.defaultValueSupplier.get();
-            this.serializer.writeWithDefault(YamlCodecType.INSTANCE, config, this.key, defaultValue, this.comments);
+            this.serializer.write(YamlCodecType.INSTANCE, config, this.key, defaultValue, true, this.comments);
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    @Override
-    public void readDefault(ConfigurationSection config) {
-        if (this.hidden || !config.contains(this.key))
-            return;
-
-        this.defaultValueSupplier = () -> {
-            try {
-                return this.serializer.read(YamlCodecType.INSTANCE, config, this.key);
-            } catch (Exception e) {
-                e.printStackTrace();
-                return null;
-            }
-        };
     }
 
     @Override
@@ -82,7 +76,7 @@ class BasicRoseSetting<T> implements RoseSetting<T> {
             return true;
 
         try {
-            return this.serializer.readIsValid(YamlCodecType.INSTANCE, config, this.key);
+            return this.serializer.isValid(YamlCodecType.INSTANCE, config, this.key);
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -90,7 +84,7 @@ class BasicRoseSetting<T> implements RoseSetting<T> {
     }
 
     @Override
-    public SettingSerializer<T> getSerializer() {
+    public SettingSerializer<T> getSettingSerializer() {
         return this.serializer;
     }
 
@@ -127,7 +121,7 @@ class BasicRoseSetting<T> implements RoseSetting<T> {
         } else {
             newComments = Arrays.copyOf(this.comments, this.comments.length);
         }
-        return new BasicRoseSetting<>(this.serializer, this.key, defaultValueSupplier, false, newComments);
+        return new BasicRoseSetting<>(this.serializer.getSettingType(), this.key, defaultValueSupplier, false, newComments);
     }
 
     @Override

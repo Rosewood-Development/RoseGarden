@@ -1,17 +1,30 @@
 package dev.rosewood.rosegarden.codec;
 
+import java.util.Collections;
+
 public interface SettingCodecRegistry {
 
     /**
-     * Registers a codec for a codec type and object type.
+     * Registers codecs for a codec type.
      *
      * @param codecType The codec type
-     * @param codec The codec
+     * @param codecs The codecs to register
      * @param <C> The container type
-     * @param <T> The type of object being stored
      * @throws IllegalArgumentException if a codec with the same codec type and object type is already registered
      */
-    <C, T> void register(CodecType<C> codecType, SettingCodec<C, T> codec);
+    <C> void register(CodecType<C> codecType, Iterable<SettingCodec<C, ?>> codecs);
+
+    /**
+     * Registers one codec for a codec type.
+     *
+     * @param codecType The codec type
+     * @param codec The codec to register
+     * @param <C> The container type
+     * @throws IllegalArgumentException if a codec with the same codec type and object type is already registered
+     */
+    default <C> void register(CodecType<C> codecType, SettingCodec<C, ?> codec) {
+        this.register(codecType, Collections.singleton(codec));
+    }
 
     /**
      * Gets a codec from the registry.

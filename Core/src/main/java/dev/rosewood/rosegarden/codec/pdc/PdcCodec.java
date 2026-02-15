@@ -16,11 +16,11 @@ public class PdcCodec<T> extends BaseSettingCodec<PersistentDataContainer, T> {
     }
 
     public PdcCodec(Class<T> type, PersistentDataType<?, T> dataType) {
-        this(new SettingType<T>() { }, dataType);
+        this(new SettingType<T>(type) { }, dataType);
     }
 
     @Override
-    public void encode(PersistentDataContainer container, String key, T value, String... comments) {
+    public void encode(PersistentDataContainer container, String key, T value, boolean appendDefault, String... comments) {
         container.set(KeyHelper.get(key), this.dataType, value);
     }
 
@@ -32,16 +32,6 @@ public class PdcCodec<T> extends BaseSettingCodec<PersistentDataContainer, T> {
     @Override
     public Class<PersistentDataContainer> getContainerType() {
         return PersistentDataContainer.class;
-    }
-
-    @Override
-    public boolean isPresent(PersistentDataContainer container, String key) {
-        return container.has(KeyHelper.get(key));
-    }
-
-    @Override
-    public boolean isValid(PersistentDataContainer container, String key) {
-        return this.isPresent(container, key);
     }
 
     public PersistentDataType<?, T> getDataType() {
