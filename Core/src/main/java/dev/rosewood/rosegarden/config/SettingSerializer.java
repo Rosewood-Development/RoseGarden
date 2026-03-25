@@ -40,6 +40,18 @@ public final class SettingSerializer<T> {
     }
 
     /**
+     * Writes an object to a container.
+     *
+     * @param codecType The codec type to write with
+     * @param container The container to write to
+     * @param key The key path to save in the config
+     * @param value The value to save
+     */
+    public <C> void write(CodecType<C> codecType, C container, String key, T value) {
+        this.write(codecType, container, key, value, false);
+    }
+
+    /**
      * Reads an object from a container.
      *
      * @param codecType The codec type to write with

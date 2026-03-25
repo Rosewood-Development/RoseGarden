@@ -116,6 +116,13 @@ public final class RoseGardenUtils {
     }
 
     /**
+     * Sends a raw RoseGarden message to a recipient
+     */
+    public static void sendRawMessage(CommandSender recipient, String message) {
+        recipient.sendMessage(message);
+    }
+
+    /**
      * Converts a long value and TimeUnit to a value in ticks
      *
      * @param value The value
