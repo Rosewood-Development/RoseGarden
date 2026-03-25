@@ -1,5 +1,7 @@
 package dev.rosewood.rosegarden.command.framework;
 
+import dev.rosewood.rosegarden.RosePlugin;
+import dev.rosewood.rosegarden.utils.RoseGardenUtils;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -51,6 +53,9 @@ public class CommandMessages {
         this.put("argument-handler-short", "Short [%input%] must be a whole number between -32,768 and 32,767 inclusively");
         this.put("argument-handler-value", "Value [%input%] must be one of the following: %values%");
         this.put("argument-handler-registry-value", "Value [%input%] is not a valid %type%.");
+
+        // Version Updates
+        this.put("update-notification", "&eAn update for " + RoseGardenUtils.GRADIENT + RosePlugin.instance().getName() + " &e(&b%new%&e) is available! You are running &b%current%&e. %url%");
     }};
 
 }

@@ -102,13 +102,15 @@ public class PluginUpdateManager extends Manager implements Listener {
             return;
 
         String website = this.rosePlugin.getDescription().getWebsite();
-        String updateMessage = "&eAn update for " + RoseGardenUtils.GRADIENT +
-                this.rosePlugin.getName() + " &e(&b%new%&e) is available! You are running &b%current%&e." +
-                (website != null ? " " + website : "");
 
-        StringPlaceholders placeholders = StringPlaceholders.of("new", this.updateVersion, "current", this.rosePlugin.getDescription().getVersion());
+        StringPlaceholders placeholders = StringPlaceholders.of(
+                "new", this.updateVersion,
+                "current", this.rosePlugin.getDescription().getVersion(),
+                "url", website);
 
-        RoseGardenUtils.sendMessage(player, updateMessage, placeholders);
+        String updateMessage = this.rosePlugin.getManager(AbstractLocaleManager.class).getCommandLocaleMessage("update-notification", placeholders);
+
+        RoseGardenUtils.sendRawMessage(player, updateMessage);
     }
 
 }
