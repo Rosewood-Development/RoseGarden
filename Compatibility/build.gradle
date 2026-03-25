@@ -18,7 +18,7 @@ publishing {
     publications {
         shadow(MavenPublication) { publication ->
             artifactId = 'rosegarden-compatibility'
-            project.shadow.component(publication)
+            from components.shadow
         }
     }
 }

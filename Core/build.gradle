@@ -12,9 +12,9 @@ dependencies {
     api 'org.slf4j:slf4j-nop:2.0.13'
 
     // Test dependencies
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter:6.0.3'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    testImplementation 'org.mockito:mockito-core:5.11.0'
+    testImplementation 'org.mockito:mockito-core:5.23.0'
     testCompileOnly 'io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT'
     testImplementation 'com.github.seeseemelk:MockBukkit-v1.21:3.106.0'
 }
@@ -36,8 +36,8 @@ compileJava {
 }
 
 compileTestJava {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
 }
 
 shadowJar {
@@ -50,7 +50,7 @@ publishing {
     publications {
         shadow(MavenPublication) { publication ->
             artifactId = 'rosegarden'
-            project.shadow.component(publication)
+            from components.shadow
             artifact sourcesJar
         }
     }
