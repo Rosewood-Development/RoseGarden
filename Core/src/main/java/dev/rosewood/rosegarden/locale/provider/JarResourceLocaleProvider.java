@@ -43,7 +43,9 @@ public class JarResourceLocaleProvider implements LocaleProvider {
 
             JarURLConnection jarConnection = (JarURLConnection) connection;
             JarFile jarFile = jarConnection.getJarFile();
-            String prefix = jarConnection.getEntryName() + "/";
+            String prefix = jarConnection.getEntryName();
+            if (!prefix.endsWith("/"))
+                prefix += "/";
 
             Enumeration<JarEntry> entries = jarFile.entries();
             while (entries.hasMoreElements()) {
