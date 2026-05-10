@@ -88,11 +88,6 @@ public interface RoseSetting<T> {
     }
 
     /**
-     * @return true if this setting should not be written as YAML, it will still be saved as PDC
-     */
-    boolean isHidden();
-
-    /**
      * Creates a new RoseSetting as a copy of this RoseSetting but with a different default value and optionally comments.
      * This should only be used for primitives or immutable types. Instances will be shared.
      * Comments can be removed by setting them to null, empty comments will cause them to be copied from the original.
@@ -173,7 +168,7 @@ public interface RoseSetting<T> {
      * @param <T> the type of value this setting is for
      */
     static <T> RoseSetting<T> ofValue(String name, SettingSerializer<T> serializer, T defaultValue, String... comments) {
-        return new BasicRoseSetting<>(serializer, name.toLowerCase(), () -> defaultValue, false, comments != null ? comments : new String[0]);
+        return new BasicRoseSetting<>(serializer, name.toLowerCase(), () -> defaultValue, comments != null ? comments : new String[0]);
     }
 
     /**
@@ -187,36 +182,7 @@ public interface RoseSetting<T> {
      * @param <T> the type of value this setting is for
      */
     static <T> RoseSetting<T> of(String name, SettingSerializer<T> serializer, Supplier<T> defaultValueSupplier, String... comments) {
-        return new BasicRoseSetting<>(serializer, name.toLowerCase(), defaultValueSupplier, false, comments != null ? comments : new String[0]);
-    }
-
-    /**
-     * Creates a RoseSetting with a given default value.
-     * This should only be used for primitives or immutable types. Instances will be shared.
-     * Will not be written to YAML, will be written to PDC.
-     *
-     * @param name The name of the setting
-     * @param serializer The serializer for the setting
-     * @param defaultValue The default value, do not use a mutable value
-     * @return a new RoseSetting
-     * @param <T> the type of value this setting is for
-     */
-    static <T> RoseSetting<T> ofHiddenValue(String name, SettingSerializer<T> serializer, T defaultValue) {
-        return new BasicRoseSetting<>(serializer, name.toLowerCase(), () -> defaultValue, true);
-    }
-
-    /**
-     * Creates a RoseSetting with a given default value supplier.
-     * Will not be written to YAML, will be written to PDC.
-     *
-     * @param name The name of the setting
-     * @param serializer The serializer for the setting
-     * @param defaultValueSupplier The default value supplier to return a new default value instance
-     * @return a new RoseSetting
-     * @param <T> the type of value this setting is for
-     */
-    static <T> RoseSetting<T> ofHidden(String name, SettingSerializer<T> serializer, Supplier<T> defaultValueSupplier) {
-        return new BasicRoseSetting<>(serializer, name.toLowerCase(), defaultValueSupplier, true);
+        return new BasicRoseSetting<>(serializer, name.toLowerCase(), defaultValueSupplier, comments != null ? comments : new String[0]);
     }
 
     static <T> RoseSetting<T> ofBacked(String name, RosePlugin backing, SettingSerializer<T> serializer, Supplier<T> defaultValueSupplier, String... comments) {

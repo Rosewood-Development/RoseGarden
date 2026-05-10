@@ -9,7 +9,7 @@ class BackedRoseSetting<T> extends BasicRoseSetting<T> {
     private T value;
 
     protected BackedRoseSetting(RosePlugin backing, SettingSerializer<T> serializer, String key, Supplier<T> defaultValueSupplier, String... comments) {
-        super(serializer, key, defaultValueSupplier, false, comments);
+        super(serializer, key, defaultValueSupplier, comments);
         this.backing = backing;
         this.value = null;
     }

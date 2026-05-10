@@ -9,12 +9,10 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import org.bukkit.Bukkit;
 import org.bukkit.Keyed;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.util.Vector;
 
 public final class SettingSerializers {
 
@@ -125,23 +123,6 @@ public final class SettingSerializers {
     };
     //endregion
 
-    //region Record Serializers
-    public static final SettingSerializer<Location> LOCATION = ofRecord(Location.class, instance -> instance.group(
-            SettingField.of("world", SettingSerializers.WORLD, Location::getWorld),
-            SettingField.of("x", SettingSerializers.DOUBLE, Location::getX),
-            SettingField.of("y", SettingSerializers.DOUBLE, Location::getY),
-            SettingField.of("z", SettingSerializers.DOUBLE, Location::getZ),
-            SettingField.of("yaw", SettingSerializers.FLOAT, Location::getYaw),
-            SettingField.of("pitch", SettingSerializers.FLOAT, Location::getPitch)
-    ).apply(instance, Location::new));
-
-    public static final SettingSerializer<Vector> VECTOR = ofRecord(Vector.class, instance -> instance.group(
-            SettingField.of("x", SettingSerializers.DOUBLE, Vector::getX),
-            SettingField.of("y", SettingSerializers.DOUBLE, Vector::getY),
-            SettingField.of("z", SettingSerializers.DOUBLE, Vector::getZ)
-    ).apply(instance, Vector::new));
-    //endregion
-
     //region Collection Serializer Factories
     public static <T extends Enum<T>> SettingSerializer<T> ofEnum(Class<T> enumClass) {
         return SettingSerializerFactories.ofEnum(enumClass);
@@ -164,15 +145,9 @@ public final class SettingSerializers {
     }
     //endregion
 
-    //region Record Serializers
-    public static <O> SettingSerializer<O> ofRecord(Class<O> clazz, Function<RecordSettingSerializerBuilder<O>, RecordSettingSerializerBuilder.Built<O>> builder) {
-        return RecordSettingSerializerBuilder.create(clazz, builder);
-    }
-
     public static <T, M> SettingSerializer<T> ofFieldMapped(Class<T> type, String fieldKey, SettingSerializer<M> fieldSerializer, Map<M, SettingSerializer<? extends T>> mapper) {
         return SettingSerializerFactories.ofFieldMapped(type, fieldKey, fieldSerializer, mapper);
     }
-    //endregion
 
     public static void setWithComments(ConfigurationSection section, String key, Object value, String[] comments) {
         if (section instanceof CommentedConfigurationSection) {

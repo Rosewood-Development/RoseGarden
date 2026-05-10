@@ -2,7 +2,6 @@ package dev.rosewood.rosegarden.config;
 
 import java.util.function.Function;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.persistence.PersistentDataType;
 
 public abstract class BaseSettingSerializer<T> implements SettingSerializer<T> {
 
@@ -61,20 +60,6 @@ public abstract class BaseSettingSerializer<T> implements SettingSerializer<T> {
     @Override
     public Class<T> getType() {
         return this.type;
-    }
-
-    @Override
-    public PDCAdapter<T> pdc() {
-        return new DelegateAdapter();
-    }
-
-    public class DelegateAdapter implements PDCAdapter<T> {
-
-        @Override
-        public PDCDelegatingSettingSerializer<T> adapt(PersistentDataType<?, T> pdc) {
-            return new PDCDelegatingSettingSerializer<>(BaseSettingSerializer.this, pdc);
-        }
-
     }
 
 }

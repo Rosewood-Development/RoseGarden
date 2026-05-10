@@ -11,21 +11,16 @@ class BasicRoseSetting<T> implements RoseSetting<T> {
     protected final String key;
     protected Supplier<T> defaultValueSupplier;
     protected final String[] comments;
-    protected final boolean hidden;
 
-    protected BasicRoseSetting(SettingSerializer<T> serializer, String key, Supplier<T> defaultValueSupplier, boolean hidden, String... comments) {
+    protected BasicRoseSetting(SettingSerializer<T> serializer, String key, Supplier<T> defaultValueSupplier, String... comments) {
         this.serializer = serializer;
         this.key = key;
         this.defaultValueSupplier = defaultValueSupplier;
-        this.hidden = hidden;
         this.comments = comments;
     }
 
     @Override
     public void write(ConfigurationSection config) {
-        if (this.hidden)
-            return;
-
         try {
             T defaultValue = this.defaultValueSupplier.get();
             this.serializer.write(config, this.key, defaultValue, this.comments);
@@ -36,9 +31,6 @@ class BasicRoseSetting<T> implements RoseSetting<T> {
 
     @Override
     public void writeWithDefault(ConfigurationSection config) {
-        if (this.hidden)
-            return;
-
         try {
             T defaultValue = this.defaultValueSupplier.get();
             this.serializer.writeWithDefault(config, this.key, defaultValue, this.comments);
@@ -49,7 +41,7 @@ class BasicRoseSetting<T> implements RoseSetting<T> {
 
     @Override
     public void readDefault(ConfigurationSection config) {
-        if (this.hidden || !config.contains(this.key))
+        if (!config.contains(this.key))
             return;
 
         this.defaultValueSupplier = () -> {
@@ -64,7 +56,7 @@ class BasicRoseSetting<T> implements RoseSetting<T> {
 
     @Override
     public T read(ConfigurationSection config) {
-        if (this.hidden || !config.contains(this.key))
+        if (!config.contains(this.key))
             return null;
 
         try {
@@ -77,9 +69,6 @@ class BasicRoseSetting<T> implements RoseSetting<T> {
 
     @Override
     public boolean readIsValid(ConfigurationSection config) {
-        if (this.hidden)
-            return true;
-
         try {
             return this.serializer.readIsValid(config, this.key);
         } catch (Exception e) {
@@ -108,10 +97,6 @@ class BasicRoseSetting<T> implements RoseSetting<T> {
         return this.comments;
     }
 
-    @Override
-    public boolean isHidden() {
-        return this.hidden;
-    }
 
     @Override
     public RoseSetting<T> copy(T defaultValue, String... comments) {
@@ -126,7 +111,7 @@ class BasicRoseSetting<T> implements RoseSetting<T> {
         } else {
             newComments = Arrays.copyOf(this.comments, this.comments.length);
         }
-        return new BasicRoseSetting<>(this.serializer, this.key, defaultValueSupplier, false, newComments);
+        return new BasicRoseSetting<>(this.serializer, this.key, defaultValueSupplier, newComments);
     }
 
     @Override

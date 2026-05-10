@@ -2,7 +2,6 @@ package dev.rosewood.rosegarden.config;
 
 import dev.rosewood.rosegarden.utils.RoseGardenUtils;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.persistence.PersistentDataType;
 
 /**
  * Allows reading and writing an object type to/from YAML.
@@ -134,11 +133,5 @@ public interface SettingSerializer<T> {
     T fromStringKey(String key);
 
     Class<T> getType();
-
-    PDCAdapter<T> pdc();
-
-    interface PDCAdapter<T> {
-        PDCDelegatingSettingSerializer<T> adapt(PersistentDataType<?, T> pdc);
-    }
 
 }
