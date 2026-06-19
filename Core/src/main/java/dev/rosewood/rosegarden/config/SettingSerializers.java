@@ -106,7 +106,7 @@ public final class SettingSerializers {
         public ConfigurationSection read(ConfigurationSection config, String key) { return config.getConfigurationSection(key); }
     };
 
-    public static final SettingSerializer<World> WORLD = new BaseSettingSerializer<World>(World.class, World::getName, Bukkit::getWorld) {
+    public static final SettingSerializer<World> WORLD = new BaseSettingSerializer<World>(World.class, world -> world.getName(), Bukkit::getWorld) {
         public void write(ConfigurationSection config, String key, World value, String... comments) { setWithComments(config, key, value, comments); }
         public World read(ConfigurationSection config, String key) {
             String worldName = config.getString(key);
