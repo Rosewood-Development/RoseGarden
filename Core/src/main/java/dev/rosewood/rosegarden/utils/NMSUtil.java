@@ -15,7 +15,12 @@ public final class NMSUtil {
         String[] parts = bukkitVersion.split("-")[0].split("\\.");
         int part1 = Integer.parseInt(parts[0]);
         int part2 = Integer.parseInt(parts[1]);
-        int part3 = parts.length > 2 ? Integer.parseInt(parts[2]) : 0;
+        int part3;
+        try {
+            part3 = parts.length > 2 ? Integer.parseInt(parts[2]) : 0;
+        } catch (NumberFormatException e) {
+            part3 = 0;
+        }
         boolean yearBasedVersioning = part1 > 1;
         VERSION_NUMBER = yearBasedVersioning ? part1 : part2;
         MINOR_VERSION_NUMBER = yearBasedVersioning ? part2 : parts.length >= 3 ? part3 : 0;
