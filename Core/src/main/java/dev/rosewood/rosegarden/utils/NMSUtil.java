@@ -12,7 +12,26 @@ public final class NMSUtil {
 
     static {
         String bukkitVersion = Bukkit.getBukkitVersion();
-        String[] parts = bukkitVersion.split("-")[0].split("\\.");
+
+        final int dashIndex = bukkitVersion.indexOf('-');
+
+        // Strip after "-"
+        if (dashIndex != -1) {
+            bukkitVersion = bukkitVersion.substring(0, dashIndex);
+        }
+
+        // Process Paper's version schema
+        final int buildIndex = bukkitVersion.indexOf(".build");
+        if (buildIndex != -1) {
+            bukkitVersion = bukkitVersion.substring(0, buildIndex);
+        } else {
+            final int localIndex = bukkitVersion.indexOf(".local");
+            if (localIndex != -1) {
+                bukkitVersion = bukkitVersion.substring(0, localIndex);
+            }
+        }
+
+        String[] parts = bukkitVersion.split("\\.");
         int part1 = Integer.parseInt(parts[0]);
         int part2 = Integer.parseInt(parts[1]);
         int part3 = parts.length > 2 ? Integer.parseInt(parts[2]) : 0;
